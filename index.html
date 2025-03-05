@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="icon" href="images/icons/favicon.png" type="image/png">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jxo OS</title>
+    <!-- For default look, you can swap between themes -->
+    <!-- Default: Windows-like theme -->
+    <link rel="stylesheet" href="assets/css/windows10.css" />
+    <!-- Or for macOS look, comment above line and use the following: -->
+    <!-- <link rel="stylesheet" href="assets/css/macos.css" /> -->
+  </head>
+  <body>
+    <script>
+      // Global variable for installed apps.
+      let installedApps = [];
+      // Track open apps (appIds) for taskbar display.
+      let openApps = [];
+
+      // Load default apps from apps/default/apps.json if not in localStorage.
+      function loadInstalledApps() {
+        return new Promise((resolve, reject) => {
+          if (localStorage.getItem('installedApps')) {
+            installedApps = JSON.parse(localStorage.getItem('installedApps'));
+            resolve();
+          } else {
+            fetch('https://jxoj.github.io/Jxo-OS/apps/default/apps.json')
+              .then(response => response.json())
+              .then(data => {
+                installedApps = data;
+                localStorage.setItem('installedApps', JSON.stringify(installedApps));
+                resolve();
+              })
+              .catch(err => {
+                console.error("Error loading default apps:", err);
+                installedApps = [];
+                resolve();
+              });
+          }
+        });
+      }
+
+      // Boot screen: shows "Jx" and a loading circle.
+      function showBootScreen() {
+        document.body.innerHTML = `
+          <div id="boot-screen" class="boot-screen">
+            <div class="boot-content">
+                <span class="boot-title" style="font-size:4em;">Jx</span>
+              <div class="loading-circle"></div>
+            </div>
+          </div>
+        `;
+        setTimeout(() => {
+          loadOS();
+          showPasswordModal();
+        }, 2000);
+      }
+
+      // Load OS: desktop, floating taskbar, and search menu.
+      function loadOS() {
+        document.body.innerHTML = `
+          <div id="desktop"></div>
+          <div id="taskbar" class="taskbar">
+            <!-- Moved search button (❖) to the very left -->
+            <button onclick="toggleSearchMenu()" class="taskbar-button search-btn">❖</button>
+            <div id="open-apps"></div>
+            <div id="taskbar-right">
+              <div id="clock-container">
+                <span id="date"></span>
+                <span id="clock"></span>
+              </div>
+              <button onclick="powerOff()" class="power-button">Power Down</button>
+            </div>
+          </div>
+          <div id="search-menu" class="search-menu" style="display:none;">
+            <span class="close-btn" onclick="toggleSearchMenu()">✖</span>
+            <input type="text" placeholder="Search apps..." oninput="filterApps(this.value)">
+            <div id="app-list"></div>
+          </div>
+        `;
+        renderDesktop();
+        updateTaskbar();
+        setInterval(updateClock, 1000);
+        loadAppsFromJstore();
+      }
+
+      // Load and save background (fixed so images remain in place).
+      function loadBackground() {
+        const background = localStorage.getItem("background");
+        if (background) {
+          document.body.style.background = background;
+        }
+      }
+      function saveBackground(backgroundValue) {
+        localStorage.setItem("background", backgroundValue);
+        loadBackground();
+      }
+
+      // Prompt for changing background (color or image).
+      function changeBackgroundPrompt() {
+        const choice = prompt("Enter 'color' for background color or 'image' for background image:");
+        if (choice === 'color') {
+          const color = prompt("Enter a background color (e.g., '#555', 'grey'):");
+          if (color) {
+            document.body.style.background = color;
+            saveBackground(color);
+          }
+        } else if (choice === 'image') {
+          const imageUrl = prompt("Enter background image URL:");
+          if (imageUrl) {
+            const bg = `url(${imageUrl}) center center/cover no-repeat fixed`;
+            document.body.style.background = bg;
+            saveBackground(bg);
+          }
+        }
+      }
+      // New functions for background change using RGB or image URL.
+      function changeBackground(r, g, b) {
+        const color = `rgb(${r}, ${g}, ${b})`;
+        document.body.style.background = color;
+        saveBackground(color);
+      }
+      function changeBackgroundimage(url) {
+        const bg = `url(${url}) center center/cover no-repeat fixed`;
+        document.body.style.background = bg;
+        saveBackground(bg);
+      }
+      changeBackgroundimage("images/backgrounds/wallpaper7.jpg")
+
+      // Render desktop icons.
+      function renderDesktop() {
+        const desktop = document.getElementById("desktop");
+        desktop.innerHTML = '';
+        installedApps.forEach(app => {
+          const appShortcut = document.createElement("div");
+          appShortcut.classList.add("desktop-app");
+          appShortcut.innerHTML = `<img src="${app.image}" alt="${app.name} icon"><span>${app.name}</span>`;
+          appShortcut.onclick = () => openAppWindow(app.appId);
+          desktop.appendChild(appShortcut);
+        });
+      }
+
+      // Open an app window and add to openApps (if not already open).
+      function openAppWindow(appId) {
+        const app = installedApps.find(app => app.appId === appId);
+        if (app) {
+          if (document.getElementById(appId)) return;
+          const appWindow = document.createElement("div");
+          appWindow.classList.add("app-window");
+          appWindow.id = appId;
+          appWindow.innerHTML = `
+            <div class="window-header">
+              <span class="window-title">${app.name}</span>
+              <div>
+                <button class="window-btn" onclick="closeWindow('${appId}')">
+                  <img src="images/icons/x.png" alt="Close">
+                </button>
+                <button class="window-btn" onclick="toggleFullscreen('${appId}')">
+                  <img src="images/icons/fullscreen.png" alt="Fullscreen">
+                </button>
+              </div>
+            </div>
+            <div class="window-content">
+              ${app.htmlContent ? app.htmlContent : `<iframe src="${app.htmlUrl}" width="100%" height="100%" style="border:none;"></iframe>`}
+            </div>
+            <div class="resize-handle"></div>
+          `;
+          document.body.appendChild(appWindow);
+          makeDraggable(appWindow);
+          makeResizable(appWindow);
+          if (!openApps.includes(appId)) {
+            openApps.push(appId);
+            updateTaskbar();
+          }
+        }
+      }
+      // Close app window and update openApps.
+      function closeWindow(appId) {
+        const appWindow = document.getElementById(appId);
+        if (appWindow) {
+          appWindow.remove();
+          openApps = openApps.filter(id => id !== appId);
+          updateTaskbar();
+        }
+      }
+      function toggleFullscreen(appId) {
+        const appWindow = document.getElementById(appId);
+        if (appWindow) {
+          if (appWindow.style.position === "fixed") {
+            appWindow.style.position = "absolute";
+            appWindow.style.width = "600px";
+            appWindow.style.height = "400px";
+          } else {
+            appWindow.style.position = "fixed";
+            appWindow.style.top = "0";
+            appWindow.style.left = "0";
+            appWindow.style.width = "100vw";
+            appWindow.style.height = "100vh";
+          }
+        }
+      }
+
+      // Draggable functionality for app windows.
+      function makeDraggable(windowElement) {
+        const header = windowElement.querySelector(".window-header");
+        let isDragging = false;
+        let offsetX = 0, offsetY = 0;
+        header.addEventListener("mousedown", (e) => {
+          isDragging = true;
+          offsetX = e.clientX - windowElement.offsetLeft;
+          offsetY = e.clientY - windowElement.offsetTop;
+        });
+        windowElement.addEventListener("mousemove", (e) => {
+          if (isDragging) {
+            windowElement.style.left = `${e.clientX - offsetX}px`;
+            windowElement.style.top = `${e.clientY - offsetY}px`;
+          }
+        });
+        windowElement.addEventListener("mouseup", () => {
+          isDragging = false;
+        });
+      }
+      // Resizable functionality for app windows.
+      function makeResizable(windowElement) {
+        const resizeHandle = windowElement.querySelector(".resize-handle");
+        let isResizing = false;
+        let lastX, lastY;
+        resizeHandle.addEventListener("mousedown", (e) => {
+          isResizing = true;
+          lastX = e.clientX;
+          lastY = e.clientY;
+          e.preventDefault();
+        });
+        window.addEventListener("mousemove", (e) => {
+          if (isResizing) {
+            const dx = e.clientX - lastX;
+            const dy = e.clientY - lastY;
+            windowElement.style.width = (windowElement.offsetWidth + dx) + "px";
+            windowElement.style.height = (windowElement.offsetHeight + dy) + "px";
+            lastX = e.clientX;
+            lastY = e.clientY;
+          }
+        });
+        window.addEventListener("mouseup", () => {
+          isResizing = false;
+        });
+      }
+
+      // Update clock display.
+      function updateClock() {
+        const now = new Date();
+        const clock = document.getElementById("clock");
+        const date = document.getElementById("date");
+        if (clock && date) {
+          clock.innerText = now.toLocaleTimeString();
+          date.innerText = now.toLocaleDateString();
+        }
+      }
+
+      // Toggle search menu visibility.
+      function toggleSearchMenu() {
+        const menu = document.getElementById("search-menu");
+        menu.style.display = (menu.style.display === "block") ? "none" : "block";
+      }
+      // Search apps: display image and name sorted alphabetically.
+      function filterApps(query) {
+        const appList = document.getElementById("app-list");
+        appList.innerHTML = "";
+        let apps = installedApps.slice().sort((a, b) => a.name.localeCompare(b.name));
+        if (query) {
+          apps = apps.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
+        }
+        apps.forEach(app => {
+          const appItem = document.createElement("div");
+          appItem.classList.add("app-item");
+          appItem.innerHTML = `<img src="${app.image}" alt="${app.name} icon"><span>${app.name}</span>`;
+          appItem.onclick = () => openAppWindow(app.appId);
+          appList.appendChild(appItem);
+        });
+      }
+
+      // Load apps for Jstore from primary source.
+      function loadAppsFromJstore() {
+        const jstore = installedApps.find(app => app.appId === 'jstoreApp');
+        if (jstore) {
+          const availableAppsList = document.getElementById("available-apps");
+          fetch('https://jasset.netlify.app/jos/apps.json')
+            .then(response => response.json())
+            .then(data => {
+              data.forEach(app => {
+                const appItem = document.createElement("div");
+                appItem.classList.add("app-item");
+                appItem.innerHTML = `
+                  <img src="${app.image}" alt="${app.name} icon">
+                  <span>${app.name}</span>
+                  <button onclick="installApp('${app.name}', '${app.image}', '${app.iframeUrl}')">Install</button>
+                `;
+                availableAppsList.appendChild(appItem);
+              });
+            })
+            .catch(error => console.error('Error loading apps:', error));
+        }
+      }
+      function installApp(name, image, iframeUrl) {
+        const newApp = {
+          name: name,
+          appId: name.toLowerCase().replace(/\s+/g, ''),
+          image: image,
+          htmlUrl: iframeUrl
+        };
+        installedApps.push(newApp);
+        localStorage.setItem("installedApps", JSON.stringify(installedApps));
+        renderDesktop();
+      }
+      // Uninstall app by name.
+      function uninstallApp(appName) {
+        installedApps = installedApps.filter(app => app.name.toLowerCase() !== appName.toLowerCase());
+        localStorage.setItem("installedApps", JSON.stringify(installedApps));
+        renderDesktop();
+      }
+      function uninstallAppPrompt() {
+        const appName = prompt("Enter the name of the app to uninstall:");
+        if (appName) {
+          uninstallApp(appName);
+        }
+      }
+
+      // Update taskbar with open apps' icons (32×32).
+      function updateTaskbar() {
+        const openContainer = document.getElementById("open-apps");
+        openContainer.innerHTML = "";
+        openApps.forEach(appId => {
+          const app = installedApps.find(app => app.appId === appId);
+          if (app) {
+            const icon = document.createElement("img");
+            icon.src = app.image;
+            icon.alt = app.name;
+            icon.title = app.name;
+            icon.style.width = "32px";
+            icon.style.height = "32px";
+            icon.style.cursor = "pointer";
+            icon.onclick = () => bringToFront(appId);
+            openContainer.appendChild(icon);
+          }
+        });
+      }
+      // Bring an app window to front.
+      function bringToFront(appId) {
+        const appWindow = document.getElementById(appId);
+        if (appWindow) {
+          document.body.appendChild(appWindow);
+        }
+      }
+
+      // Power Down: display shutdown screen with a Boot Back button.
+      function powerOff() {
+        document.body.innerHTML = `
+          <div class="shutdown-screen">
+            <h2>Shutting down...</h2>
+            <p>Goodbye!</p>
+            <button onclick="location.reload()">Boot Back</button>
+          </div>
+        `;
+      }
+
+      // Username and Password Modal:
+      // When no username is stored, prompt for username above the password input.
+      function showPasswordModal() {
+        let modal = document.createElement("div");
+        modal.classList.add("password-modal");
+        if (localStorage.getItem("password")) {
+          // If username is already set, display it above password input.
+          let usernameField = localStorage.getItem("username") ? 
+            `<p>Welcome, ${localStorage.getItem("username")}!</p>` : 
+            `<input type="text" id="username-input" placeholder="Enter your username">`;
+          modal.innerHTML = `
+            <div class="password-modal-content">
+              <img src="images/icons/profile/profile.png" alt="Profile Icon">
+              ${usernameField}
+              <h3>Enter Password</h3>
+              <input type="password" id="entered-password" placeholder="Enter password">
+              <br>
+              <button onclick="checkPassword()">Enter</button>
+            </div>
+          `;
+        } else {
+          // First time: ask for both username and password.
+          modal.innerHTML = `
+            <div class="password-modal-content">
+              <img src="images/icons/profile/profile.png" alt="Profile Icon">
+              <h3>Set up your account</h3>
+              <input type="text" id="username-input" placeholder="Enter your username">
+              <br>
+              <input type="password" id="new-password" placeholder="Enter new password">
+              <br>
+              <button onclick="setCredentials()">Set Credentials</button>
+            </div>
+          `;
+        }
+        document.body.appendChild(modal);
+      }
+      function checkPassword() {
+        const entered = document.getElementById("entered-password").value;
+        const stored = localStorage.getItem("password");
+        if (entered === stored) {
+          document.querySelector(".password-modal").remove();
+        } else {
+          alert("Incorrect password!");
+        }
+      }
+      function setCredentials() {
+        const username = document.getElementById("username-input").value;
+        const newPass = document.getElementById("new-password").value;
+        if (username && newPass) {
+          localStorage.setItem("username", username);
+          localStorage.setItem("password", newPass);
+          document.querySelector(".password-modal").remove();
+        } else {
+          alert("Username and password cannot be empty!");
+        }
+      }
+      // New function: change username.
+      function changeUsername(newUsername) {
+        if (newUsername) {
+          localStorage.setItem("username", newUsername);
+          alert("Username changed successfully!");
+        }
+      }
+      // Stub for system settings.
+      function showSystemSettings() {
+        alert("System settings would appear here.");
+      }
+
+      // On DOM load, load default apps then show boot screen.
+      document.addEventListener("DOMContentLoaded", () => {
+        loadInstalledApps().then(() => {
+          showBootScreen();
+          loadBackground();
+        });
+      });
+    </script>
+  </body>
+</html>
