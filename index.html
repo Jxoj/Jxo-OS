@@ -5,11 +5,75 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jxo OS</title>
-    <!-- For default look, you can swap between themes -->
-    <!-- Default: Windows-like theme -->
-    <link rel="stylesheet" href="assets/css/windows10.css" />
-    <!-- Or for macOS look, comment above line and use the following: -->
-    <!-- <link rel="stylesheet" href="assets/css/macos.css" /> -->
+
+    <link rel="stylesheet" href="assets/css/default.css" /> 
+    <style>
+      /* Dark Theme Base */
+      body {
+        background-color: #121212;
+        color: #e0e0e0;
+      }
+      .taskbar {
+        background-color: #1f1f1f;
+        border-top: 1px solid #333;
+      }
+      /* Adjust desktop icon scale */
+      .desktop-app img {
+        width: 64px;
+        height: 64px;
+      }
+      /* Open apps icons on taskbar */
+      #open-apps img {
+        width: 32px;
+        height: 32px;
+      }
+      /* Start menu (search menu) styling modifications */
+      #search-menu {
+        background-color: #2a2a2a;
+        max-height: 70vh; /* Longer height */
+        overflow-y: auto; /* Add vertical scroll bar */
+        padding: 10px;
+      }
+      /* Use same close icon as app windows for start menu close button */
+      #search-menu .close-btn {
+        cursor: pointer;
+      }
+      #search-menu .close-btn img {
+        width: 16px;
+        height: 16px;
+      }
+      /* Search input styling */
+      #search-menu input[type="text"] {
+        width: calc(100% - 20px);
+        padding: 5px;
+        margin-bottom: 10px;
+        background-color: #444;
+        border: 1px solid #666;
+        color: #e0e0e0;
+      }
+      /* App list styling */
+      #app-list {
+        display: flex;
+        flex-direction: column;
+      }
+      #app-list .app-item {
+        display: flex;
+        align-items: center;
+        padding: 5px;
+        border-bottom: 1px solid #444;
+      }
+      #app-list .app-item img {
+        width: 32px;
+        height: 32px;
+        margin-right: 10px;
+      }
+      /* Set appropriate size for start menu icon in taskbar */
+      #start-button img {
+        width: 24px;
+        height: 24px;
+        vertical-align: middle;
+      }
+    </style>
   </head>
   <body>
     <script>
@@ -25,7 +89,7 @@
             installedApps = JSON.parse(localStorage.getItem('installedApps'));
             resolve();
           } else {
-            fetch('https://jxoj.github.io/Jxo-OS/apps/default/apps.json')
+            fetch('apps/default/apps.json')
               .then(response => response.json())
               .then(data => {
                 installedApps = data;
@@ -62,8 +126,7 @@
         document.body.innerHTML = `
           <div id="desktop"></div>
           <div id="taskbar" class="taskbar">
-            <!-- Moved search button (❖) to the very left -->
-            <button onclick="toggleSearchMenu()" class="taskbar-button search-btn">❖</button>
+            <button id="start-button" onclick="toggleSearchMenu()" class="taskbar-button search-btn">❖</button>
             <div id="open-apps"></div>
             <div id="taskbar-right">
               <div id="clock-container">
@@ -74,7 +137,9 @@
             </div>
           </div>
           <div id="search-menu" class="search-menu" style="display:none;">
-            <span class="close-btn" onclick="toggleSearchMenu()">✖</span>
+            <span class="close-btn" onclick="toggleSearchMenu()">
+              <img src="images/icons/x.png" alt="Close">
+            </span>
             <input type="text" placeholder="Search apps..." oninput="filterApps(this.value)">
             <div id="app-list"></div>
           </div>
@@ -261,7 +326,13 @@
       // Toggle search menu visibility.
       function toggleSearchMenu() {
         const menu = document.getElementById("search-menu");
-        menu.style.display = (menu.style.display === "block") ? "none" : "block";
+        // When opening, also populate all apps if search is empty.
+        if (menu.style.display === "none" || menu.style.display === "") {
+          filterApps("");
+          menu.style.display = "block";
+        } else {
+          menu.style.display = "none";
+        }
       }
       // Search apps: display image and name sorted alphabetically.
       function filterApps(query) {
@@ -431,7 +502,36 @@
       function showSystemSettings() {
         alert("System settings would appear here.");
       }
-
+      
+      // New function: change OS theme.
+      function changeOS(osName) {
+        // Select the stylesheet link element (assumes there's only one)
+        const stylesheet = document.querySelector('link[rel="stylesheet"]');
+        if (!stylesheet) {
+          console.error("Stylesheet link element not found.");
+          return;
+        }
+  
+        // Get the start button element by its ID
+        const startBtn = document.getElementById("start-button");
+        if (!startBtn) {
+          console.error("Start button with id 'start-button' not found.");
+          return;
+        }
+  
+        // If osName is "default", revert to the default css and Unicode start icon (❖)
+        if (osName === "default") {
+          stylesheet.href = "assets/css/default.css";
+          startBtn.innerHTML = "❖";
+        } else {
+          // Change to the specified OS's stylesheet
+          stylesheet.href = "assets/css/" + osName + ".css";
+          // Set the start button to use an image.
+          // The onerror attribute switches the file extension from png to jpg if needed.
+          startBtn.innerHTML = `<img src="images/icons/${osName}/start.png" onerror="this.onerror=null; this.src='/images/icons/${osName}/start.jpg'" alt="Start">`;
+        }
+      }
+      
       // On DOM load, load default apps then show boot screen.
       document.addEventListener("DOMContentLoaded", () => {
         loadInstalledApps().then(() => {
