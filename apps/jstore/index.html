@@ -102,27 +102,27 @@
 
                     // Event listeners for buttons
                     installButton.addEventListener('click', function() {
-                        const appData = {
+                        // Send message to parent to install the app
+                        window.parent.postMessage({
                             type: 'installApp',
-                            name: app.name,
-                            icon: app.icon,
-                            url: app.url
-                        };
-                        window.parent.postMessage(appData, '*');
+                            data: ['"' + app.name + '"', '"' + app.icon + '"', '"' + app.url + '"']
+                        }, '*');
+
                         console.log(`Install clicked for: ${app.name}`);
-                        installButton.style.display = 'none';
-                        uninstallButton.style.display = 'inline-block';
+                        installButton.style.display = 'none';  // Hide the install button
+                        uninstallButton.style.display = 'inline-block';  // Show the uninstall button
                     });
 
                     uninstallButton.addEventListener('click', function() {
-                        const appData = {
+                        // Send message to parent to uninstall the app
+                        window.parent.postMessage({
                             type: 'uninstallApp',
-                            name: app.name
-                        };
-                        window.parent.postMessage(appData, '*');
+                            data: ['"' + app.name + '"']
+                        }, '*');
+
                         console.log(`Uninstall clicked for: ${app.name}`);
-                        installButton.style.display = 'inline-block';
-                        uninstallButton.style.display = 'none';
+                        installButton.style.display = 'inline-block';  // Show the install button
+                        uninstallButton.style.display = 'none';  // Hide the uninstall button
                     });
 
                     appElement.appendChild(installButton);
