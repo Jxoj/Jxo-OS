@@ -102,19 +102,27 @@
 
                     // Event listeners for buttons
                     installButton.addEventListener('click', function() {
-                        // Call installApp when install button is clicked
-                        installApp(app.name, app.icon, app.url);
+                        const appData = {
+                            type: 'installApp',
+                            name: app.name,
+                            icon: app.icon,
+                            url: app.url
+                        };
+                        window.parent.postMessage(appData, '*');
                         console.log(`Install clicked for: ${app.name}`);
-                        installButton.style.display = 'none';  // Hide the install button
-                        uninstallButton.style.display = 'inline-block';  // Show the uninstall button
+                        installButton.style.display = 'none';
+                        uninstallButton.style.display = 'inline-block';
                     });
 
                     uninstallButton.addEventListener('click', function() {
-                        // Call uninstallApp when uninstall button is clicked
-                        uninstallApp(app.name);
+                        const appData = {
+                            type: 'uninstallApp',
+                            name: app.name
+                        };
+                        window.parent.postMessage(appData, '*');
                         console.log(`Uninstall clicked for: ${app.name}`);
-                        installButton.style.display = 'inline-block';  // Show the install button
-                        uninstallButton.style.display = 'none';  // Hide the uninstall button
+                        installButton.style.display = 'inline-block';
+                        uninstallButton.style.display = 'none';
                     });
 
                     appElement.appendChild(installButton);
