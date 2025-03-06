@@ -1,6 +1,6 @@
 window.addEventListener('message', function(event) {
     // Security check to ensure the message is from the correct origin
-    if (event.origin !== 'https://your-iframe-origin.com') {
+    if (event.origin !== 'https://jxoj.github.io/Jxo-OS/apps/jstore/index.html') {
         return; // Ensure you're accepting messages only from the expected iframe source
     }
 
