@@ -100,15 +100,19 @@
                     uninstallButton.textContent = 'Uninstall';
                     uninstallButton.className = 'uninstall-btn';
 
+                    // Event listeners for buttons
                     installButton.addEventListener('click', function() {
-                        installApp1(app);
-                        console.log(`Installed: ${app.name}`);  // Log the app name when installed
+                        // Call installApp when install button is clicked
+                        installApp(app.name, app.icon, app.url);
+                        console.log(`Install clicked for: ${app.name}`);
                         installButton.style.display = 'none';  // Hide the install button
                         uninstallButton.style.display = 'inline-block';  // Show the uninstall button
                     });
 
                     uninstallButton.addEventListener('click', function() {
-                        uninstallApp1(app.name);
+                        // Call uninstallApp when uninstall button is clicked
+                        uninstallApp(app.name);
+                        console.log(`Uninstall clicked for: ${app.name}`);
                         installButton.style.display = 'inline-block';  // Show the install button
                         uninstallButton.style.display = 'none';  // Hide the uninstall button
                     });
@@ -123,16 +127,6 @@
                 const query = searchBar.value.toLowerCase();
                 filteredApps = apps.filter(app => app.name.toLowerCase().includes(query));
                 displayApps(filteredApps);
-            }
-
-            function installApp1(app) {
-                // Pass the app's dynamic values to install
-                installApp(app.name, app.icon, app.url);
-            }
-
-            function uninstallApp1(appName) {
-                // Pass the dynamic app name to uninstall
-                uninstallApp(appName);
             }
 
             searchBar.addEventListener('input', filterApps);
