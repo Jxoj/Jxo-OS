@@ -82,36 +82,17 @@
       // Track open apps (appIds) for taskbar display.
       let openApps = [];
 
-      // Load default apps from apps/default/apps.txt if not in localStorage.
+      // Load default apps from apps/default/apps.json if not in localStorage.
       function loadInstalledApps() {
         return new Promise((resolve, reject) => {
           if (localStorage.getItem('installedApps')) {
             installedApps = JSON.parse(localStorage.getItem('installedApps'));
             resolve();
           } else {
-            fetch('apps/default/apps.txt')
-              .then(response => response.text())
-              .then(text => {
-                // Parse the apps.txt file.
-                // Assumes each app entry is separated by an empty line.
-                const apps = [];
-                const entries = text.trim().split(/\n\s*\n/);
-                entries.forEach(entry => {
-                  const app = {};
-                  // Split each entry into lines and then into key/value pairs.
-                  entry.split('\n').forEach(line => {
-                    let [key, ...rest] = line.split(':');
-                    if (key && rest.length) {
-                      // Join the remaining parts in case the value contains colons.
-                      app[key.trim()] = rest.join(':').trim();
-                    }
-                  });
-                  // Only add non-empty objects.
-                  if (Object.keys(app).length > 0) {
-                    apps.push(app);
-                  }
-                });
-                installedApps = apps;
+            fetch('apps/default/apps.json')
+              .then(response => response.json())
+              .then(data => {
+                installedApps = data;
                 localStorage.setItem('installedApps', JSON.stringify(installedApps));
                 resolve();
               })
@@ -369,6 +350,29 @@
           appList.appendChild(appItem);
         });
       }
+
+      // Load apps for Jstore from primary source.
+      function loadAppsFromJstore() {
+        const jstore = installedApps.find(app => app.appId === 'jstoreApp');
+        if (jstore) {
+          const availableAppsList = document.getElementById("available-apps");
+          fetch('https://jasset.netlify.app/jos/apps.json')
+            .then(response => response.json())
+            .then(data => {
+              data.forEach(app => {
+                const appItem = document.createElement("div");
+                appItem.classList.add("app-item");
+                appItem.innerHTML = `
+                  <img src="${app.image}" alt="${app.name} icon">
+                  <span>${app.name}</span>
+                  <button onclick="installApp('${app.name}', '${app.image}', '${app.iframeUrl}')">Install</button>
+                `;
+                availableAppsList.appendChild(appItem);
+              });
+            })
+            .catch(error => console.error('Error loading apps:', error));
+        }
+      }
       function installApp(name, image, iframeUrl) {
         const newApp = {
           name: name,
@@ -528,20 +532,19 @@
         }
       }
       
-      // New function: onlyDoOnce - executes a function only once using localStorage as a flag.
-      function onlyDoOnce(fn) {
-        // Check if the function has already been executed by looking for the flag in localStorage
-        if (!localStorage.getItem(fn.name)) {
-            // If not executed, call the function
-            fn();
-            // Store the flag in localStorage to indicate the function has been executed
-            localStorage.setItem(fn.name, 'executed');
-        }
-      }
-      
       // On DOM load, load default apps then show boot screen.
       document.addEventListener("DOMContentLoaded", () => {
         loadInstalledApps().then(() => {
+          // Inject Jstore app if not already present
+          if (!installedApps.some(app => app.appId === "jstore")) {
+            installedApps.push({
+              name: "Jstore",
+              appId: "jstore",
+              image: "https://jxoj.github.io/Jxo-OS/apps/icons/jstore.png",
+              htmlUrl: "https://jxoj.github.io/Jxo-OS/apps/jstore.html"
+            });
+            localStorage.setItem("installedApps", JSON.stringify(installedApps));
+          }
           showBootScreen();
           loadBackground();
         });
