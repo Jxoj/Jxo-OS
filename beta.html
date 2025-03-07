@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <link rel="icon" href="images/icons/favicon.png" type="image/png">
+    <link rel="icon" href="images/icons/favicon.png" type="image/png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jxo OS</title>
-
-    <link rel="stylesheet" href="assets/css/default.css" /> 
+    <link rel="stylesheet" href="assets/css/default.css" />
     <style>
       /* Dark Theme Base */
       body {
@@ -27,14 +26,13 @@
         width: 32px;
         height: 32px;
       }
-      /* Start menu (search menu) styling modifications */
+      /* Start menu styling modifications */
       #search-menu {
         background-color: #2a2a2a;
-        max-height: 70vh; /* Longer height */
-        overflow-y: auto; /* Add vertical scroll bar */
+        max-height: 70vh;
+        overflow-y: auto;
         padding: 10px;
       }
-      /* Use same close icon as app windows for start menu close button */
       #search-menu .close-btn {
         cursor: pointer;
       }
@@ -42,7 +40,6 @@
         width: 16px;
         height: 16px;
       }
-      /* Search input styling */
       #search-menu input[type="text"] {
         width: calc(100% - 20px);
         padding: 5px;
@@ -51,7 +48,6 @@
         border: 1px solid #666;
         color: #e0e0e0;
       }
-      /* App list styling */
       #app-list {
         display: flex;
         flex-direction: column;
@@ -67,7 +63,6 @@
         height: 32px;
         margin-right: 10px;
       }
-      /* Set appropriate size for start menu icon in taskbar */
       #start-button img {
         width: 24px;
         height: 24px;
@@ -110,7 +105,7 @@
         document.body.innerHTML = `
           <div id="boot-screen" class="boot-screen">
             <div class="boot-content">
-                <span class="boot-title" style="font-size:4em;">Jx</span>
+              <span class="boot-title" style="font-size:4em;">Jx</span>
               <div class="loading-circle"></div>
             </div>
           </div>
@@ -161,8 +156,6 @@
         localStorage.setItem("background", backgroundValue);
         loadBackground();
       }
-
-      // Prompt for changing background (color or image).
       function changeBackgroundPrompt() {
         const choice = prompt("Enter 'color' for background color or 'image' for background image:");
         if (choice === 'color') {
@@ -180,7 +173,6 @@
           }
         }
       }
-      // New functions for background change using RGB or image URL.
       function changeBackground(r, g, b) {
         const color = `rgb(${r}, ${g}, ${b})`;
         document.body.style.background = color;
@@ -265,8 +257,6 @@
           }
         }
       }
-
-      // Draggable functionality for app windows.
       function makeDraggable(windowElement) {
         const header = windowElement.querySelector(".window-header");
         let isDragging = false;
@@ -286,7 +276,6 @@
           isDragging = false;
         });
       }
-      // Resizable functionality for app windows.
       function makeResizable(windowElement) {
         const resizeHandle = windowElement.querySelector(".resize-handle");
         let isResizing = false;
@@ -311,8 +300,6 @@
           isResizing = false;
         });
       }
-
-      // Update clock display.
       function updateClock() {
         const now = new Date();
         const clock = document.getElementById("clock");
@@ -322,11 +309,8 @@
           date.innerText = now.toLocaleDateString();
         }
       }
-
-      // Toggle search menu visibility.
       function toggleSearchMenu() {
         const menu = document.getElementById("search-menu");
-        // When opening, also populate all apps if search is empty.
         if (menu.style.display === "none" || menu.style.display === "") {
           filterApps("");
           menu.style.display = "block";
@@ -334,7 +318,6 @@
           menu.style.display = "none";
         }
       }
-      // Search apps: display image and name sorted alphabetically.
       function filterApps(query) {
         const appList = document.getElementById("app-list");
         appList.innerHTML = "";
@@ -350,27 +333,27 @@
           appList.appendChild(appItem);
         });
       }
-
-      // Load apps for Jstore from primary source.
       function loadAppsFromJstore() {
-        const jstore = installedApps.find(app => app.appId === 'jstoreApp');
+        const jstore = installedApps.find(app => app.appId === 'jstore');
         if (jstore) {
           const availableAppsList = document.getElementById("available-apps");
-          fetch('https://jasset.netlify.app/jos/apps.json')
-            .then(response => response.json())
-            .then(data => {
-              data.forEach(app => {
-                const appItem = document.createElement("div");
-                appItem.classList.add("app-item");
-                appItem.innerHTML = `
-                  <img src="${app.image}" alt="${app.name} icon">
-                  <span>${app.name}</span>
-                  <button onclick="installApp('${app.name}', '${app.image}', '${app.iframeUrl}')">Install</button>
-                `;
-                availableAppsList.appendChild(appItem);
-              });
-            })
-            .catch(error => console.error('Error loading apps:', error));
+          if (availableAppsList) {
+            fetch('https://jasset.netlify.app/jos/apps.json')
+              .then(response => response.json())
+              .then(data => {
+                data.forEach(app => {
+                  const appItem = document.createElement("div");
+                  appItem.classList.add("app-item");
+                  appItem.innerHTML = `
+                    <img src="${app.image}" alt="${app.name} icon">
+                    <span>${app.name}</span>
+                    <button onclick="installApp('${app.name}', '${app.image}', '${app.iframeUrl}')">Install</button>
+                  `;
+                  availableAppsList.appendChild(appItem);
+                });
+              })
+              .catch(error => console.error('Error loading apps:', error));
+          }
         }
       }
       function installApp(name, image, iframeUrl) {
@@ -384,7 +367,6 @@
         localStorage.setItem("installedApps", JSON.stringify(installedApps));
         renderDesktop();
       }
-      // Uninstall app by name.
       function uninstallApp(appName) {
         installedApps = installedApps.filter(app => app.name.toLowerCase() !== appName.toLowerCase());
         localStorage.setItem("installedApps", JSON.stringify(installedApps));
@@ -396,8 +378,6 @@
           uninstallApp(appName);
         }
       }
-
-      // Update taskbar with open apps' icons (32×32).
       function updateTaskbar() {
         const openContainer = document.getElementById("open-apps");
         openContainer.innerHTML = "";
@@ -416,15 +396,12 @@
           }
         });
       }
-      // Bring an app window to front.
       function bringToFront(appId) {
         const appWindow = document.getElementById(appId);
         if (appWindow) {
           document.body.appendChild(appWindow);
         }
       }
-
-      // Power Down: display shutdown screen with a Boot Back button.
       function powerOff() {
         document.body.innerHTML = `
           <div class="shutdown-screen">
@@ -434,16 +411,12 @@
           </div>
         `;
       }
-
-      // Username and Password Modal:
-      // When no username is stored, prompt for username above the password input.
       function showPasswordModal() {
         let modal = document.createElement("div");
         modal.classList.add("password-modal");
         if (localStorage.getItem("password")) {
-          // If username is already set, display it above password input.
-          let usernameField = localStorage.getItem("username") ? 
-            `<p>Welcome, ${localStorage.getItem("username")}!</p>` : 
+          let usernameField = localStorage.getItem("username") ?
+            `<p>Welcome, ${localStorage.getItem("username")}!</p>` :
             `<input type="text" id="username-input" placeholder="Enter your username">`;
           modal.innerHTML = `
             <div class="password-modal-content">
@@ -456,7 +429,6 @@
             </div>
           `;
         } else {
-          // First time: ask for both username and password.
           modal.innerHTML = `
             <div class="password-modal-content">
               <img src="images/icons/profile/profile.png" alt="Profile Icon">
@@ -491,43 +463,31 @@
           alert("Username and password cannot be empty!");
         }
       }
-      // New function: change username.
       function changeUsername(newUsername) {
         if (newUsername) {
           localStorage.setItem("username", newUsername);
           alert("Username changed successfully!");
         }
       }
-      // Stub for system settings.
       function showSystemSettings() {
         alert("System settings would appear here.");
       }
-      
-      // New function: change OS theme.
       function changeOS(osName) {
-        // Select the stylesheet link element (assumes there's only one)
         const stylesheet = document.querySelector('link[rel="stylesheet"]');
         if (!stylesheet) {
           console.error("Stylesheet link element not found.");
           return;
         }
-  
-        // Get the start button element by its ID
         const startBtn = document.getElementById("start-button");
         if (!startBtn) {
           console.error("Start button with id 'start-button' not found.");
           return;
         }
-  
-        // If osName is "default", revert to the default css and Unicode start icon (❖)
         if (osName === "default") {
           stylesheet.href = "assets/css/default.css";
           startBtn.innerHTML = "❖";
         } else {
-          // Change to the specified OS's stylesheet
           stylesheet.href = "assets/css/" + osName + ".css";
-          // Set the start button to use an image.
-          // The onerror attribute switches the file extension from png to jpg if needed.
           startBtn.innerHTML = `<img src="images/icons/${osName}/start.png" onerror="this.onerror=null; this.src='/images/icons/${osName}/start.jpg'" alt="Start">`;
         }
       }
@@ -535,13 +495,150 @@
       // On DOM load, load default apps then show boot screen.
       document.addEventListener("DOMContentLoaded", () => {
         loadInstalledApps().then(() => {
-          // Inject Jstore app if not already present
+          // Inject the integrated Jstore app if not already present.
           if (!installedApps.some(app => app.appId === "jstore")) {
             installedApps.push({
               name: "Jstore",
               appId: "jstore",
               image: "https://jxoj.github.io/Jxo-OS/apps/icons/jstore.png",
-              htmlUrl: "https://jxoj.github.io/Jxo-OS/apps/jstore.html"
+              htmlContent: `
+                <div id="jstore-content">
+                  <h1>Jstore</h1>
+                  <input id="search-bar" type="text" placeholder="Search for apps...">
+                  <div class="app-container" id="app-container"></div>
+                </div>
+                <style>
+                  /* Scoped Jstore styles */
+                  #jstore-content {
+                    font-family: Arial, sans-serif;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f0f0f0;
+                  }
+                  #jstore-content #search-bar {
+                    margin-top: 20px;
+                    padding: 10px;
+                    width: 300px;
+                    border-radius: 5px;
+                    border: 1px solid #ccc;
+                  }
+                  #jstore-content .app-container {
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                    margin-top: 20px;
+                  }
+                  #jstore-content .app {
+                    margin: 10px;
+                    text-align: center;
+                  }
+                  #jstore-content .app img {
+                    width: 50px;
+                    height: 50px;
+                  }
+                  #jstore-content .app button {
+                    margin-top: 5px;
+                    padding: 5px 10px;
+                    border: none;
+                    cursor: pointer;
+                    border-radius: 5px;
+                  }
+                  #jstore-content .install-btn {
+                    background-color: #4CAF50;
+                    color: white;
+                  }
+                  #jstore-content .uninstall-btn {
+                    background-color: #f44336;
+                    color: white;
+                    display: none;
+                  }
+                </style>
+                <script>
+                  (function(){
+                    let apps = [];
+                    let filteredApps = [];
+                    const appContainer = document.getElementById('app-container');
+                    const searchBar = document.getElementById('search-bar');
+                    
+                    function displayApps(appList) {
+                      appContainer.innerHTML = '';
+                      if (!appList || appList.length === 0) {
+                        appContainer.innerHTML = '<p style="color: red;">No apps found.</p>';
+                        return;
+                      }
+                      appList.forEach(app => {
+                        const appElement = document.createElement('div');
+                        appElement.className = 'app';
+                        
+                        const appIcon = document.createElement('img');
+                        appIcon.src = app.icon;
+                        appIcon.alt = app.name;
+                        appElement.appendChild(appIcon);
+                        
+                        const appName = document.createElement('p');
+                        appName.textContent = app.name;
+                        appElement.appendChild(appName);
+                        
+                        const installButton = document.createElement('button');
+                        installButton.textContent = 'Install';
+                        installButton.className = 'install-btn';
+                        
+                        const uninstallButton = document.createElement('button');
+                        uninstallButton.textContent = 'Uninstall';
+                        uninstallButton.className = 'uninstall-btn';
+                        
+                        installButton.addEventListener('click', function() {
+                          window.parent.postMessage({
+                            type: 'installApp',
+                            data: ['"' + app.name + '"', '"' + app.icon + '"', '"' + app.url + '"']
+                          }, '*');
+                          console.log(\`Install clicked for: \${app.name}\`);
+                          installButton.style.display = 'none';
+                          uninstallButton.style.display = 'inline-block';
+                        });
+                        
+                        uninstallButton.addEventListener('click', function() {
+                          window.parent.postMessage({
+                            type: 'uninstallApp',
+                            data: ['"' + app.name + '"']
+                          }, '*');
+                          console.log(\`Uninstall clicked for: \${app.name}\`);
+                          installButton.style.display = 'inline-block';
+                          uninstallButton.style.display = 'none';
+                        });
+                        
+                        appElement.appendChild(installButton);
+                        appElement.appendChild(uninstallButton);
+                        appContainer.appendChild(appElement);
+                      });
+                    }
+                    
+                    function filterApps() {
+                      const query = searchBar.value.toLowerCase();
+                      filteredApps = apps.filter(app => app.name.toLowerCase().includes(query));
+                      displayApps(filteredApps);
+                    }
+                    
+                    searchBar.addEventListener('input', filterApps);
+                    
+                    fetch('https://jxoj.github.io/Jxo-OS/apps/apps.json')
+                      .then(response => response.json())
+                      .then(data => {
+                        console.log('Fetched apps:', data);
+                        apps = data;
+                        filteredApps = data;
+                        displayApps(filteredApps);
+                      })
+                      .catch(error => {
+                        console.error('Error fetching apps:', error);
+                        appContainer.innerHTML = '<p style="color: red;">Error loading apps.</p>';
+                      });
+                  })();
+                </script>
+              `
             });
             localStorage.setItem("installedApps", JSON.stringify(installedApps));
           }
