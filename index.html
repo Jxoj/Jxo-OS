@@ -82,29 +82,17 @@
       // Track open apps (appIds) for taskbar display.
       let openApps = [];
 
-      // Load default apps from apps/default/apps.json if not in localStorage.
       function loadInstalledApps() {
-        return new Promise((resolve, reject) => {
-          if (localStorage.getItem('installedApps')) {
-            installedApps = JSON.parse(localStorage.getItem('installedApps'));
-            resolve();
-          } else {
-            fetch('apps/default/apps.json')
-              .then(response => response.json())
-              .then(data => {
-                installedApps = data;
-                localStorage.setItem('installedApps', JSON.stringify(installedApps));
-                resolve();
-              })
-              .catch(err => {
-                console.error("Error loading default apps:", err);
-                installedApps = [];
-                resolve();
-              });
-          }
-        });
-      }
-
+  return new Promise((resolve, reject) => {
+    if (localStorage.getItem('installedApps')) {
+      installedApps = JSON.parse(localStorage.getItem('installedApps'));
+    } else {
+      // Instead of fetching from apps/default/apps.json, we set installedApps to an empty array
+      installedApps = [];
+    }
+    resolve();
+  });
+}
       // Boot screen: shows "Jx" and a loading circle.
       function showBootScreen() {
         document.body.innerHTML = `
@@ -191,7 +179,16 @@
         document.body.style.background = bg;
         saveBackground(bg);
       }
-      changeBackgroundimage("images/backgrounds/wallpaper7.jpg")
+      function onlyDoOnce(fn) {
+    // Check if the function has already been executed by looking for the flag in localStorage
+    if (!localStorage.getItem(fn.name)) {
+        // If not executed, call the function
+        fn();
+        // Store the flag in localStorage to indicate the function has been executed
+        localStorage.setItem(fn.name, 'executed');
+    }
+}
+onlyDoOnce(() => changeBackgroundImage("images/backgrounds/wallpaper7.jpg"));
 
       // Render desktop icons.
       function renderDesktop() {
