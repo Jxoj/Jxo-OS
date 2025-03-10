@@ -359,11 +359,14 @@ onlyDoOnce(() => changeBackgroundimage("images/backgrounds/wallpaper7.jpg"));
         renderDesktop();
       }
       // Uninstall app by name.
-      function uninstallApp(appName) {
-        installedApps = installedApps.filter(app => app.name.toLowerCase() !== appName.toLowerCase());
-        localStorage.setItem("installedApps", JSON.stringify(installedApps));
-        renderDesktop();
+      function uninstallAppPrompt() {
+        const appName = prompt("Enter the name of the app to uninstall:");
+        if (appName) {
+          uninstallApp(appName);
+        }
       }
+
+
       function uninstallAppPrompt() {
         const appName = prompt("Enter the name of the app to uninstall:");
         if (appName) {
@@ -514,6 +517,5 @@ onlyDoOnce(() => changeBackgroundimage("images/backgrounds/wallpaper7.jpg"));
         });
       });
     </script>
-    <script src="https://jxoj.github.io/Jxo-OS/assets/isync/iframesync.js"></script>
   </body>
 </html>
