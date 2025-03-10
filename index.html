@@ -348,28 +348,6 @@ onlyDoOnce(() => changeBackgroundImage("images/backgrounds/wallpaper7.jpg"));
         });
       }
 
-      // Load apps for Jstore from primary source.
-      function loadAppsFromJstore() {
-        const jstore = installedApps.find(app => app.appId === 'jstoreApp');
-        if (jstore) {
-          const availableAppsList = document.getElementById("available-apps");
-          fetch('https://jasset.netlify.app/jos/apps.json')
-            .then(response => response.json())
-            .then(data => {
-              data.forEach(app => {
-                const appItem = document.createElement("div");
-                appItem.classList.add("app-item");
-                appItem.innerHTML = `
-                  <img src="${app.image}" alt="${app.name} icon">
-                  <span>${app.name}</span>
-                  <button onclick="installApp('${app.name}', '${app.image}', '${app.iframeUrl}')">Install</button>
-                `;
-                availableAppsList.appendChild(appItem);
-              });
-            })
-            .catch(error => console.error('Error loading apps:', error));
-        }
-      }
       function installApp(name, image, iframeUrl) {
         const newApp = {
           name: name,
