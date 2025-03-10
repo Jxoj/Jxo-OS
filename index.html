@@ -367,12 +367,12 @@ onlyDoOnce(() => changeBackgroundimage("images/backgrounds/wallpaper7.jpg"));
       }
 
 
-      function uninstallAppPrompt() {
-        const appName = prompt("Enter the name of the app to uninstall:");
-        if (appName) {
-          uninstallApp(appName);
-        }
+      function uninstallApp(appName) {
+        installedApps = installedApps.filter(app => app.name.toLowerCase() !== appName.toLowerCase());
+        localStorage.setItem("installedApps", JSON.stringify(installedApps));
+        renderDesktop();
       }
+
 
       // Update taskbar with open apps' icons (32×32).
       function updateTaskbar() {
