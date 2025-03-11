@@ -73,6 +73,26 @@
         height: 24px;
         vertical-align: middle;
       }
+      /* Styling for the Jstore app content */
+      #jstore-container {
+        padding: 20px;
+      }
+      #jstore-container h1 {
+        margin-bottom: 20px;
+      }
+      .jstore-app-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .jstore-app-item img {
+        width: 48px;
+        height: 48px;
+        margin-right: 10px;
+      }
+      .jstore-app-item button {
+        margin-left: 10px;
+      }
     </style>
   </head>
   <body>
@@ -83,22 +103,81 @@
       let openApps = [];
 
       function loadInstalledApps() {
-  return new Promise((resolve, reject) => {
-    if (localStorage.getItem('installedApps')) {
-      installedApps = JSON.parse(localStorage.getItem('installedApps'));
-    } else {
-      // Instead of fetching from apps/default/apps.json, we set installedApps to an empty array
-      installedApps = [];
-    }
-    resolve();
-  });
-}
+        return new Promise((resolve, reject) => {
+          if (localStorage.getItem('installedApps')) {
+            installedApps = JSON.parse(localStorage.getItem('installedApps'));
+          } else {
+            // Instead of fetching from apps/default/apps.json, we set installedApps to an empty array
+            installedApps = [];
+          }
+          resolve();
+        });
+      }
+
+      // Add Jstore to the system if not already installed.
+      function installJstoreIfNotInstalled() {
+        const jstoreInstalled = installedApps.some(app => app.name === "Jstore");
+        if (!jstoreInstalled) {
+          // Use installApp to add Jstore; note the empty third parameter.
+          installApp("Jstore", "app/icons/jstore.png", "");
+          // Find the installed Jstore app and add custom HTML content for the app store.
+          const jstoreApp = installedApps.find(app => app.name === "Jstore");
+          if (jstoreApp) {
+            jstoreApp.htmlContent = `
+              <div id="jstore-container">
+                <h1>Jstore</h1>
+                <div id="jstore-app-list"></div>
+              </div>
+              <script>
+                // Function to load available apps in the Jstore.
+                function loadJstoreApps() {
+                  // For demonstration, using a hardcoded JSON array.
+                  const apps = [
+                    {
+                      "name": "Jlauncher",
+                      "icon": "https://usejxo.github.io/Jlauncher/images/icon/icon.png",
+                      "url": "https://usejxo.github.io/Jlauncher/app.html"
+                    }
+                  ];
+                  const list = document.getElementById("jstore-app-list");
+                  list.innerHTML = "";
+                  apps.forEach(app => {
+                    const appDiv = document.createElement("div");
+                    appDiv.classList.add("jstore-app-item");
+                    appDiv.innerHTML = \`
+                      <img src="\${app.icon}" alt="\${app.name} icon">
+                      <span style="flex-grow:1;">\${app.name}</span>
+                      <button onclick="installJstoreApp('\${app.name}', '\${app.icon}', '\${app.url}')">Install</button>
+                      <button onclick="uninstallJstoreApp('\${app.name}')">Uninstall</button>
+                    \`;
+                    list.appendChild(appDiv);
+                  });
+                }
+                // Install an app from Jstore using the OS's installApp function.
+                function installJstoreApp(name, icon, url) {
+                  installApp(name, icon, url);
+                  alert(name + " has been installed!");
+                }
+                // Uninstall an app from Jstore using the OS's uninstallApp function.
+                function uninstallJstoreApp(name) {
+                  uninstallApp(name);
+                  alert(name + " has been uninstalled!");
+                }
+                loadJstoreApps();
+              <\/script>
+            `;
+            // Save the updated installedApps array with the new htmlContent.
+            localStorage.setItem("installedApps", JSON.stringify(installedApps));
+          }
+        }
+      }
+
       // Boot screen: shows "Jx" and a loading circle.
       function showBootScreen() {
         document.body.innerHTML = `
           <div id="boot-screen" class="boot-screen">
             <div class="boot-content">
-                <span class="boot-title" style="font-size:4em;">Jx</span>
+              <span class="boot-title" style="font-size:4em;">Jx</span>
               <div class="loading-circle"></div>
             </div>
           </div>
@@ -179,15 +258,15 @@
         saveBackground(bg);
       }
       function onlyDoOnce(fn) {
-    // Check if the function has already been executed by looking for the flag in localStorage
-    if (!localStorage.getItem(fn.name)) {
-        // If not executed, call the function
-        fn();
-        // Store the flag in localStorage to indicate the function has been executed
-        localStorage.setItem(fn.name, 'executed');
-    }
-}
-onlyDoOnce(() => changeBackgroundimage("images/backgrounds/wallpaper7.jpg"));
+        // Check if the function has already been executed by looking for the flag in localStorage
+        if (!localStorage.getItem(fn.name)) {
+          // If not executed, call the function
+          fn();
+          // Store the flag in localStorage to indicate the function has been executed
+          localStorage.setItem(fn.name, 'executed');
+        }
+      }
+      onlyDoOnce(() => changeBackgroundimage("images/backgrounds/wallpaper7.jpg"));
 
       // Render desktop icons.
       function renderDesktop() {
@@ -365,14 +444,11 @@ onlyDoOnce(() => changeBackgroundimage("images/backgrounds/wallpaper7.jpg"));
           uninstallApp(appName);
         }
       }
-
-
       function uninstallApp(appName) {
         installedApps = installedApps.filter(app => app.name.toLowerCase() !== appName.toLowerCase());
         localStorage.setItem("installedApps", JSON.stringify(installedApps));
         renderDesktop();
       }
-
 
       // Update taskbar with open apps' icons (32×32).
       function updateTaskbar() {
@@ -512,6 +588,7 @@ onlyDoOnce(() => changeBackgroundimage("images/backgrounds/wallpaper7.jpg"));
       // On DOM load, load default apps then show boot screen.
       document.addEventListener("DOMContentLoaded", () => {
         loadInstalledApps().then(() => {
+          installJstoreIfNotInstalled();
           showBootScreen();
           loadBackground();
         });
