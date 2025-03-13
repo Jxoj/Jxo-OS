@@ -81,10 +81,14 @@
       #jstore-container h1 {
         margin-bottom: 20px;
       }
+      /* Improve the appearance of Jstore app items */
       .jstore-app-item {
+        background-color: #222;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 10px;
         display: flex;
         align-items: center;
-        margin-bottom: 10px;
       }
       .jstore-app-item img {
         width: 48px;
@@ -200,6 +204,41 @@
         });
       }
 
+      // Save OS theme to localStorage.
+      function saveOSTheme(osName) {
+        localStorage.setItem("osTheme", osName);
+      }
+
+      // Change OS theme and save.
+      function changeOS(osName) {
+        saveOSTheme(osName);
+        const stylesheet = document.querySelector('link[rel="stylesheet"]');
+        if (!stylesheet) {
+          console.error("Stylesheet link element not found.");
+          return;
+        }
+        const startBtn = document.getElementById("start-button");
+        if (!startBtn) {
+          console.error("Start button with id 'start-button' not found.");
+          return;
+        }
+        if (osName === "default") {
+          stylesheet.href = "assets/css/default.css";
+          startBtn.innerHTML = "❖";
+        } else {
+          stylesheet.href = "assets/css/" + osName + ".css";
+          startBtn.innerHTML = `<img src="images/icons/${osName}/start.png" onerror="this.onerror=null; this.src='/images/icons/${osName}/start.jpg'" alt="Start">`;
+        }
+      }
+
+      // On load, restore OS theme if saved.
+      function restoreOSTheme() {
+        const savedOS = localStorage.getItem("osTheme");
+        if (savedOS) {
+          changeOS(savedOS);
+        }
+      }
+
       // Install Jstore if not installed.
       function installJstoreIfNotInstalled() {
         const jstoreInstalled = installedApps.some((app) => app.name === "Jstore");
@@ -262,13 +301,20 @@
             if (!list) return;
             list.innerHTML = "";
             apps.forEach((app) => {
+              // Check if app is already installed.
+              const isInstalled = installedApps.some((a) => a.name === app.name);
+              let btnHtml = "";
+              if (isInstalled) {
+                btnHtml = `<button onclick="uninstallJstoreApp(&quot;${app.name}&quot;)">Uninstall</button>`;
+              } else {
+                btnHtml = `<button onclick="installJstoreApp(&quot;${app.name}&quot;,&quot;${app.icon}&quot;,&quot;${app.url}&quot;)">Install</button>`;
+              }
               const appDiv = document.createElement("div");
               appDiv.classList.add("jstore-app-item");
               appDiv.innerHTML = `
                 <img src="${app.icon}" alt="${app.name} icon">
                 <span style="flex-grow:1;">${app.name}</span>
-                <button onclick="installJstoreApp(&quot;${app.name}&quot;,&quot;${app.icon}&quot;,&quot;${app.url}&quot;)">Install</button>
-                <button onclick="uninstallJstoreApp(&quot;${app.name}&quot;)">Uninstall</button>
+                ${btnHtml}
               `;
               list.appendChild(appDiv);
             });
@@ -337,10 +383,18 @@
         const osOptions = ["default", "windows10"];
         content.innerHTML = `
           <h2>Personalization</h2>
-          <div>
+          <div style="margin-bottom:20px;">
+            <h3>Change OS Theme</h3>
+            <select id="os-dropdown">
+              ${osOptions
+                .map((os) => `<option value="${os}">${os}</option>`)
+                .join("")}
+            </select>
+          </div>
+          <div style="margin-bottom:20px;">
             <h3>Change Background Image</h3>
             <div id="bg-preview-container">
-              <img id="bg-preview" src="" alt="Background Preview" />
+              <img id="bg-preview" src="images/backgrounds/wallpaper1.jpg" alt="Background Preview" />
             </div>
             <select id="wallpaper-dropdown">
               ${wallpapers
@@ -355,16 +409,15 @@
             <h3>Change Background Color</h3>
             <input type="color" id="bg-color-picker" />
           </div>
-          <div>
-            <h3>Change OS Theme</h3>
-            <select id="os-dropdown">
-              ${osOptions
-                .map((os) => `<option value="${os}">${os}</option>`)
-                .join("")}
-            </select>
-          </div>
         `;
-        // Set default wallpaper preview to wallpaper1.
+        // Set OS dropdown to saved theme if available.
+        const osDropdown = document.getElementById("os-dropdown");
+        const savedOS = localStorage.getItem("osTheme") || "default";
+        osDropdown.value = savedOS;
+        osDropdown.addEventListener("change", function () {
+          changeOS(osDropdown.value);
+        });
+        // Wallpaper dropdown event.
         const wallpaperDropdown = document.getElementById("wallpaper-dropdown");
         const bgPreview = document.getElementById("bg-preview");
         if (wallpaperDropdown && bgPreview) {
@@ -385,11 +438,6 @@
           const b = parseInt(hex.substr(5, 2), 16);
           changeBackground(r, g, b);
         });
-        // Handle OS dropdown.
-        const osDropdown = document.getElementById("os-dropdown");
-        osDropdown.addEventListener("change", function () {
-          changeOS(osDropdown.value);
-        });
       }
 
       // Load the Account tab.
@@ -398,20 +446,18 @@
         if (!content) return;
         content.innerHTML = `
           <h2>Account</h2>
-          <div>
-            <label>New Username: </label>
-            <input type="text" id="new-username" placeholder="Enter new username" />
+          <div style="background:#333; padding:20px; border-radius:8px; max-width:400px;">
+            <div style="margin-bottom:10px;">
+              <label style="display:block; margin-bottom:5px;">New Username:</label>
+              <input type="text" id="new-username" placeholder="Enter new username" style="width:100%; padding:8px; border-radius:4px; border:1px solid #444; background:#222; color:#e0e0e0;" />
+            </div>
+            <div style="margin-bottom:10px;">
+              <label style="display:block; margin-bottom:5px;">New Password:</label>
+              <input type="password" id="new-password" placeholder="Enter new password" style="width:100%; padding:8px; border-radius:4px; border:1px solid #444; background:#222; color:#e0e0e0;" />
+            </div>
+            <button onclick="updateAccount(document.getElementById('new-username').value,document.getElementById('new-password').value)" style="padding:10px 20px; background:#555; border:none; border-radius:4px; cursor:pointer; color:#e0e0e0;">Update Account</button>
+            <div id="account-message" style="margin-top:10px;"></div>
           </div>
-          <div>
-            <label>New Password: </label>
-            <input type="password" id="new-password" placeholder="Enter new password" />
-          </div>
-          <div>
-            <button onclick="updateAccount(&quot;${'"+document.getElementById(\'new-username\').value+"'}&quot;,&quot;${'"+document.getElementById(\'new-password\').value+"'}&quot;)">
-              Update Account
-            </button>
-          </div>
-          <div id="account-message"></div>
         `;
       }
 
@@ -472,6 +518,7 @@
         installSettingsIfNotInstalled();
         renderDesktop();
         updateTaskbar();
+        restoreOSTheme();
         setInterval(updateClock, 1000);
       }
 
@@ -608,7 +655,8 @@
       function makeDraggable(windowElement) {
         const header = windowElement.querySelector(".window-header");
         let isDragging = false;
-        let offsetX = 0, offsetY = 0;
+        let offsetX = 0,
+          offsetY = 0;
         header.addEventListener("mousedown", (e) => {
           isDragging = true;
           offsetX = e.clientX - windowElement.offsetLeft;
@@ -811,26 +859,6 @@
       // New function: change username.
       function changeUsername(newUsername) {
         localStorage.setItem("username", newUsername);
-      }
-      // New function: change OS theme.
-      function changeOS(osName) {
-        const stylesheet = document.querySelector('link[rel="stylesheet"]');
-        if (!stylesheet) {
-          console.error("Stylesheet link element not found.");
-          return;
-        }
-        const startBtn = document.getElementById("start-button");
-        if (!startBtn) {
-          console.error("Start button with id 'start-button' not found.");
-          return;
-        }
-        if (osName === "default") {
-          stylesheet.href = "assets/css/default.css";
-          startBtn.innerHTML = "❖";
-        } else {
-          stylesheet.href = "assets/css/" + osName + ".css";
-          startBtn.innerHTML = `<img src="images/icons/${osName}/start.png" onerror="this.onerror=null; this.src='/images/icons/${osName}/start.jpg'" alt="Start">`;
-        }
       }
       // New function: change password.
       function changePassword(newPassword) {
