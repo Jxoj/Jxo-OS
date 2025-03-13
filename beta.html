@@ -8,7 +8,7 @@
 
     <link rel="stylesheet" href="assets/css/default.css" /> 
     <style>
-      /* Your styles remain unchanged */
+      /* Dark Theme Base */
       body {
         background-color: #121212;
         color: #e0e0e0;
@@ -17,20 +17,24 @@
         background-color: #1f1f1f;
         border-top: 1px solid #333;
       }
+      /* Adjust desktop icon scale */
       .desktop-app img {
         width: 64px;
         height: 64px;
       }
+      /* Open apps icons on taskbar */
       #open-apps img {
         width: 32px;
         height: 32px;
       }
+      /* Start menu (search menu) styling modifications */
       #search-menu {
         background-color: #2a2a2a;
-        max-height: 70vh;
-        overflow-y: auto;
+        max-height: 70vh; /* Longer height */
+        overflow-y: auto; /* Add vertical scroll bar */
         padding: 10px;
       }
+      /* Use same close icon as app windows for start menu close button */
       #search-menu .close-btn {
         cursor: pointer;
       }
@@ -38,6 +42,7 @@
         width: 16px;
         height: 16px;
       }
+      /* Search input styling */
       #search-menu input[type="text"] {
         width: calc(100% - 20px);
         padding: 5px;
@@ -46,6 +51,7 @@
         border: 1px solid #666;
         color: #e0e0e0;
       }
+      /* App list styling */
       #app-list {
         display: flex;
         flex-direction: column;
@@ -61,6 +67,7 @@
         height: 32px;
         margin-right: 10px;
       }
+      /* Set appropriate size for start menu icon in taskbar */
       #start-button img {
         width: 24px;
         height: 24px;
@@ -90,8 +97,9 @@
   </head>
   <body>
     <script>
-      // Global variables for apps.
+      // Global variable for installed apps.
       let installedApps = [];
+      // Track open apps (appIds) for taskbar display.
       let openApps = [];
 
       function loadInstalledApps() {
@@ -99,6 +107,7 @@
           if (localStorage.getItem('installedApps')) {
             installedApps = JSON.parse(localStorage.getItem('installedApps'));
           } else {
+            // Instead of fetching from apps/default/apps.json, we set installedApps to an empty array
             installedApps = [];
           }
           resolve();
@@ -119,32 +128,42 @@
                 <div id="jstore-app-list"></div>
               </div>
               <script>
+                // Function to load available apps from the remote JSON file.
                 function loadJstoreApps() {
-                  const apps = [
-                    {
-                      "name": "Jlauncher",
-                      "icon": "https://usejxo.github.io/Jlauncher/images/icon/icon.png",
-                      "url": "https://usejxo.github.io/Jlauncher/app.html"
-                    }
-                  ];
-                  const list = document.getElementById("jstore-app-list");
-                  list.innerHTML = "";
-                  apps.forEach(app => {
-                    const appDiv = document.createElement("div");
-                    appDiv.classList.add("jstore-app-item");
-                    appDiv.innerHTML = \`
-                      <img src="\${app.icon}" alt="\${app.name} icon">
-                      <span style="flex-grow:1;">\${app.name}</span>
-                      <button onclick="installJstoreApp('\${app.name}', '\${app.icon}', '\${app.url}')">Install</button>
-                      <button onclick="uninstallJstoreApp('\${app.name}')">Uninstall</button>
-                    \`;
-                    list.appendChild(appDiv);
-                  });
+                  fetch("https://jxoj.github.io/Jxo-OS/apps/apps.json")
+                    .then(response => {
+                      if (!response.ok) {
+                        throw new Error("Network response was not ok");
+                      }
+                      return response.json();
+                    })
+                    .then(apps => {
+                      const list = document.getElementById("jstore-app-list");
+                      list.innerHTML = "";
+                      apps.forEach(app => {
+                        const appDiv = document.createElement("div");
+                        appDiv.classList.add("jstore-app-item");
+                        appDiv.innerHTML = \`
+                          <img src="\${app.icon}" alt="\${app.name} icon">
+                          <span style="flex-grow:1;">\${app.name}</span>
+                          <button onclick="installJstoreApp('\${app.name}', '\${app.icon}', '\${app.url}')">Install</button>
+                          <button onclick="uninstallJstoreApp('\${app.name}')">Uninstall</button>
+                        \`;
+                        list.appendChild(appDiv);
+                      });
+                    })
+                    .catch(error => {
+                      console.error("Failed to load Jstore apps:", error);
+                      const list = document.getElementById("jstore-app-list");
+                      list.innerHTML = "<p>Error loading apps.</p>";
+                    });
                 }
+                // Install an app from Jstore using the OS's installApp function.
                 function installJstoreApp(name, icon, url) {
                   installApp(name, icon, url);
                   alert(name + " has been installed!");
                 }
+                // Uninstall an app from Jstore using the OS's uninstallApp function.
                 function uninstallJstoreApp(name) {
                   uninstallApp(name);
                   alert(name + " has been uninstalled!");
@@ -157,11 +176,12 @@
         }
       }
 
+      // Boot screen: shows "Jx" and a loading circle.
       function showBootScreen() {
         document.body.innerHTML = `
           <div id="boot-screen" class="boot-screen">
             <div class="boot-content">
-              <span class="boot-title" style="font-size:4em;">Jx</span>
+                <span class="boot-title" style="font-size:4em;">Jx</span>
               <div class="loading-circle"></div>
             </div>
           </div>
@@ -172,7 +192,7 @@
         }, 2000);
       }
 
-      // Load OS elements and then install Jstore.
+      // Load OS: desktop, floating taskbar, and search menu.
       function loadOS() {
         document.body.innerHTML = `
           <div id="desktop"></div>
@@ -202,6 +222,7 @@
         setInterval(updateClock, 1000);
       }
 
+      // Load and save background (fixed so images remain in place).
       function loadBackground() {
         const background = localStorage.getItem("background");
         if (background) {
@@ -212,6 +233,8 @@
         localStorage.setItem("background", backgroundValue);
         loadBackground();
       }
+
+      // Prompt for changing background (color or image).
       function changeBackgroundPrompt() {
         const choice = prompt("Enter 'color' for background color or 'image' for background image:");
         if (choice === 'color') {
@@ -229,6 +252,7 @@
           }
         }
       }
+      // New functions for background change using RGB or image URL.
       function changeBackground(r, g, b) {
         const color = `rgb(${r}, ${g}, ${b})`;
         document.body.style.background = color;
@@ -250,7 +274,7 @@
       // Render desktop icons.
       function renderDesktop() {
         const desktop = document.getElementById("desktop");
-        if (!desktop) return; // Safeguard in case the element is not found.
+        if (!desktop) return;
         desktop.innerHTML = '';
         installedApps.forEach(app => {
           const appShortcut = document.createElement("div");
@@ -261,7 +285,7 @@
         });
       }
 
-      // Open an app window.
+      // Open an app window and add to openApps (if not already open).
       function openAppWindow(appId) {
         const app = installedApps.find(app => app.appId === appId);
         if (app) {
@@ -295,7 +319,7 @@
           }
         }
       }
-
+      // Close app window and update openApps.
       function closeWindow(appId) {
         const appWindow = document.getElementById(appId);
         if (appWindow) {
@@ -321,6 +345,7 @@
         }
       }
 
+      // Draggable functionality for app windows.
       function makeDraggable(windowElement) {
         const header = windowElement.querySelector(".window-header");
         let isDragging = false;
@@ -340,7 +365,7 @@
           isDragging = false;
         });
       }
-
+      // Resizable functionality for app windows.
       function makeResizable(windowElement) {
         const resizeHandle = windowElement.querySelector(".resize-handle");
         let isResizing = false;
@@ -366,6 +391,7 @@
         });
       }
 
+      // Update clock display.
       function updateClock() {
         const now = new Date();
         const clock = document.getElementById("clock");
@@ -376,6 +402,7 @@
         }
       }
 
+      // Toggle search menu visibility.
       function toggleSearchMenu() {
         const menu = document.getElementById("search-menu");
         if (menu.style.display === "none" || menu.style.display === "") {
@@ -385,6 +412,7 @@
           menu.style.display = "none";
         }
       }
+      // Search apps: display image and name sorted alphabetically.
       function filterApps(query) {
         const appList = document.getElementById("app-list");
         appList.innerHTML = "";
@@ -412,6 +440,7 @@
         localStorage.setItem("installedApps", JSON.stringify(installedApps));
         renderDesktop();
       }
+      // Uninstall app by name.
       function uninstallAppPrompt() {
         const appName = prompt("Enter the name of the app to uninstall:");
         if (appName) {
@@ -424,6 +453,7 @@
         renderDesktop();
       }
 
+      // Update taskbar with open apps' icons (32×32).
       function updateTaskbar() {
         const openContainer = document.getElementById("open-apps");
         openContainer.innerHTML = "";
@@ -442,6 +472,7 @@
           }
         });
       }
+      // Bring an app window to front.
       function bringToFront(appId) {
         const appWindow = document.getElementById(appId);
         if (appWindow) {
@@ -449,6 +480,7 @@
         }
       }
 
+      // Power Down: display shutdown screen with a Boot Back button.
       function powerOff() {
         document.body.innerHTML = `
           <div class="shutdown-screen">
@@ -459,6 +491,7 @@
         `;
       }
 
+      // Username and Password Modal:
       function showPasswordModal() {
         let modal = document.createElement("div");
         modal.classList.add("password-modal");
@@ -511,15 +544,18 @@
           alert("Username and password cannot be empty!");
         }
       }
+      // New function: change username.
       function changeUsername(newUsername) {
         if (newUsername) {
           localStorage.setItem("username", newUsername);
           alert("Username changed successfully!");
         }
       }
+      // Stub for system settings.
       function showSystemSettings() {
         alert("System settings would appear here.");
       }
+      // New function: change OS theme.
       function changeOS(osName) {
         const stylesheet = document.querySelector('link[rel="stylesheet"]');
         if (!stylesheet) {
@@ -539,7 +575,8 @@
           startBtn.innerHTML = `<img src="images/icons/${osName}/start.png" onerror="this.onerror=null; this.src='/images/icons/${osName}/start.jpg'" alt="Start">`;
         }
       }
-
+      
+      // On DOM load, load default apps then show boot screen.
       document.addEventListener("DOMContentLoaded", () => {
         loadInstalledApps().then(() => {
           showBootScreen();
