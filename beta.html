@@ -300,12 +300,12 @@
       function loadPersonalizationTab() {
         const content = document.getElementById("settings-content");
         if (!content) return;
-        // Create an array of wallpaper names from wallpaper1.jpg to wallpaper41.jpg.
+        // Create an array of wallpaper names from wallpaper1 to wallpaper41.
         const wallpapers = [];
         for (let i = 1; i <= 41; i++) {
-          wallpapers.push("wallpaper" + i + ".jpg");
+          wallpapers.push("wallpaper" + i);
         }
-        // OS options are now "default" and "windows10".
+        // OS options: default and windows10.
         const osOptions = ["default", "windows10"];
         content.innerHTML = `
           <h2>Personalization</h2>
@@ -318,7 +318,7 @@
               ${wallpapers
                 .map(
                   (wp) =>
-                    `<option value="/images/backgrounds/${wp}">${wp}</option>`
+                    `<option value="images/backgrounds/${wp}.jpg">${wp}.jpg</option>`
                 )
                 .join("")}
             </select>
@@ -336,7 +336,7 @@
             </select>
           </div>
         `;
-        // Handle wallpaper dropdown change.
+        // Attach event listener to wallpaper dropdown without forcing a default change.
         const wallpaperDropdown = document.getElementById("wallpaper-dropdown");
         const bgPreview = document.getElementById("bg-preview");
         if (wallpaperDropdown && bgPreview) {
@@ -345,10 +345,6 @@
             bgPreview.src = selected;
             changeBackgroundimage(selected);
           });
-          // Set default wallpaper.
-          wallpaperDropdown.value = "/images/backgrounds/wallpaper1.jpg";
-          bgPreview.src = wallpaperDropdown.value;
-          changeBackgroundimage(wallpaperDropdown.value);
         }
         // Handle color picker.
         const colorPicker = document.getElementById("bg-color-picker");
@@ -381,7 +377,7 @@
             <input type="password" id="new-password" placeholder="Enter new password" />
           </div>
           <div>
-            <button onclick="updateAccount(document.getElementById('new-username').value,document.getElementById('new-password').value)">
+            <button onclick="updateAccount(&quot;${'"+document.getElementById(\'new-username\').value+"'}&quot;,&quot;${'"+document.getElementById(\'new-password\').value+"'}&quot;)">
               Update Account
             </button>
           </div>
@@ -582,7 +578,8 @@
       function makeDraggable(windowElement) {
         const header = windowElement.querySelector(".window-header");
         let isDragging = false;
-        let offsetX = 0, offsetY = 0;
+        let offsetX = 0,
+          offsetY = 0;
         header.addEventListener("mousedown", (e) => {
           isDragging = true;
           offsetX = e.clientX - windowElement.offsetLeft;
