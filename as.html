@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <link rel="icon" href="images/icons/favicon.png" type="image/png" />
+    <link rel="icon" href="images/icons/favicon.png" type="image/png">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jxo OS</title>
 
-    <link rel="stylesheet" href="assets/css/default.css" />
+    <link rel="stylesheet" href="assets/css/default.css" /> 
     <style>
       /* Dark Theme Base */
       body {
@@ -104,77 +104,19 @@
       .jstore-app-item button:hover {
         background-color: #555;
       }
-      /* Settings app styling */
-      #settings-app {
-        display: flex;
-        height: 100%;
-      }
-      #settings-sidebar {
-        width: 200px;
-        background: #1f1f1f;
-        padding: 10px;
-        overflow-y: auto;
-      }
-      #settings-sidebar input[type="text"] {
-        width: 100%;
-        padding: 5px;
-        margin-bottom: 10px;
-        border-radius: 5px;
-        border: none;
-      }
-      #settings-options {
-        list-style: none;
-        padding: 0;
-      }
-      #settings-options li {
-        padding: 5px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-      }
-      #settings-options li.active {
-        background: #333;
-      }
-      #settings-options li img {
-        width: 24px;
-        margin-right: 5px;
-      }
-      #settings-content {
-        flex-grow: 1;
-        padding: 20px;
-        overflow-y: auto;
-      }
-      /* Personalization tab elements */
-      #bg-preview-container {
-        border: 1px solid #444;
-        padding: 10px;
-        margin-bottom: 10px;
-      }
-      #bg-preview {
-        max-width: 300px;
-        max-height: 200px;
-      }
-      #bg-options {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-      #bg-options img {
-        width: 100px;
-        cursor: pointer;
-      }
     </style>
   </head>
   <body>
     <script>
-      // Global variables for installed apps and open apps.
+      // Global variable for installed apps.
       let installedApps = [];
+      // Track open apps (appIds) for taskbar display.
       let openApps = [];
 
       function loadInstalledApps() {
         return new Promise((resolve, reject) => {
-          if (localStorage.getItem("installedApps")) {
-            installedApps = JSON.parse(localStorage.getItem("installedApps"));
+          if (localStorage.getItem('installedApps')) {
+            installedApps = JSON.parse(localStorage.getItem('installedApps'));
           } else {
             installedApps = [];
           }
@@ -182,12 +124,13 @@
         });
       }
 
-      // Install Jstore if not already installed.
+      // Add Jstore if it's not installed.
       function installJstoreIfNotInstalled() {
-        const jstoreInstalled = installedApps.some((app) => app.name === "Jstore");
+        const jstoreInstalled = installedApps.some(app => app.name === "Jstore");
         if (!jstoreInstalled) {
-          installApp("Jstore", "app/icons/jstore.png", "");
-          const jstoreApp = installedApps.find((app) => app.name === "Jstore");
+          installApp("Jstore", "apps/icons/jstore.png", "");
+          // Update Jstore's content: only HTML container.
+          const jstoreApp = installedApps.find(app => app.name === "Jstore");
           if (jstoreApp) {
             jstoreApp.htmlContent = `
               <div id="jstore-container">
@@ -200,50 +143,20 @@
         }
       }
 
-      // Install Settings if not already installed.
-      function installSettingsIfNotInstalled() {
-        const settingsInstalled = installedApps.some((app) => app.name === "Settings");
-        if (!settingsInstalled) {
-          installApp("Settings", "apps/icons/settings.png", "");
-          const settingsApp = installedApps.find((app) => app.name === "Settings");
-          if (settingsApp) {
-            settingsApp.htmlContent = `
-              <div id="settings-app">
-                <div id="settings-sidebar">
-                  <input type="text" id="settings-search" placeholder="Search settings..." />
-                  <ul id="settings-options">
-                    <li data-tab="personalization" style="display:flex; align-items:center;">
-                      <img src="/images/icons/settings/sidebar/personalization.webp" alt="Personalization" />
-                      <span>Personalization</span>
-                    </li>
-                    <li data-tab="account" style="display:flex; align-items:center;">
-                      <img src="/images/icons/settings/sidebar/account.webp" alt="Account" />
-                      <span>Account</span>
-                    </li>
-                  </ul>
-                </div>
-                <div id="settings-content"></div>
-              </div>
-            `;
-            localStorage.setItem("installedApps", JSON.stringify(installedApps));
-          }
-        }
-      }
-
       // Global function: Fetch and render Jstore apps.
       function loadJstoreApps() {
         fetch("https://jxoj.github.io/Jxo-OS/apps/apps.json")
-          .then((response) => {
+          .then(response => {
             if (!response.ok) {
               throw new Error("Network response was not ok");
             }
             return response.json();
           })
-          .then((apps) => {
+          .then(apps => {
             const list = document.getElementById("jstore-app-list");
             if (!list) return;
             list.innerHTML = "";
-            apps.forEach((app) => {
+            apps.forEach(app => {
               const appDiv = document.createElement("div");
               appDiv.classList.add("jstore-app-item");
               appDiv.innerHTML = `
@@ -255,7 +168,7 @@
               list.appendChild(appDiv);
             });
           })
-          .catch((error) => {
+          .catch(error => {
             console.error("Failed to load Jstore apps:", error);
             const list = document.getElementById("jstore-app-list");
             if (list) list.innerHTML = "<p>Error loading apps.</p>";
@@ -272,121 +185,7 @@
         uninstallApp(name);
       }
 
-      // Global function: Initialize Settings app.
-      function initSettingsApp() {
-        const searchInput = document.getElementById("settings-search");
-        const optionsList = document.getElementById("settings-options");
-        if (searchInput && optionsList) {
-          searchInput.addEventListener("input", function () {
-            const query = searchInput.value.toLowerCase();
-            const items = optionsList.getElementsByTagName("li");
-            Array.from(items).forEach((li) => {
-              li.style.display = li.textContent.toLowerCase().includes(query)
-                ? ""
-                : "none";
-            });
-          });
-        }
-        const sidebarItems = document.querySelectorAll("#settings-options li");
-        sidebarItems.forEach((item) => {
-          item.addEventListener("click", function () {
-            sidebarItems.forEach((i) => i.classList.remove("active"));
-            item.classList.add("active");
-            const tab = item.getAttribute("data-tab");
-            if (tab === "personalization") {
-              loadPersonalizationTab();
-            } else if (tab === "account") {
-              loadAccountTab();
-            }
-          });
-        });
-        // Set default tab.
-        loadPersonalizationTab();
-      }
-
-      // Load the Personalization tab in Settings.
-      function loadPersonalizationTab() {
-        const content = document.getElementById("settings-content");
-        if (!content) return;
-        // Sample backgrounds – adjust as needed.
-        const backgrounds = ["wallpaper1.jpg", "wallpaper2.jpg", "wallpaper3.jpg"];
-        // Sample OS options (in a real scenario you might fetch these dynamically).
-        const osOptions = ["default", "example"];
-        content.innerHTML = `
-          <h2>Personalization</h2>
-          <div>
-            <h3>Change Background Image</h3>
-            <div id="bg-preview-container">
-              <img id="bg-preview" src="" alt="Background Preview" />
-            </div>
-            <div id="bg-options"></div>
-            <input type="file" id="bg-upload" accept="image/*" />
-          </div>
-          <div>
-            <h3>Change Background Color</h3>
-            <input type="color" id="bg-color-picker" />
-          </div>
-          <div>
-            <h3>Change OS Theme</h3>
-            <select id="os-dropdown">
-              ${osOptions
-                .map((os) => `<option value="${os}">${os}</option>`)
-                .join("")}
-            </select>
-          </div>
-        `;
-        // Populate available background images.
-        const bgOptionsDiv = document.getElementById("bg-options");
-        backgrounds.forEach((bg) => {
-          const img = document.createElement("img");
-          img.src = "/images/backgrounds/" + bg;
-          img.alt = bg;
-          img.addEventListener("click", function () {
-            document.getElementById("bg-preview").src = img.src;
-            changeBackgroundimage(img.src);
-          });
-          bgOptionsDiv.appendChild(img);
-        });
-        // Handle file upload.
-        const bgUpload = document.getElementById("bg-upload");
-        bgUpload.addEventListener("change", function () {
-          const file = bgUpload.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-              document.getElementById("bg-preview").src = e.target.result;
-              changeBackgroundimage(e.target.result);
-            };
-            reader.readAsDataURL(file);
-          }
-        });
-        // Handle color picker.
-        const colorPicker = document.getElementById("bg-color-picker");
-        colorPicker.addEventListener("input", function () {
-          const hex = colorPicker.value;
-          const r = parseInt(hex.substr(1, 2), 16);
-          const g = parseInt(hex.substr(3, 2), 16);
-          const b = parseInt(hex.substr(5, 2), 16);
-          changeBackground(r, g, b);
-        });
-        // Handle OS theme dropdown.
-        const osDropdown = document.getElementById("os-dropdown");
-        osDropdown.addEventListener("change", function () {
-          changeOS(osDropdown.value);
-        });
-      }
-
-      // Load the Account tab in Settings.
-      function loadAccountTab() {
-        const content = document.getElementById("settings-content");
-        if (!content) return;
-        content.innerHTML = `
-          <h2>Account</h2>
-          <p>Account settings coming soon.</p>
-        `;
-      }
-
-      // Boot screen.
+      // Boot screen: shows "Jx" and a loading circle.
       function showBootScreen() {
         document.body.innerHTML = `
           <div id="boot-screen" class="boot-screen">
@@ -402,7 +201,7 @@
         }, 2000);
       }
 
-      // Load OS elements.
+      // Load OS: desktop, taskbar, and search menu.
       function loadOS() {
         document.body.innerHTML = `
           <div id="desktop"></div>
@@ -419,15 +218,14 @@
           </div>
           <div id="search-menu" class="search-menu" style="display:none;">
             <span class="close-btn" onclick="toggleSearchMenu()">
-              <img src="images/icons/x.png" alt="Close" />
+              <img src="images/icons/x.png" alt="Close">
             </span>
-            <input type="text" placeholder="Search apps..." oninput="filterApps(this.value)" />
+            <input type="text" placeholder="Search apps..." oninput="filterApps(this.value)">
             <div id="app-list"></div>
           </div>
         `;
-        // Install extra apps.
+        // Now that the OS is loaded, install Jstore.
         installJstoreIfNotInstalled();
-        installSettingsIfNotInstalled();
         renderDesktop();
         updateTaskbar();
         setInterval(updateClock, 1000);
@@ -444,16 +242,16 @@
         localStorage.setItem("background", backgroundValue);
         loadBackground();
       }
-      // Prompt for background change.
+      // Prompt for changing background.
       function changeBackgroundPrompt() {
         const choice = prompt("Enter 'color' for background color or 'image' for background image:");
-        if (choice === "color") {
+        if (choice === 'color') {
           const color = prompt("Enter a background color (e.g., '#555', 'grey'):");
           if (color) {
             document.body.style.background = color;
             saveBackground(color);
           }
-        } else if (choice === "image") {
+        } else if (choice === 'image') {
           const imageUrl = prompt("Enter background image URL:");
           if (imageUrl) {
             const bg = `url(${imageUrl}) center center/cover no-repeat fixed`;
@@ -462,7 +260,7 @@
           }
         }
       }
-      // Functions for background change.
+      // New functions for background change.
       function changeBackground(r, g, b) {
         const color = `rgb(${r}, ${g}, ${b})`;
         document.body.style.background = color;
@@ -476,7 +274,7 @@
       function onlyDoOnce(fn) {
         if (!localStorage.getItem(fn.name)) {
           fn();
-          localStorage.setItem(fn.name, "executed");
+          localStorage.setItem(fn.name, 'executed');
         }
       }
       onlyDoOnce(() => changeBackgroundimage("images/backgrounds/wallpaper7.jpg"));
@@ -485,8 +283,8 @@
       function renderDesktop() {
         const desktop = document.getElementById("desktop");
         if (!desktop) return;
-        desktop.innerHTML = "";
-        installedApps.forEach((app) => {
+        desktop.innerHTML = '';
+        installedApps.forEach(app => {
           const appShortcut = document.createElement("div");
           appShortcut.classList.add("desktop-app");
           appShortcut.innerHTML = `<img src="${app.image}" alt="${app.name} icon"><span>${app.name}</span>`;
@@ -495,9 +293,9 @@
         });
       }
 
-      // Open app window.
+      // Open an app window and add to openApps.
       function openAppWindow(appId) {
-        const app = installedApps.find((app) => app.appId === appId);
+        const app = installedApps.find(app => app.appId === appId);
         if (app) {
           if (document.getElementById(appId)) return;
           const appWindow = document.createElement("div");
@@ -508,10 +306,10 @@
               <span class="window-title">${app.name}</span>
               <div>
                 <button class="window-btn" onclick="closeWindow('${appId}')">
-                  <img src="images/icons/x.png" alt="Close" />
+                  <img src="images/icons/x.png" alt="Close">
                 </button>
                 <button class="window-btn" onclick="toggleFullscreen('${appId}')">
-                  <img src="images/icons/fullscreen.png" alt="Fullscreen" />
+                  <img src="images/icons/fullscreen.png" alt="Fullscreen">
                 </button>
               </div>
             </div>
@@ -527,11 +325,9 @@
             openApps.push(appId);
             updateTaskbar();
           }
+          // If the opened app is Jstore, load its apps.
           if (appId === "jstore") {
             setTimeout(loadJstoreApps, 100);
-          }
-          if (appId === "settings") {
-            setTimeout(initSettingsApp, 100);
           }
         }
       }
@@ -541,7 +337,7 @@
         const appWindow = document.getElementById(appId);
         if (appWindow) {
           appWindow.remove();
-          openApps = openApps.filter((id) => id !== appId);
+          openApps = openApps.filter(id => id !== appId);
           updateTaskbar();
         }
       }
@@ -562,12 +358,11 @@
         }
       }
 
-      // Draggable functionality.
+      // Draggable functionality for app windows.
       function makeDraggable(windowElement) {
         const header = windowElement.querySelector(".window-header");
         let isDragging = false;
-        let offsetX = 0,
-          offsetY = 0;
+        let offsetX = 0, offsetY = 0;
         header.addEventListener("mousedown", (e) => {
           isDragging = true;
           offsetX = e.clientX - windowElement.offsetLeft;
@@ -584,7 +379,7 @@
         });
       }
 
-      // Resizable functionality.
+      // Resizable functionality for app windows.
       function makeResizable(windowElement) {
         const resizeHandle = windowElement.querySelector(".resize-handle");
         let isResizing = false;
@@ -599,8 +394,8 @@
           if (isResizing) {
             const dx = e.clientX - lastX;
             const dy = e.clientY - lastY;
-            windowElement.style.width = windowElement.offsetWidth + dx + "px";
-            windowElement.style.height = windowElement.offsetHeight + dy + "px";
+            windowElement.style.width = (windowElement.offsetWidth + dx) + "px";
+            windowElement.style.height = (windowElement.offsetHeight + dy) + "px";
             lastX = e.clientX;
             lastY = e.clientY;
           }
@@ -631,19 +426,15 @@
           menu.style.display = "none";
         }
       }
-      // Search apps.
+      // Search apps: display image and name sorted alphabetically.
       function filterApps(query) {
         const appList = document.getElementById("app-list");
         appList.innerHTML = "";
-        let apps = installedApps.slice().sort((a, b) =>
-          a.name.localeCompare(b.name)
-        );
+        let apps = installedApps.slice().sort((a, b) => a.name.localeCompare(b.name));
         if (query) {
-          apps = apps.filter((app) =>
-            app.name.toLowerCase().includes(query.toLowerCase())
-          );
+          apps = apps.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
         }
-        apps.forEach((app) => {
+        apps.forEach(app => {
           const appItem = document.createElement("div");
           appItem.classList.add("app-item");
           appItem.innerHTML = `<img src="${app.image}" alt="${app.name} icon"><span>${app.name}</span>`;
@@ -655,14 +446,15 @@
       function installApp(name, image, iframeUrl) {
         const newApp = {
           name: name,
-          appId: name.toLowerCase().replace(/\s+/g, ""),
+          appId: name.toLowerCase().replace(/\s+/g, ''),
           image: image,
-          htmlUrl: iframeUrl,
+          htmlUrl: iframeUrl
         };
         installedApps.push(newApp);
         localStorage.setItem("installedApps", JSON.stringify(installedApps));
         renderDesktop();
       }
+      // Uninstall app by name.
       function uninstallAppPrompt() {
         const appName = prompt("Enter the name of the app to uninstall:");
         if (appName) {
@@ -670,19 +462,17 @@
         }
       }
       function uninstallApp(appName) {
-        installedApps = installedApps.filter(
-          (app) => app.name.toLowerCase() !== appName.toLowerCase()
-        );
+        installedApps = installedApps.filter(app => app.name.toLowerCase() !== appName.toLowerCase());
         localStorage.setItem("installedApps", JSON.stringify(installedApps));
         renderDesktop();
       }
 
-      // Update taskbar.
+      // Update taskbar with open apps' icons.
       function updateTaskbar() {
         const openContainer = document.getElementById("open-apps");
         openContainer.innerHTML = "";
-        openApps.forEach((appId) => {
-          const app = installedApps.find((app) => app.appId === appId);
+        openApps.forEach(appId => {
+          const app = installedApps.find(app => app.appId === appId);
           if (app) {
             const icon = document.createElement("img");
             icon.src = app.image;
@@ -696,6 +486,7 @@
           }
         });
       }
+      // Bring an app window to front.
       function bringToFront(appId) {
         const appWindow = document.getElementById(appId);
         if (appWindow) {
@@ -703,7 +494,7 @@
         }
       }
 
-      // Power Down.
+      // Power Down: display shutdown screen with a Boot Back button.
       function powerOff() {
         document.body.innerHTML = `
           <div class="shutdown-screen">
@@ -714,14 +505,14 @@
         `;
       }
 
-      // Username and Password Modal.
+      // Username and Password Modal:
       function showPasswordModal() {
         let modal = document.createElement("div");
         modal.classList.add("password-modal");
         if (localStorage.getItem("password")) {
-          let usernameField = localStorage.getItem("username")
-            ? `<p>Welcome, ${localStorage.getItem("username")}!</p>`
-            : `<input type="text" id="username-input" placeholder="Enter your username">`;
+          let usernameField = localStorage.getItem("username") ? 
+            `<p>Welcome, ${localStorage.getItem("username")}!</p>` : 
+            `<input type="text" id="username-input" placeholder="Enter your username">`;
           modal.innerHTML = `
             <div class="password-modal-content">
               <img src="images/icons/profile/profile.png" alt="Profile Icon">
@@ -799,7 +590,7 @@
         }
       }
       
-      // On DOM load.
+      // On DOM load, load default apps then show boot screen.
       document.addEventListener("DOMContentLoaded", () => {
         loadInstalledApps().then(() => {
           showBootScreen();
