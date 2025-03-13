@@ -5,7 +5,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jxo OS</title>
-
     <link rel="stylesheet" href="assets/css/default.css" />
     <style>
       /* Dark Theme Base */
@@ -154,15 +153,6 @@
         max-width: 300px;
         max-height: 200px;
       }
-      #bg-options {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-      #bg-options img {
-        width: 100px;
-        cursor: pointer;
-      }
     </style>
   </head>
   <body>
@@ -182,7 +172,7 @@
         });
       }
 
-      // Install Jstore if not already installed.
+      // Install Jstore if not installed.
       function installJstoreIfNotInstalled() {
         const jstoreInstalled = installedApps.some((app) => app.name === "Jstore");
         if (!jstoreInstalled) {
@@ -200,7 +190,7 @@
         }
       }
 
-      // Install Settings if not already installed.
+      // Install Settings if not installed.
       function installSettingsIfNotInstalled() {
         const settingsInstalled = installedApps.some((app) => app.name === "Settings");
         if (!settingsInstalled) {
@@ -212,11 +202,11 @@
                 <div id="settings-sidebar">
                   <input type="text" id="settings-search" placeholder="Search settings..." />
                   <ul id="settings-options">
-                    <li data-tab="personalization" style="display:flex; align-items:center;">
+                    <li data-tab="personalization" style="display:flex;align-items:center;">
                       <img src="/images/icons/settings/sidebar/personalization.webp" alt="Personalization" />
                       <span>Personalization</span>
                     </li>
-                    <li data-tab="account" style="display:flex; align-items:center;">
+                    <li data-tab="account" style="display:flex;align-items:center;">
                       <img src="/images/icons/settings/sidebar/account.webp" alt="Account" />
                       <span>Account</span>
                     </li>
@@ -249,8 +239,8 @@
               appDiv.innerHTML = `
                 <img src="${app.icon}" alt="${app.name} icon">
                 <span style="flex-grow:1;">${app.name}</span>
-                <button onclick="installJstoreApp('${app.name}', '${app.icon}', '${app.url}')">Install</button>
-                <button onclick="uninstallJstoreApp('${app.name}')">Uninstall</button>
+                <button onclick="installJstoreApp(&quot;${app.name}&quot;,&quot;${app.icon}&quot;,&quot;${app.url}&quot;)">Install</button>
+                <button onclick="uninstallJstoreApp(&quot;${app.name}&quot;)">Uninstall</button>
               `;
               list.appendChild(appDiv);
             });
@@ -272,7 +262,9 @@
         uninstallApp(name);
       }
 
-      // Global function: Initialize Settings app.
+      // Settings App functions
+
+      // Initialize the Settings app (attach sidebar event listeners).
       function initSettingsApp() {
         const searchInput = document.getElementById("settings-search");
         const optionsList = document.getElementById("settings-options");
@@ -300,18 +292,21 @@
             }
           });
         });
-        // Set default tab.
+        // Default to Personalization tab.
         loadPersonalizationTab();
       }
 
-      // Load the Personalization tab in Settings.
+      // Load the Personalization tab.
       function loadPersonalizationTab() {
         const content = document.getElementById("settings-content");
         if (!content) return;
-        // Sample backgrounds – adjust as needed.
-        const backgrounds = ["wallpaper1.jpg", "wallpaper2.jpg", "wallpaper3.jpg"];
-        // Sample OS options (in a real scenario you might fetch these dynamically).
-        const osOptions = ["default", "example"];
+        // Create an array of wallpaper names from wallpaper1.jpg to wallpaper41.jpg.
+        const wallpapers = [];
+        for (let i = 1; i <= 41; i++) {
+          wallpapers.push("wallpaper" + i + ".jpg");
+        }
+        // OS options are now "default" and "windows10".
+        const osOptions = ["default", "windows10"];
         content.innerHTML = `
           <h2>Personalization</h2>
           <div>
@@ -319,8 +314,14 @@
             <div id="bg-preview-container">
               <img id="bg-preview" src="" alt="Background Preview" />
             </div>
-            <div id="bg-options"></div>
-            <input type="file" id="bg-upload" accept="image/*" />
+            <select id="wallpaper-dropdown">
+              ${wallpapers
+                .map(
+                  (wp) =>
+                    `<option value="/images/backgrounds/${wp}">${wp}</option>`
+                )
+                .join("")}
+            </select>
           </div>
           <div>
             <h3>Change Background Color</h3>
@@ -335,31 +336,20 @@
             </select>
           </div>
         `;
-        // Populate available background images.
-        const bgOptionsDiv = document.getElementById("bg-options");
-        backgrounds.forEach((bg) => {
-          const img = document.createElement("img");
-          img.src = "/images/backgrounds/" + bg;
-          img.alt = bg;
-          img.addEventListener("click", function () {
-            document.getElementById("bg-preview").src = img.src;
-            changeBackgroundimage(img.src);
+        // Handle wallpaper dropdown change.
+        const wallpaperDropdown = document.getElementById("wallpaper-dropdown");
+        const bgPreview = document.getElementById("bg-preview");
+        if (wallpaperDropdown && bgPreview) {
+          wallpaperDropdown.addEventListener("change", function () {
+            const selected = wallpaperDropdown.value;
+            bgPreview.src = selected;
+            changeBackgroundimage(selected);
           });
-          bgOptionsDiv.appendChild(img);
-        });
-        // Handle file upload.
-        const bgUpload = document.getElementById("bg-upload");
-        bgUpload.addEventListener("change", function () {
-          const file = bgUpload.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-              document.getElementById("bg-preview").src = e.target.result;
-              changeBackgroundimage(e.target.result);
-            };
-            reader.readAsDataURL(file);
-          }
-        });
+          // Set default wallpaper.
+          wallpaperDropdown.value = "/images/backgrounds/wallpaper1.jpg";
+          bgPreview.src = wallpaperDropdown.value;
+          changeBackgroundimage(wallpaperDropdown.value);
+        }
         // Handle color picker.
         const colorPicker = document.getElementById("bg-color-picker");
         colorPicker.addEventListener("input", function () {
@@ -369,21 +359,47 @@
           const b = parseInt(hex.substr(5, 2), 16);
           changeBackground(r, g, b);
         });
-        // Handle OS theme dropdown.
+        // Handle OS dropdown.
         const osDropdown = document.getElementById("os-dropdown");
         osDropdown.addEventListener("change", function () {
           changeOS(osDropdown.value);
         });
       }
 
-      // Load the Account tab in Settings.
+      // Load the Account tab.
       function loadAccountTab() {
         const content = document.getElementById("settings-content");
         if (!content) return;
         content.innerHTML = `
           <h2>Account</h2>
-          <p>Account settings coming soon.</p>
+          <div>
+            <label>New Username: </label>
+            <input type="text" id="new-username" placeholder="Enter new username" />
+          </div>
+          <div>
+            <label>New Password: </label>
+            <input type="password" id="new-password" placeholder="Enter new password" />
+          </div>
+          <div>
+            <button onclick="updateAccount(document.getElementById('new-username').value,document.getElementById('new-password').value)">
+              Update Account
+            </button>
+          </div>
+          <div id="account-message"></div>
         `;
+      }
+
+      // New function: change password.
+      function changePassword(newPassword) {
+        localStorage.setItem("password", newPassword);
+      }
+
+      // New function: update account settings.
+      function updateAccount(newUsername, newPassword) {
+        changeUsername(newUsername);
+        changePassword(newPassword);
+        const msg = document.getElementById("account-message");
+        if (msg) msg.innerText = "Account updated successfully!";
       }
 
       // Boot screen.
@@ -444,7 +460,7 @@
         localStorage.setItem("background", backgroundValue);
         loadBackground();
       }
-      // Prompt for background change.
+      // Prompt for changing background.
       function changeBackgroundPrompt() {
         const choice = prompt("Enter 'color' for background color or 'image' for background image:");
         if (choice === "color") {
@@ -507,10 +523,10 @@
             <div class="window-header">
               <span class="window-title">${app.name}</span>
               <div>
-                <button class="window-btn" onclick="closeWindow('${appId}')">
+                <button class="window-btn" onclick="closeWindow(&quot;${appId}&quot;)">
                   <img src="images/icons/x.png" alt="Close" />
                 </button>
-                <button class="window-btn" onclick="toggleFullscreen('${appId}')">
+                <button class="window-btn" onclick="toggleFullscreen(&quot;${appId}&quot;)">
                   <img src="images/icons/fullscreen.png" alt="Fullscreen" />
                 </button>
               </div>
@@ -566,8 +582,7 @@
       function makeDraggable(windowElement) {
         const header = windowElement.querySelector(".window-header");
         let isDragging = false;
-        let offsetX = 0,
-          offsetY = 0;
+        let offsetX = 0, offsetY = 0;
         header.addEventListener("mousedown", (e) => {
           isDragging = true;
           offsetX = e.clientX - windowElement.offsetLeft;
@@ -621,7 +636,7 @@
         }
       }
 
-      // Toggle search menu visibility.
+      // Toggle search menu.
       function toggleSearchMenu() {
         const menu = document.getElementById("search-menu");
         if (menu.style.display === "none" || menu.style.display === "") {
@@ -769,14 +784,7 @@
       }
       // New function: change username.
       function changeUsername(newUsername) {
-        if (newUsername) {
-          localStorage.setItem("username", newUsername);
-          alert("Username changed successfully!");
-        }
-      }
-      // Stub for system settings.
-      function showSystemSettings() {
-        alert("System settings would appear here.");
+        localStorage.setItem("username", newUsername);
       }
       // New function: change OS theme.
       function changeOS(osName) {
@@ -798,7 +806,17 @@
           startBtn.innerHTML = `<img src="images/icons/${osName}/start.png" onerror="this.onerror=null; this.src='/images/icons/${osName}/start.jpg'" alt="Start">`;
         }
       }
-      
+      // New function: change password.
+      function changePassword(newPassword) {
+        localStorage.setItem("password", newPassword);
+      }
+      // New function: update account settings.
+      function updateAccount(newUsername, newPassword) {
+        changeUsername(newUsername);
+        changePassword(newPassword);
+        const msg = document.getElementById("account-message");
+        if (msg) msg.innerText = "Account updated successfully!";
+      }
       // On DOM load.
       document.addEventListener("DOMContentLoaded", () => {
         loadInstalledApps().then(() => {
