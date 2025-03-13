@@ -30,11 +30,11 @@
       /* Start menu (search menu) styling modifications */
       #search-menu {
         background-color: #2a2a2a;
-        max-height: 70vh; /* Longer height */
-        overflow-y: auto; /* Add vertical scroll bar */
+        max-height: 70vh;
+        overflow-y: auto;
         padding: 10px;
       }
-      /* Use same close icon as app windows for start menu close button */
+      /* Close button styling */
       #search-menu .close-btn {
         cursor: pointer;
       }
@@ -42,14 +42,16 @@
         width: 16px;
         height: 16px;
       }
-      /* Search input styling */
+      /* Improved search input styling */
       #search-menu input[type="text"] {
         width: calc(100% - 20px);
-        padding: 5px;
+        padding: 10px;
         margin-bottom: 10px;
-        background-color: #444;
-        border: 1px solid #666;
+        background-color: #333;
+        border: none;
+        border-radius: 5px;
         color: #e0e0e0;
+        font-size: 16px;
       }
       /* App list styling */
       #app-list {
@@ -92,6 +94,15 @@
       }
       .jstore-app-item button {
         margin-left: 10px;
+        padding: 5px 10px;
+        background-color: #444;
+        color: #e0e0e0;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+      .jstore-app-item button:hover {
+        background-color: #555;
       }
     </style>
   </head>
@@ -107,7 +118,6 @@
           if (localStorage.getItem('installedApps')) {
             installedApps = JSON.parse(localStorage.getItem('installedApps'));
           } else {
-            // Start with an empty array.
             installedApps = [];
           }
           resolve();
@@ -118,8 +128,8 @@
       function installJstoreIfNotInstalled() {
         const jstoreInstalled = installedApps.some(app => app.name === "Jstore");
         if (!jstoreInstalled) {
-          installApp("Jstore", "app/icons/jstore.png", "");
-          // Update Jstore's content: only HTML container (no inline <script>).
+          installApp("Jstore", "apps/icons/jstore.png", "");
+          // Update Jstore's content: only HTML container.
           const jstoreApp = installedApps.find(app => app.name === "Jstore");
           if (jstoreApp) {
             jstoreApp.htmlContent = `
@@ -168,13 +178,11 @@
       // Global function: Install an app from Jstore.
       function installJstoreApp(name, icon, url) {
         installApp(name, icon, url);
-        alert(name + " has been installed!");
       }
 
       // Global function: Uninstall an app from Jstore.
       function uninstallJstoreApp(name) {
         uninstallApp(name);
-        alert(name + " has been uninstalled!");
       }
 
       // Boot screen: shows "Jx" and a loading circle.
@@ -317,7 +325,7 @@
             openApps.push(appId);
             updateTaskbar();
           }
-          // If the opened app is Jstore, call loadJstoreApps after rendering.
+          // If the opened app is Jstore, load its apps.
           if (appId === "jstore") {
             setTimeout(loadJstoreApps, 100);
           }
