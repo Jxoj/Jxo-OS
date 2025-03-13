@@ -209,7 +209,7 @@
         localStorage.setItem("osTheme", osName);
       }
 
-      // Change OS theme and save.
+      // Change OS theme, save it, and update the stylesheet.
       function changeOS(osName) {
         saveOSTheme(osName);
         const stylesheet = document.querySelector('link[rel="stylesheet"]');
@@ -634,6 +634,8 @@
           updateTaskbar();
         }
       }
+
+      // Updated toggleFullscreen: full screen apps now cover the taskbar.
       function toggleFullscreen(appId) {
         const appWindow = document.getElementById(appId);
         if (appWindow) {
@@ -641,12 +643,14 @@
             appWindow.style.position = "absolute";
             appWindow.style.width = "600px";
             appWindow.style.height = "400px";
+            appWindow.style.zIndex = "";
           } else {
             appWindow.style.position = "fixed";
             appWindow.style.top = "0";
             appWindow.style.left = "0";
             appWindow.style.width = "100vw";
             appWindow.style.height = "100vh";
+            appWindow.style.zIndex = "10000";
           }
         }
       }
@@ -720,6 +724,7 @@
           menu.style.display = "none";
         }
       }
+
       // Search apps.
       function filterApps(query) {
         const appList = document.getElementById("app-list");
@@ -752,12 +757,14 @@
         localStorage.setItem("installedApps", JSON.stringify(installedApps));
         renderDesktop();
       }
+
       function uninstallAppPrompt() {
         const appName = prompt("Enter the name of the app to uninstall:");
         if (appName) {
           uninstallApp(appName);
         }
       }
+
       function uninstallApp(appName) {
         installedApps = installedApps.filter(
           (app) => app.name.toLowerCase() !== appName.toLowerCase()
@@ -785,6 +792,7 @@
           }
         });
       }
+
       function bringToFront(appId) {
         const appWindow = document.getElementById(appId);
         if (appWindow) {
@@ -836,6 +844,7 @@
         }
         document.body.appendChild(modal);
       }
+
       function checkPassword() {
         const entered = document.getElementById("entered-password").value;
         const stored = localStorage.getItem("password");
@@ -845,6 +854,7 @@
           alert("Incorrect password!");
         }
       }
+
       function setCredentials() {
         const username = document.getElementById("username-input").value;
         const newPass = document.getElementById("new-password").value;
@@ -856,14 +866,17 @@
           alert("Username and password cannot be empty!");
         }
       }
+
       // New function: change username.
       function changeUsername(newUsername) {
         localStorage.setItem("username", newUsername);
       }
+
       // New function: change password.
       function changePassword(newPassword) {
         localStorage.setItem("password", newPassword);
       }
+
       // New function: update account settings.
       function updateAccount(newUsername, newPassword) {
         changeUsername(newUsername);
@@ -871,6 +884,7 @@
         const msg = document.getElementById("account-message");
         if (msg) msg.innerText = "Account updated successfully!";
       }
+
       // On DOM load.
       document.addEventListener("DOMContentLoaded", () => {
         loadInstalledApps().then(() => {
