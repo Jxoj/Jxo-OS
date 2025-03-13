@@ -107,7 +107,7 @@
           if (localStorage.getItem('installedApps')) {
             installedApps = JSON.parse(localStorage.getItem('installedApps'));
           } else {
-            // Instead of fetching from apps/default/apps.json, we start with an empty array.
+            // Start with an empty array.
             installedApps = [];
           }
           resolve();
@@ -119,7 +119,7 @@
         const jstoreInstalled = installedApps.some(app => app.name === "Jstore");
         if (!jstoreInstalled) {
           installApp("Jstore", "app/icons/jstore.png", "");
-          // After installation, update Jstore's content with an inline script that fetches apps.
+          // Update Jstore's content: only HTML container (no inline <script>).
           const jstoreApp = installedApps.find(app => app.name === "Jstore");
           if (jstoreApp) {
             jstoreApp.htmlContent = `
@@ -127,54 +127,54 @@
                 <h1>Jstore</h1>
                 <div id="jstore-app-list"></div>
               </div>
-              <script>
-                // Function to load available apps from the remote JSON file.
-                function loadJstoreApps() {
-                  fetch("https://jxoj.github.io/Jxo-OS/apps/apps.json")
-                    .then(response => {
-                      if (!response.ok) {
-                        throw new Error("Network response was not ok");
-                      }
-                      return response.json();
-                    })
-                    .then(apps => {
-                      const list = document.getElementById("jstore-app-list");
-                      list.innerHTML = "";
-                      apps.forEach(app => {
-                        const appDiv = document.createElement("div");
-                        appDiv.classList.add("jstore-app-item");
-                        appDiv.innerHTML = \`
-                          <img src="\${app.icon}" alt="\${app.name} icon">
-                          <span style="flex-grow:1;">\${app.name}</span>
-                          <button onclick="installJstoreApp('\${app.name}', '\${app.icon}', '\${app.url}')">Install</button>
-                          <button onclick="uninstallJstoreApp('\${app.name}')">Uninstall</button>
-                        \`;
-                        list.appendChild(appDiv);
-                      });
-                    })
-                    .catch(error => {
-                      console.error("Failed to load Jstore apps:", error);
-                      const list = document.getElementById("jstore-app-list");
-                      list.innerHTML = "<p>Error loading apps.</p>";
-                    });
-                }
-                // Install an app from Jstore using the OS's installApp function.
-                function installJstoreApp(name, icon, url) {
-                  installApp(name, icon, url);
-                  alert(name + " has been installed!");
-                }
-                // Uninstall an app from Jstore using the OS's uninstallApp function.
-                function uninstallJstoreApp(name) {
-                  uninstallApp(name);
-                  alert(name + " has been uninstalled!");
-                }
-                loadJstoreApps();
-              <\/script>
             `;
-            // Save the updated installedApps with Jstore's content.
             localStorage.setItem("installedApps", JSON.stringify(installedApps));
           }
         }
+      }
+
+      // Global function: Fetch and render Jstore apps.
+      function loadJstoreApps() {
+        fetch("https://jxoj.github.io/Jxo-OS/apps/apps.json")
+          .then(response => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then(apps => {
+            const list = document.getElementById("jstore-app-list");
+            if (!list) return;
+            list.innerHTML = "";
+            apps.forEach(app => {
+              const appDiv = document.createElement("div");
+              appDiv.classList.add("jstore-app-item");
+              appDiv.innerHTML = `
+                <img src="${app.icon}" alt="${app.name} icon">
+                <span style="flex-grow:1;">${app.name}</span>
+                <button onclick="installJstoreApp('${app.name}', '${app.icon}', '${app.url}')">Install</button>
+                <button onclick="uninstallJstoreApp('${app.name}')">Uninstall</button>
+              `;
+              list.appendChild(appDiv);
+            });
+          })
+          .catch(error => {
+            console.error("Failed to load Jstore apps:", error);
+            const list = document.getElementById("jstore-app-list");
+            if (list) list.innerHTML = "<p>Error loading apps.</p>";
+          });
+      }
+
+      // Global function: Install an app from Jstore.
+      function installJstoreApp(name, icon, url) {
+        installApp(name, icon, url);
+        alert(name + " has been installed!");
+      }
+
+      // Global function: Uninstall an app from Jstore.
+      function uninstallJstoreApp(name) {
+        uninstallApp(name);
+        alert(name + " has been uninstalled!");
       }
 
       // Boot screen: shows "Jx" and a loading circle.
@@ -193,7 +193,7 @@
         }, 2000);
       }
 
-      // Load OS: desktop, floating taskbar, and search menu.
+      // Load OS: desktop, taskbar, and search menu.
       function loadOS() {
         document.body.innerHTML = `
           <div id="desktop"></div>
@@ -223,7 +223,7 @@
         setInterval(updateClock, 1000);
       }
 
-      // Load and save background (ensuring images remain in place).
+      // Load and save background.
       function loadBackground() {
         const background = localStorage.getItem("background");
         if (background) {
@@ -234,7 +234,7 @@
         localStorage.setItem("background", backgroundValue);
         loadBackground();
       }
-      // Prompt for changing background (color or image).
+      // Prompt for changing background.
       function changeBackgroundPrompt() {
         const choice = prompt("Enter 'color' for background color or 'image' for background image:");
         if (choice === 'color') {
@@ -252,7 +252,7 @@
           }
         }
       }
-      // New functions for background change using RGB or image URL.
+      // New functions for background change.
       function changeBackground(r, g, b) {
         const color = `rgb(${r}, ${g}, ${b})`;
         document.body.style.background = color;
@@ -285,7 +285,7 @@
         });
       }
 
-      // Open an app window and add to openApps (if not already open).
+      // Open an app window and add to openApps.
       function openAppWindow(appId) {
         const app = installedApps.find(app => app.appId === appId);
         if (app) {
@@ -317,9 +317,14 @@
             openApps.push(appId);
             updateTaskbar();
           }
+          // If the opened app is Jstore, call loadJstoreApps after rendering.
+          if (appId === "jstore") {
+            setTimeout(loadJstoreApps, 100);
+          }
         }
       }
-      // Close app window and update openApps.
+
+      // Close app window.
       function closeWindow(appId) {
         const appWindow = document.getElementById(appId);
         if (appWindow) {
@@ -365,6 +370,7 @@
           isDragging = false;
         });
       }
+
       // Resizable functionality for app windows.
       function makeResizable(windowElement) {
         const resizeHandle = windowElement.querySelector(".resize-handle");
@@ -453,7 +459,7 @@
         renderDesktop();
       }
 
-      // Update taskbar with open apps' icons (32×32).
+      // Update taskbar with open apps' icons.
       function updateTaskbar() {
         const openContainer = document.getElementById("open-apps");
         openContainer.innerHTML = "";
