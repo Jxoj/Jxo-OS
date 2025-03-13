@@ -204,7 +204,7 @@
       function installJstoreIfNotInstalled() {
         const jstoreInstalled = installedApps.some((app) => app.name === "Jstore");
         if (!jstoreInstalled) {
-          installApp("Jstore", "app/icons/jstore.png", "");
+          installApp("Jstore", "apps/icons/jstore.png", "");
           const jstoreApp = installedApps.find((app) => app.name === "Jstore");
           if (jstoreApp) {
             jstoreApp.htmlContent = `
