@@ -103,55 +103,83 @@
       .jstore-app-item button:hover {
         background-color: #555;
       }
-      /* Settings app styling */
+      /* Improved Settings UI */
       #settings-app {
         display: flex;
-        height: 100%;
+        height: calc(100vh - 50px);
+        background-color: #1a1a1a;
       }
       #settings-sidebar {
-        width: 200px;
-        background: #1f1f1f;
-        padding: 10px;
-        overflow-y: auto;
+        width: 250px;
+        background-color: #2b2b2b;
+        padding: 20px;
+        box-shadow: inset -1px 0 0 rgba(255,255,255,0.1);
       }
       #settings-sidebar input[type="text"] {
         width: 100%;
-        padding: 5px;
-        margin-bottom: 10px;
-        border-radius: 5px;
-        border: none;
+        padding: 8px;
+        margin-bottom: 15px;
+        border: 1px solid #444;
+        border-radius: 4px;
+        background-color: #333;
+        color: #e0e0e0;
       }
       #settings-options {
         list-style: none;
         padding: 0;
       }
       #settings-options li {
-        padding: 5px;
+        padding: 10px;
+        margin-bottom: 5px;
+        border-radius: 4px;
         cursor: pointer;
+        transition: background-color 0.3s;
         display: flex;
         align-items: center;
       }
+      #settings-options li:hover {
+        background-color: #444;
+      }
       #settings-options li.active {
-        background: #333;
+        background-color: #555;
       }
       #settings-options li img {
         width: 24px;
-        margin-right: 5px;
+        margin-right: 10px;
       }
       #settings-content {
         flex-grow: 1;
-        padding: 20px;
-        overflow-y: auto;
+        padding: 30px;
+        background-color: #222;
+        border-left: 1px solid #333;
+      }
+      #settings-content h2 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        font-size: 24px;
+      }
+      #settings-content h3 {
+        margin-top: 20px;
+        font-size: 20px;
       }
       /* Personalization tab elements */
       #bg-preview-container {
         border: 1px solid #444;
         padding: 10px;
         margin-bottom: 10px;
+        text-align: center;
       }
       #bg-preview {
         max-width: 300px;
         max-height: 200px;
+      }
+      select {
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #444;
+        background-color: #333;
+        color: #e0e0e0;
+        margin-top: 10px;
       }
     </style>
   </head>
@@ -202,12 +230,12 @@
                 <div id="settings-sidebar">
                   <input type="text" id="settings-search" placeholder="Search settings..." />
                   <ul id="settings-options">
-                    <li data-tab="personalization" style="display:flex;align-items:center;">
-                      <img src="images/icons/settings/sidebar/personalization.webp" alt="Personalization" />
+                    <li data-tab="personalization">
+                      <img src="https://jxoj.github.io/Jxo-OS/images/icons/settings/sidebar/personalization.webp" alt="Personalization" />
                       <span>Personalization</span>
                     </li>
-                    <li data-tab="account" style="display:flex;align-items:center;">
-                      <img src="images/icons/settings/sidebar/account.webp" alt="Account" />
+                    <li data-tab="account">
+                      <img src="https://jxoj.github.io/Jxo-OS/images/icons/settings/sidebar/account.webp" alt="Account" />
                       <span>Account</span>
                     </li>
                   </ul>
@@ -336,10 +364,12 @@
             </select>
           </div>
         `;
-        // Attach event listener to wallpaper dropdown without forcing a default change.
+        // Set default wallpaper preview to wallpaper1.
         const wallpaperDropdown = document.getElementById("wallpaper-dropdown");
         const bgPreview = document.getElementById("bg-preview");
         if (wallpaperDropdown && bgPreview) {
+          wallpaperDropdown.value = "images/backgrounds/wallpaper1.jpg";
+          bgPreview.src = wallpaperDropdown.value;
           wallpaperDropdown.addEventListener("change", function () {
             const selected = wallpaperDropdown.value;
             bgPreview.src = selected;
@@ -578,8 +608,7 @@
       function makeDraggable(windowElement) {
         const header = windowElement.querySelector(".window-header");
         let isDragging = false;
-        let offsetX = 0,
-          offsetY = 0;
+        let offsetX = 0, offsetY = 0;
         header.addEventListener("mousedown", (e) => {
           isDragging = true;
           offsetX = e.clientX - windowElement.offsetLeft;
