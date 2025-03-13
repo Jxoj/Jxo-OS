@@ -107,7 +107,7 @@
           if (localStorage.getItem('installedApps')) {
             installedApps = JSON.parse(localStorage.getItem('installedApps'));
           } else {
-            // Instead of fetching from apps/default/apps.json, we set installedApps to an empty array
+            // Instead of fetching from apps/default/apps.json, we start with an empty array.
             installedApps = [];
           }
           resolve();
@@ -119,7 +119,7 @@
         const jstoreInstalled = installedApps.some(app => app.name === "Jstore");
         if (!jstoreInstalled) {
           installApp("Jstore", "app/icons/jstore.png", "");
-          // Update Jstore's content.
+          // After installation, update Jstore's content with an inline script that fetches apps.
           const jstoreApp = installedApps.find(app => app.name === "Jstore");
           if (jstoreApp) {
             jstoreApp.htmlContent = `
@@ -171,6 +171,7 @@
                 loadJstoreApps();
               <\/script>
             `;
+            // Save the updated installedApps with Jstore's content.
             localStorage.setItem("installedApps", JSON.stringify(installedApps));
           }
         }
@@ -181,7 +182,7 @@
         document.body.innerHTML = `
           <div id="boot-screen" class="boot-screen">
             <div class="boot-content">
-                <span class="boot-title" style="font-size:4em;">Jx</span>
+              <span class="boot-title" style="font-size:4em;">Jx</span>
               <div class="loading-circle"></div>
             </div>
           </div>
@@ -222,7 +223,7 @@
         setInterval(updateClock, 1000);
       }
 
-      // Load and save background (fixed so images remain in place).
+      // Load and save background (ensuring images remain in place).
       function loadBackground() {
         const background = localStorage.getItem("background");
         if (background) {
@@ -233,7 +234,6 @@
         localStorage.setItem("background", backgroundValue);
         loadBackground();
       }
-
       // Prompt for changing background (color or image).
       function changeBackgroundPrompt() {
         const choice = prompt("Enter 'color' for background color or 'image' for background image:");
