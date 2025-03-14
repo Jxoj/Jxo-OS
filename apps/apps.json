@@ -3,5 +3,10 @@
       "name": "Jlauncher",
       "icon": "https://usejxo.github.io/Jlauncher/images/icon/icon.png",
       "url": "https://usejxo.github.io/Jlauncher/app.html"
+    },
+    {
+      "name":"Furnace",
+      "icon":"https://jxoj.github.io/Jxo-OS/apps/icons/furnace.png",
+      "url":"https://usejxo.github.io/Jlauncher/furnace"
     }
 ]

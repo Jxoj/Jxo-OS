@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="images/icons/favicon.png" type="image/png" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jxo OS</title>
+  <link rel="stylesheet" href="assets/css/default.css" />
+  <style>
+    body {
+      background-color: #121212;
+      color: #e0e0e0;
+    }
+    #jstore-container {
+      padding: 20px;
+    }
+    #jstore-container h1 {
+      margin-bottom: 10px;
+    }
+    #jstore-search {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: #333;
+      border: none;
+      border-radius: 5px;
+      color: #e0e0e0;
+      font-size: 16px;
+    }
+    .jstore-app-item {
+      background-color: #222;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+    }
+    .jstore-app-item img {
+      width: 48px;
+      height: 48px;
+      margin-right: 10px;
+    }
+    .jstore-app-item button {
+      margin-left: auto;
+      padding: 5px 10px;
+      background-color: #444;
+      color: #e0e0e0;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    .jstore-app-item button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div id="jstore-container">
+    <h1>Jstore</h1>
+    <input type="text" id="jstore-search" placeholder="Search apps..." oninput="filterJstoreApps(this.value)">
+    <div id="jstore-app-list"></div>
+  </div>
+
+  <script>
+    let installedApps = JSON.parse(localStorage.getItem("installedApps")) || [];
+
+    function filterJstoreApps(query) {
+      const apps = document.querySelectorAll('.jstore-app-item');
+      apps.forEach(app => {
+        const name = app.querySelector('span').textContent.toLowerCase();
+        app.style.display = name.includes(query.toLowerCase()) ? 'flex' : 'none';
+      });
+    }
+
+    function installJstoreApp(name, icon, url, button) {
+      installedApps.push({ name, icon, url });
+      localStorage.setItem("installedApps", JSON.stringify(installedApps));
+      button.textContent = 'Uninstall';
+      button.onclick = () => uninstallJstoreApp(name, button);
+    }
+
+    function uninstallJstoreApp(name, button) {
+      installedApps = installedApps.filter(app => app.name !== name);
+      localStorage.setItem("installedApps", JSON.stringify(installedApps));
+      button.textContent = 'Install';
+      button.onclick = () => installJstoreApp(name, button);
+    }
+
+    function loadJstoreApps() {
+      fetch("https://jxoj.github.io/Jxo-OS/apps/apps.json")
+        .then(response => response.json())
+        .then(apps => {
+          const list = document.getElementById("jstore-app-list");
+          list.innerHTML = "";
+          apps.forEach(app => {
+            const isInstalled = installedApps.some(a => a.name === app.name);
+            const button = document.createElement("button");
+            button.textContent = isInstalled ? "Uninstall" : "Install";
+            button.onclick = () => isInstalled ? uninstallJstoreApp(app.name, button) : installJstoreApp(app.name, app.icon, app.url, button);
+
+            const appDiv = document.createElement("div");
+            appDiv.classList.add("jstore-app-item");
+            appDiv.innerHTML = `<img src="${app.icon}" alt="${app.name} icon"><span>${app.name}</span>`;
+            appDiv.appendChild(button);
+            list.appendChild(appDiv);
+          });
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", loadJstoreApps);
+  </script>
+</body>
+</html>
