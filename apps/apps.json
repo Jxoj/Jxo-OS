@@ -8,5 +8,10 @@
       "name":"Furnace",
       "icon":"https://jxoj.github.io/Jxo-OS/apps/icons/furnace.png",
       "url":"https://usejxo.github.io/Jlauncher/furnace"
+    },
+    {
+      "name":"HyperFox",
+      "icon":"https://jxoj.github.io/Jxo-OS/apps/icons/hyperfox.png",
+      "url":"https://jxoj.github.io/Jxo-OS/apps/hyperfox"
     }
 ]

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jcord - In-Game Chat</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #181818; color: white; }
+        #chat-container { width: 80%; margin: auto; padding: 20px; border-radius: 10px; background: #222; display: none; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.8); }
+        #messages { height: 300px; overflow-y: auto; border-bottom: 1px solid white; padding-bottom: 10px; text-align: left; padding: 10px; font-size: 16px; }
+        input, button { padding: 12px; margin: 5px; border-radius: 8px; font-size: 14px; }
+        input { width: 75%; max-width: 300px; background-color: #333; border: 1px solid #444; color: white; }
+        button { background-color: #0a84ff; color: white; border: none; cursor: pointer; transition: background-color 0.3s ease; }
+        button:hover { background-color: #007aff; }
+        #server-container, #username-container { margin-top: 100px; }
+        #userDisplay { font-weight: bold; }
+        .message { margin-bottom: 10px; }
+        .message strong { color: #0a84ff; }
+        .server-message { color: #f39c12; font-style: italic; }
+    </style>
+</head>
+<body>
+    <h1>Jcord</h1>
+
+    <div id="server-container">
+        <input type="text" id="serverAddress" placeholder="Enter WebSocket server address">
+        <button onclick="connectToServer()">Connect</button>
+    </div>
+
+    <div id="username-container" style="display: none;">
+        <input type="text" id="usernameInput" placeholder="Enter a unique username">
+        <button onclick="setUsername()">Join</button>
+    </div>
+
+    <div id="chat-container">
+        <h2>Welcome, <span id="userDisplay"></span></h2>
+        <div id="messages"></div>
+        <input type="text" id="messageInput" placeholder="Type a message...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        let ws;
+        let username = "";
+
+        function connectToServer() {
+            const address = document.getElementById('serverAddress').value;
+            if (!address) return alert("Please enter a WebSocket server address.");
+            
+            ws = new WebSocket(address);
+            ws.onopen = () => {
+                document.getElementById('server-container').style.display = 'none';
+                document.getElementById('username-container').style.display = 'block';
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'chat') {
+                    displayMessage(data.user, data.text);
+                } else if (data.type === 'usernameSet') {
+                    username = data.username;
+                    document.getElementById('username-container').style.display = 'none';
+                    document.getElementById('chat-container').style.display = 'block';
+                    document.getElementById('userDisplay').innerText = username;
+                } else if (data.type === 'serverMessage') {
+                    displayMessage('Server', data.text, 'server-message');
+                }
+            };
+        }
+
+        function setUsername() {
+            const usernameInput = document.getElementById('usernameInput').value;
+            if (usernameInput && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'setUsername', username: usernameInput }));
+            }
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput').value;
+            if (messageInput && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'chat', text: messageInput }));
+                document.getElementById('messageInput').value = "";
+            }
+        }
+
+        function displayMessage(user, text, className = '') {
+            const messagesDiv = document.getElementById('messages');
+            const messageElement = document.createElement('p');
+            messageElement.className = `message ${className}`;
+            messageElement.innerHTML = `<strong>${user}:</strong> ${text}`;
+            messagesDiv.appendChild(messageElement);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JxoTube</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: black;
+      color: white;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    body.light-mode {
+      background-color: white;
+      color: black;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #121212;
+      padding: 10px 20px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    }
+    header h1 {
+      font-size: 24px;
+      color: blue;
+    }
+    header input {
+      flex: 1;
+      margin: 0 20px;
+      padding: 10px;
+      border: 2px solid blue;
+      border-radius: 5px;
+      background-color: #1a1a1a;
+      color: white;
+      font-size: 16px;
+    }
+    header button {
+      padding: 10px 20px;
+      background-color: blue;
+      color: white;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+    }
+    #results {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+    .result {
+      background-color: #1a1a1a;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .result:hover {
+      transform: scale(1.05);
+    }
+    .result img {
+      width: 100%;
+      display: block;
+    }
+    .pagination {
+      text-align: center;
+      padding: 20px;
+    }
+    .pagination button {
+      background-color: blue;
+      border: none;
+      padding: 10px 20px;
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    /* Video Popup Styles */
+    #videoPopup {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      justify-content: center;
+      align-items: center;
+    }
+    #videoPopup iframe {
+      width: 80%;
+      height: 80%;
+      border: none;
+    }
+    #videoPopup button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>JxoTube</h1>
+    <input id="search" type="text" placeholder="Search videos or channels..." />
+    <button id="searchButton">Search</button>
+    <button id="themeToggle">Toggle Theme</button>
+  </header>
+
+  <div id="results"></div>
+
+  <div class="pagination">
+    <button id="prevPage">Previous</button>
+    <button id="nextPage">Next</button>
+  </div>
+
+  <!-- Video Popup -->
+  <div id="videoPopup">
+    <button onclick="closeVideoPopup()">Close</button>
+    <iframe id="videoFrame"></iframe>
+  </div>
+
+  <script>
+    const encodedKey = "VZVWPZWerhVQxIFZZd0bKp2TuBVcBRWaMdWW5gjaHdDR5NVY6lUQ";
+
+    function getApiKey() {
+      return atob(encodedKey.split("").reverse().join(""));
+    }
+
+    const results = document.getElementById("results");
+    const searchInput = document.getElementById("search");
+    const searchButton = document.getElementById("searchButton");
+    const prevPageBtn = document.getElementById("prevPage");
+    const nextPageBtn = document.getElementById("nextPage");
+    const themeToggle = document.getElementById("themeToggle");
+    let nextPageToken = "";
+    let prevPageToken = "";
+
+    async function fetchYouTubeData(query, pageToken = "") {
+      try {
+        const API_KEY = getApiKey();
+        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${query}&maxResults=12&pageToken=${pageToken}&key=${API_KEY}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        nextPageToken = data.nextPageToken || "";
+        prevPageToken = data.prevPageToken || "";
+        if (!data.items || !Array.isArray(data.items)) {
+          console.error("Error: API response did not contain a valid 'items' array.", data);
+          return [];
+        }
+        return data.items;
+      } catch (error) {
+        console.error("Error fetching YouTube data:", error);
+        return [];
+      }
+    }
+
+    function renderResults(items) {
+      results.innerHTML = "";
+      if (!items.length) {
+        results.innerHTML = "<p>No results found.</p>";
+        return;
+      }
+      items.forEach(item => {
+        const resultEl = document.createElement("div");
+        resultEl.className = "result";
+        resultEl.innerHTML = `
+          <img src="${item.snippet.thumbnails.medium.url}" alt="${item.snippet.title}" />
+          <h3>${item.snippet.title}</h3>
+          <p>${item.snippet.channelTitle}</p>
+        `;
+        resultEl.onclick = () => openVideoPopup(item.id.videoId);
+        results.appendChild(resultEl);
+      });
+    }
+
+    function openVideoPopup(videoId) {
+      document.getElementById("videoFrame").src = `https://www.youtube.com/embed/${videoId}`;
+      document.getElementById("videoPopup").style.display = "flex";
+    }
+
+    function closeVideoPopup() {
+      document.getElementById("videoPopup").style.display = "none";
+      document.getElementById("videoFrame").src = "";
+    }
+
+    searchButton.onclick = async () => {
+      const items = await fetchYouTubeData(searchInput.value);
+      renderResults(items);
+    };
+
+    themeToggle.onclick = () => {
+      document.body.classList.toggle("light-mode");
+    };
+
+    prevPageBtn.onclick = async () => {
+      if (prevPageToken) {
+        const items = await fetchYouTubeData(searchInput.value, prevPageToken);
+        renderResults(items);
+      }
+    };
+
+    nextPageBtn.onclick = async () => {
+      if (nextPageToken) {
+        const items = await fetchYouTubeData(searchInput.value, nextPageToken);
+        renderResults(items);
+      }
+    };
+  </script>
+</body>
+</html>
