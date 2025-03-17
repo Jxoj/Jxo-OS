@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Retro Airplane Shooter</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+    /* Both the canvas and overlays use the same background image */
+    canvas {
+      display: none;
+      background: url('assets/background.png') no-repeat center center;
+      background-size: cover;
+      border: 5px solid white;
+    }
+    #menu, #instructions, #gameOver {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: url('assets/background.png') no-repeat center center;
+      background-size: cover;
+      color: black;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 2;
+    }
+    #gameOver {
+      z-index: 3;
+      display: none;
+    }
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 20px;
+      cursor: pointer;
+      color: black;
+      background-color: #ccc;
+      border: none;
+    }
+    #lives {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: black;
+      font-size: 20px;
+      z-index: 4;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      color: black;
+      font-size: 20px;
+      z-index: 4;
+    }
+  </style>
+</head>
+<body>
+  <div id="menu">
+    <h1>Retro Airplane Shooter</h1>
+    <button onclick="startGame()">Start Game</button>
+    <button onclick="showInstructions()">Instructions</button>
+  </div>
+  <div id="instructions" style="display: none;">
+    <h2>Instructions</h2>
+    <p>Use Arrow Up, Down, Left, and Right to move the airplane.</p>
+    <p>Your airplane shoots automatically.</p>
+    <p>Avoid enemy bullets and collect power-ups:</p>
+    <ul style="text-align:left;">
+      <li>Type 1: Doubles your lasers for 10 seconds.</li>
+      <li>Type 2: Shortens the shooting interval for 10 seconds.</li>
+      <li>Type 3: Grants an extra life.</li>
+    </ul>
+    <button onclick="showMenu()">Back to Menu</button>
+  </div>
+  <div id="gameOver">
+    <h1>Game Over</h1>
+    <p id="finalScore"></p>
+    <button onclick="restartGame()">Restart</button>
+  </div>
+  <div id="lives">Lives: 3</div>
+  <div id="score">Score: 0</div>
+  <canvas id="gameCanvas"></canvas>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    // Preload images
+    let planeImg = new Image();
+    planeImg.src = "assets/player.png";
+    let enemyImg = new Image();
+    enemyImg.src = "assets/enemy.png";
+    let hitImg = new Image();
+    hitImg.src = "assets/hit.png";
+    
+    // Power-up images
+    let powerUp1Img = new Image();
+    powerUp1Img.src = "assets/power ups/1.png";
+    let powerUp2Img = new Image();
+    powerUp2Img.src = "assets/power ups/2.png";
+    let powerUp3Img = new Image();
+    powerUp3Img.src = "assets/power ups/3.png"; // Assumed to exist for extra life power-up
+    
+    // Player object with movement
+    let plane = { 
+      x: 50, 
+      y: canvas.height / 2, 
+      width: 64, 
+      height: 64, 
+      speed: 5, 
+      dx: 0, 
+      dy: 0, 
+      lives: 3 
+    };
+    
+    // Power-up effects
+    let laserMultiplier = 1; // 1 = normal, 2 = double lasers
+    let shootInterval = 500; // in ms
+    
+    // Flags and game variables
+    let planeHit = false;
+    let bullets = [];
+    let enemies = [];
+    let enemyBullets = [];
+    let powerUps = [];
+    let isGameOver = false;
+    let score = 0;
+    
+    // Start the game
+    function startGame() {
+      document.getElementById("menu").style.display = "none";
+      document.getElementById("instructions").style.display = "none";
+      document.getElementById("gameOver").style.display = "none";
+      canvas.style.display = "block";
+      shootLoop();
+      gameLoop();
+    }
+    
+    function showInstructions() {
+      document.getElementById("menu").style.display = "none";
+      document.getElementById("instructions").style.display = "flex";
+    }
+    
+    function showMenu() {
+      document.getElementById("instructions").style.display = "none";
+      document.getElementById("menu").style.display = "flex";
+    }
+    
+    function restartGame() {
+      window.location.reload();
+    }
+    
+    function updateLives() {
+      document.getElementById("lives").innerText = "Lives: " + plane.lives;
+    }
+    
+    function updateScore() {
+      document.getElementById("score").innerText = "Score: " + score;
+    }
+    
+    // Draw the player's plane; if hit, overlay the hit image
+    function drawPlane() {
+      ctx.drawImage(planeImg, plane.x, plane.y, plane.width, plane.height);
+      if (planeHit) {
+        ctx.drawImage(hitImg, plane.x, plane.y, plane.width, plane.height);
+      }
+    }
+    
+    function drawBullets() {
+      ctx.fillStyle = "yellow";
+      bullets.forEach(bullet => {
+        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+      });
+    }
+    
+    function drawEnemies() {
+      enemies.forEach(enemy => {
+        ctx.save();
+        ctx.translate(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
+        ctx.rotate(Math.PI); // Flip enemy sprite to face forward
+        ctx.drawImage(enemyImg, -enemy.width / 2, -enemy.height / 2, enemy.width, enemy.height);
+        ctx.restore();
+      });
+    }
+    
+    function drawEnemyBullets() {
+      ctx.fillStyle = "purple";
+      enemyBullets.forEach(bullet => {
+        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+      });
+    }
+    
+    function drawPowerUps() {
+      powerUps.forEach(pu => {
+        if (pu.type === 1) {
+          ctx.drawImage(powerUp1Img, pu.x, pu.y, pu.width, pu.height);
+        } else if (pu.type === 2) {
+          ctx.drawImage(powerUp2Img, pu.x, pu.y, pu.width, pu.height);
+        } else if (pu.type === 3) {
+          ctx.drawImage(powerUp3Img, pu.x, pu.y, pu.width, pu.height);
+        }
+      });
+    }
+    
+    // Update bullet positions
+    function updateBullets() {
+      bullets.forEach((bullet, index) => {
+        bullet.x += 5;
+        if (bullet.x > canvas.width) bullets.splice(index, 1);
+      });
+    }
+    
+    // Update enemy positions, swooping and firing
+    function updateEnemies() {
+      enemies.forEach((enemy, index) => {
+        enemy.x -= 5;
+        enemy.y += (enemy.targetY - enemy.y) * 0.05;
+        if (Date.now() > enemy.changeTime) {
+          enemy.targetY = Math.random() * (canvas.height - enemy.height);
+          enemy.changeTime = Date.now() + 1000 + Math.random() * 2000;
+        }
+        if (Date.now() - enemy.lastShot > 1000) {
+          enemyBullets.push({ 
+            x: enemy.x, 
+            y: enemy.y + enemy.height / 2 - 2.5, 
+            width: 5, 
+            height: 5, 
+            speed: 6 
+          });
+          enemy.lastShot = Date.now();
+        }
+        if (enemy.x + enemy.width < 0) {
+          enemies.splice(index, 1);
+        }
+      });
+      if (Math.random() < 0.03) {
+        let newEnemy = { 
+          x: canvas.width, 
+          y: Math.random() * (canvas.height - 48), 
+          width: 48, 
+          height: 48, 
+          lastShot: Date.now(), 
+          targetY: Math.random() * (canvas.height - 48), 
+          changeTime: Date.now() + 1000 + Math.random() * 2000
+        };
+        enemies.push(newEnemy);
+      }
+    }
+    
+    // Update enemy bullet positions
+    function updateEnemyBullets() {
+      enemyBullets.forEach((bullet, index) => {
+        bullet.x -= bullet.speed;
+        if (bullet.x < 0) enemyBullets.splice(index, 1);
+      });
+    }
+    
+    // Update power-ups: move them left and spawn randomly
+    function updatePowerUps() {
+      powerUps.forEach((pu, index) => {
+        pu.x -= 3; // Power-ups move slower than enemies
+        if (pu.x + pu.width < 0) {
+          powerUps.splice(index, 1);
+        }
+      });
+      // Random spawn chance
+      if (Math.random() < 0.002) {
+        let type = Math.floor(Math.random() * 3) + 1; // 1, 2, or 3
+        powerUps.push({
+          x: canvas.width,
+          y: Math.random() * (canvas.height - 32),
+          width: 32,
+          height: 32,
+          type: type
+        });
+      }
+    }
+    
+    // Check collisions for enemies, enemy bullets, and power-ups
+    function checkCollisions() {
+      enemies.forEach((enemy, eIndex) => {
+        bullets.forEach((bullet, bIndex) => {
+          if (
+            bullet.x < enemy.x + enemy.width && bullet.x + bullet.width > enemy.x &&
+            bullet.y < enemy.y + enemy.height && bullet.y + bullet.height > enemy.y
+          ) {
+            enemies.splice(eIndex, 1);
+            bullets.splice(bIndex, 1);
+            score++;
+          }
+        });
+        if (
+          plane.x < enemy.x + enemy.width && plane.x + plane.width > enemy.x &&
+          plane.y < enemy.y + enemy.height && plane.y + plane.height > enemy.y
+        ) {
+          plane.lives--;
+          flashPlayer();
+          enemies.splice(eIndex, 1);
+          if (plane.lives <= 0) {
+            isGameOver = true;
+          }
+        }
+      });
+      enemyBullets.forEach((bullet, bIndex) => {
+        if (
+          bullet.x < plane.x + plane.width && bullet.x + bullet.width > plane.x &&
+          bullet.y < plane.y + plane.height && bullet.y + bullet.height > plane.y
+        ) {
+          plane.lives--;
+          flashPlayer();
+          enemyBullets.splice(bIndex, 1);
+          if (plane.lives <= 0) {
+            isGameOver = true;
+          }
+        }
+      });
+      powerUps.forEach((pu, puIndex) => {
+        if (
+          plane.x < pu.x + pu.width && plane.x + plane.width > pu.x &&
+          plane.y < pu.y + pu.height && plane.y + plane.height > pu.y
+        ) {
+          // Apply power-up effect based on type
+          if (pu.type === 1) {
+            laserMultiplier = 2;
+            setTimeout(() => { laserMultiplier = 1; }, 10000);
+          } else if (pu.type === 2) {
+            shootInterval = 250;
+            setTimeout(() => { shootInterval = 500; }, 10000);
+          } else if (pu.type === 3) {
+            plane.lives++;
+          }
+          powerUps.splice(puIndex, 1);
+        }
+      });
+    }
+    
+    // Instead of a fixed interval, use a shoot loop that respects shootInterval and laserMultiplier
+    function shootLoop() {
+      if (laserMultiplier === 1) {
+        bullets.push({ 
+          x: plane.x + plane.width, 
+          y: plane.y + plane.height / 2 - 2.5, 
+          width: 5, 
+          height: 5 
+        });
+      } else if (laserMultiplier === 2) {
+        // Spawn two bullets, one slightly above and one below the center
+        bullets.push({ 
+          x: plane.x + plane.width, 
+          y: plane.y + plane.height / 2 - 10, 
+          width: 5, 
+          height: 5 
+        });
+        bullets.push({ 
+          x: plane.x + plane.width, 
+          y: plane.y + plane.height / 2 + 5, 
+          width: 5, 
+          height: 5 
+        });
+      }
+      setTimeout(shootLoop, shootInterval);
+    }
+    
+    // Called when the plane is hit to overlay the hit image for 1 second
+    function flashPlayer() {
+      planeHit = true;
+      setTimeout(() => {
+        planeHit = false;
+      }, 1000);
+    }
+    
+    function gameLoop() {
+      if (isGameOver) {
+        document.getElementById("finalScore").innerText = "Score: " + score;
+        document.getElementById("gameOver").style.display = "flex";
+        return;
+      }
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Update player position
+      plane.y += plane.dy;
+      plane.x += plane.dx;
+      // Constrain player within screen bounds
+      if (plane.y < 0) plane.y = 0;
+      if (plane.y + plane.height > canvas.height) plane.y = canvas.height - plane.height;
+      if (plane.x < 0) plane.x = 0;
+      if (plane.x + plane.width > canvas.width) plane.x = canvas.width - plane.width;
+      
+      drawPlane();
+      updateBullets();
+      drawBullets();
+      updateEnemies();
+      drawEnemies();
+      updateEnemyBullets();
+      drawEnemyBullets();
+      updatePowerUps();
+      drawPowerUps();
+      checkCollisions();
+      updateLives();
+      updateScore();
+      
+      requestAnimationFrame(gameLoop);
+    }
+    
+    document.addEventListener("keydown", function(event) {
+      if (event.code === "ArrowUp") plane.dy = -plane.speed;
+      if (event.code === "ArrowDown") plane.dy = plane.speed;
+      if (event.code === "ArrowLeft") plane.dx = -plane.speed;
+      if (event.code === "ArrowRight") plane.dx = plane.speed;
+    });
+    document.addEventListener("keyup", function(event) {
+      if (event.code === "ArrowUp" || event.code === "ArrowDown") plane.dy = 0;
+      if (event.code === "ArrowLeft" || event.code === "ArrowRight") plane.dx = 0;
+    });
+    
+    // Start shooting loop once game starts
+    // (shootLoop() is called from startGame())
+  </script>
+</body>
+</html>

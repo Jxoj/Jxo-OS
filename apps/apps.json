@@ -13,5 +13,15 @@
       "name":"HyperFox",
       "icon":"https://jxoj.github.io/Jxo-OS/apps/icons/hyperfox.png",
       "url":"https://jxoj.github.io/Jxo-OS/apps/hyperfox"
+    },
+    {
+      "name":"RetroPlane",
+      "icon":"https://jxoj.github.io/Jxo-OS/apps/icons/retroplane.png",
+      "url":"https://jxoj.github.io/Jxo-OS/apps/retroplane"
+    },
+    {
+      "name":"Jplay",
+      "icon":"https://jxoj.github.io/Jxo-OS/apps/icons/jplay.png",
+      "url":"https://usejxo.github.io/Jplay"
     }
 ]
