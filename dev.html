@@ -678,6 +678,14 @@
           desktop.appendChild(appShortcut);
         });
       }
+      // Override openAppWindow so that Filesystem-specific events can be initialized after opening
+      const originalOpenAppWindow = openAppWindow;
+      openAppWindow = function(appId) {
+        originalOpenAppWindow(appId);
+        if(appId === "filesystem") {
+          setTimeout(initFilesystemContext, 200);
+        }
+      }
       function openAppWindow(appId) {
         const app = installedApps.find((app) => app.appId === appId);
         if (app) {
@@ -895,7 +903,8 @@
         if (entered === stored) {
           document.querySelector(".password-modal").remove();
         } else {
-          alert("Incorrect password!");
+          // Use custom notification instead of alert
+          showNotification("Incorrect password!");
         }
       }
       function setCredentials() {
@@ -906,7 +915,7 @@
           localStorage.setItem("password", newPass);
           document.querySelector(".password-modal").remove();
         } else {
-          alert("Username and password cannot be empty!");
+          showNotification("Username and password cannot be empty!");
         }
       }
       function changeUsername(newUsername) {
@@ -936,6 +945,8 @@
             setTimeout(() => { notif.remove(); }, 500);
           }, 3000);
         }
+        window.showNotification = showNotification;
+
         /* --- Confirm Modal --- */
         function confirmAction(message, callback) {
           let modal = document.createElement("div");
@@ -956,6 +967,7 @@
             modal.remove();
           };
         }
+        window.confirmAction = confirmAction;
         
         /* --- File System Implementation --- */
         let fileSystem = [];
@@ -1099,6 +1111,35 @@
             if(e.key === "Enter") { finishRename(); }
           });
         }
+        // Initialize context menu for Filesystem
+        function initFilesystemContext() {
+          const container = document.getElementById("filesystem-container");
+          if(container) {
+            container.oncontextmenu = function(e) {
+              e.preventDefault();
+              let targetRow = e.target.closest("tr[data-fileid]");
+              if(targetRow) {
+                let fileId = parseInt(targetRow.getAttribute("data-fileid"));
+                showContextMenu([
+                  { label: "Rename", action: () => inlineRename(fileId, targetRow.querySelector(".file-name")) },
+                  { label: "Delete", action: () => {
+                      const file = fileSystem.find(f => f.id === fileId);
+                      confirmAction("Delete file " + file.name + "." + file.extension + "?", function(){
+                        deleteFile(fileId);
+                      });
+                  }}
+                ], e.pageX, e.pageY);
+              } else {
+                showContextMenu([
+                  { label: "Create New File", action: () => {
+                      addFile({ name: "NewFile", type: "text", extension: "txt", content: "" }, true);
+                  }}
+                ], e.pageX, e.pageY);
+              }
+            }
+          }
+        }
+        // Context Menu implementation
         let fsContextMenu = document.createElement("div");
         fsContextMenu.className = "context-menu";
         fsContextMenu.style.display = "none";
@@ -1126,36 +1167,11 @@
           fsContextMenu.style.display = "block";
         }
         document.addEventListener("click", hideContextMenu);
+        
+        /* --- Filesystem App Content --- */
         function filesystemAppContent() {
           loadFileSystem();
           setTimeout(renderFileSystem, 100);
-          setTimeout(() => {
-            const container = document.getElementById("filesystem-container");
-            if(container) {
-              container.oncontextmenu = function(e) {
-                e.preventDefault();
-                let targetRow = e.target.closest("tr[data-fileid]");
-                if(targetRow) {
-                  let fileId = parseInt(targetRow.getAttribute("data-fileid"));
-                  showContextMenu([
-                    { label: "Rename", action: () => inlineRename(fileId, targetRow.querySelector(".file-name")) },
-                    { label: "Delete", action: () => {
-                        const file = fileSystem.find(f => f.id === fileId);
-                        confirmAction("Delete file " + file.name + "." + file.extension + "?", function(){
-                          deleteFile(fileId);
-                        });
-                    }}
-                  ], e.pageX, e.pageY);
-                } else {
-                  showContextMenu([
-                    { label: "Create New File", action: () => {
-                        addFile({ name: "NewFile", type: "text", extension: "txt", content: "" }, true);
-                    }}
-                  ], e.pageX, e.pageY);
-                }
-              }
-            }
-          }, 200);
           return `
             <div style="padding:10px; color:#e0e0e0;">
               <h2>Filesystem</h2>
@@ -1178,13 +1194,14 @@
         }
         function saveNotepad() {
           const text = document.getElementById("notepad-text").value;
-          const fileName = prompt("Enter file name for note (without extension):", "Note");
+          let fileName = prompt("Enter file name for note (without extension):", "Note");
           if(fileName) {
             addFile({name: fileName, type:"text", extension:"txt", content: text});
             showNotification("Note saved.");
           }
         }
         function openNotepadFile() {
+          loadFileSystem();
           let modal = document.createElement("div");
           modal.className = "confirm-modal";
           let textFiles = fileSystem.filter(f => f.type === "text");
