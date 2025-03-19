@@ -194,76 +194,10 @@
         color: #e0e0e0;
         margin-top: 10px;
       }
-      /* New Styles for Context Menu, Notification & Confirm Modal */
-      .context-menu {
-        position: absolute;
-        background: #333;
-        border: 1px solid #555;
-        z-index: 20000;
-        padding: 5px 0;
-        border-radius: 4px;
-      }
-      .context-menu-item {
-        padding: 5px 20px;
-        color: #e0e0e0;
-        cursor: pointer;
-      }
-      .context-menu-item:hover {
-        background: #444;
-      }
-      .notification {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #444;
-        color: #e0e0e0;
-        padding: 10px 20px;
-        border-radius: 4px;
-        z-index: 30000;
-        opacity: 1;
-        transition: opacity 0.5s;
-      }
-      .notification.fade-out {
-        opacity: 0;
-      }
-      .confirm-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 25000;
-      }
-      .confirm-content {
-        background: #222;
-        padding: 20px;
-        border: 1px solid #555;
-        border-radius: 4px;
-        color: #e0e0e0;
-      }
-      .confirm-content button {
-        margin: 5px;
-        padding: 5px 10px;
-        background: #555;
-        border: none;
-        border-radius: 3px;
-        color: #e0e0e0;
-        cursor: pointer;
-      }
-      .confirm-content button:hover {
-        background: #666;
-      }
     </style>
   </head>
   <body>
     <script>
-      // ===============================
-      // Existing OS Code (Jxo OS)
-      // ===============================
       // Global variables for installed apps and open apps.
       let installedApps = [];
       let openApps = [];
@@ -364,6 +298,15 @@
         }
       }
 
+      // Install The Files app as default if not installed.
+      function installFilesAppIfNotInstalled() {
+        const filesInstalled = installedApps.some((app) => app.name === "The Files");
+        if (!filesInstalled) {
+          installApp("Files", "https://jxoj.github.io/Jxo-OS/apps/icons/files.png", "https://jxoj.github.io/Jxo-OS/apps/files");
+          localStorage.setItem("installedApps", JSON.stringify(installedApps));
+        }
+      }
+
       // Global function: Fetch and render Jstore apps.
       function loadJstoreApps() {
         fetch("https://jxoj.github.io/Jxo-OS/apps/apps.json")
@@ -452,6 +395,8 @@
       }
 
       // Settings App functions
+
+      // Initialize the Settings app (attach sidebar event listeners).
       function initSettingsApp() {
         const searchInput = document.getElementById("settings-search");
         const optionsList = document.getElementById("settings-options");
@@ -479,16 +424,20 @@
             }
           });
         });
+        // Default to Personalization tab.
         loadPersonalizationTab();
       }
 
+      // Load the Personalization tab.
       function loadPersonalizationTab() {
         const content = document.getElementById("settings-content");
         if (!content) return;
+        // Create an array of wallpaper names from wallpaper1 to wallpaper41.
         const wallpapers = [];
         for (let i = 1; i <= 41; i++) {
           wallpapers.push("wallpaper" + i);
         }
+        // OS options: default and windows10.
         const osOptions = ["default", "windows10"];
         content.innerHTML = `
           <h2>Personalization</h2>
@@ -519,12 +468,14 @@
             <input type="color" id="bg-color-picker" />
           </div>
         `;
+        // Set OS dropdown to saved theme if available.
         const osDropdown = document.getElementById("os-dropdown");
         const savedOS = localStorage.getItem("osTheme") || "default";
         osDropdown.value = savedOS;
         osDropdown.addEventListener("change", function () {
           changeOS(osDropdown.value);
         });
+        // Wallpaper dropdown event.
         const wallpaperDropdown = document.getElementById("wallpaper-dropdown");
         const bgPreview = document.getElementById("bg-preview");
         if (wallpaperDropdown && bgPreview) {
@@ -536,6 +487,7 @@
             changeBackgroundimage(selected);
           });
         }
+        // Handle color picker.
         const colorPicker = document.getElementById("bg-color-picker");
         colorPicker.addEventListener("input", function () {
           const hex = colorPicker.value;
@@ -546,6 +498,7 @@
         });
       }
 
+      // Load the Account tab.
       function loadAccountTab() {
         const content = document.getElementById("settings-content");
         if (!content) return;
@@ -566,10 +519,12 @@
         `;
       }
 
+      // New function: change password.
       function changePassword(newPassword) {
         localStorage.setItem("password", newPassword);
       }
 
+      // New function: update account settings.
       function updateAccount(newUsername, newPassword) {
         changeUsername(newUsername);
         changePassword(newPassword);
@@ -577,6 +532,7 @@
         if (msg) msg.innerText = "Account updated successfully!";
       }
 
+      // Boot screen.
       function showBootScreen() {
         document.body.innerHTML = `
           <div id="boot-screen" class="boot-screen">
@@ -592,6 +548,7 @@
         }, 2000);
       }
 
+      // Load OS elements.
       function loadOS() {
         document.body.innerHTML = `
           <div id="desktop"></div>
@@ -614,14 +571,17 @@
             <div id="app-list"></div>
           </div>
         `;
+        // Install extra apps.
         installJstoreIfNotInstalled();
         installSettingsIfNotInstalled();
+        installFilesAppIfNotInstalled();
         renderDesktop();
         updateTaskbar();
         restoreOSTheme();
         setInterval(updateClock, 1000);
       }
 
+      // Load and save background.
       function loadBackground() {
         const background = localStorage.getItem("background");
         if (background) {
@@ -632,6 +592,7 @@
         localStorage.setItem("background", backgroundValue);
         loadBackground();
       }
+      // Prompt for changing background.
       function changeBackgroundPrompt() {
         const choice = prompt("Enter 'color' for background color or 'image' for background image:");
         if (choice === "color") {
@@ -649,6 +610,7 @@
           }
         }
       }
+      // Functions for background change.
       function changeBackground(r, g, b) {
         const color = `rgb(${r}, ${g}, ${b})`;
         document.body.style.background = color;
@@ -666,6 +628,8 @@
         }
       }
       onlyDoOnce(() => changeBackgroundimage("images/backgrounds/wallpaper7.jpg"));
+
+      // Render desktop icons.
       function renderDesktop() {
         const desktop = document.getElementById("desktop");
         if (!desktop) return;
@@ -678,14 +642,8 @@
           desktop.appendChild(appShortcut);
         });
       }
-      // Override openAppWindow so that Filesystem-specific events can be initialized after opening
-      const originalOpenAppWindow = openAppWindow;
-      openAppWindow = function(appId) {
-        originalOpenAppWindow(appId);
-        if(appId === "filesystem") {
-          setTimeout(initFilesystemContext, 200);
-        }
-      }
+
+      // Open app window.
       function openAppWindow(appId) {
         const app = installedApps.find((app) => app.appId === appId);
         if (app) {
@@ -725,6 +683,8 @@
           }
         }
       }
+
+      // Close app window.
       function closeWindow(appId) {
         const appWindow = document.getElementById(appId);
         if (appWindow) {
@@ -733,6 +693,8 @@
           updateTaskbar();
         }
       }
+
+      // Updated toggleFullscreen: full screen apps now cover the taskbar.
       function toggleFullscreen(appId) {
         const appWindow = document.getElementById(appId);
         if (appWindow) {
@@ -751,6 +713,8 @@
           }
         }
       }
+
+      // Draggable functionality.
       function makeDraggable(windowElement) {
         const header = windowElement.querySelector(".window-header");
         let isDragging = false;
@@ -771,6 +735,8 @@
           isDragging = false;
         });
       }
+
+      // Resizable functionality.
       function makeResizable(windowElement) {
         const resizeHandle = windowElement.querySelector(".resize-handle");
         let isResizing = false;
@@ -795,6 +761,8 @@
           isResizing = false;
         });
       }
+
+      // Update clock display.
       function updateClock() {
         const now = new Date();
         const clock = document.getElementById("clock");
@@ -804,6 +772,8 @@
           date.innerText = now.toLocaleDateString();
         }
       }
+
+      // Toggle search menu.
       function toggleSearchMenu() {
         const menu = document.getElementById("search-menu");
         if (menu.style.display === "none" || menu.style.display === "") {
@@ -813,6 +783,8 @@
           menu.style.display = "none";
         }
       }
+
+      // Search apps in start menu.
       function filterApps(query) {
         const appList = document.getElementById("app-list");
         appList.innerHTML = "";
@@ -832,6 +804,8 @@
           appList.appendChild(appItem);
         });
       }
+
+      // Update taskbar.
       function updateTaskbar() {
         const openContainer = document.getElementById("open-apps");
         openContainer.innerHTML = "";
@@ -850,21 +824,26 @@
           }
         });
       }
+
       function bringToFront(appId) {
         const appWindow = document.getElementById(appId);
         if (appWindow) {
           document.body.appendChild(appWindow);
         }
       }
+
+      // Power Down.
       function powerOff() {
         document.body.innerHTML = `
           <div class="shutdown-screen">
             <h2>Shutting down...</h2>
             <p>Goodbye!</p>
-            <button onclick="location.reload()">Boot Back</button>
+            <button onclick="location.reload()">Reboot</button>
           </div>
         `;
       }
+
+      // Username and Password Modal.
       function showPasswordModal() {
         let modal = document.createElement("div");
         modal.classList.add("password-modal");
@@ -897,16 +876,17 @@
         }
         document.body.appendChild(modal);
       }
+
       function checkPassword() {
         const entered = document.getElementById("entered-password").value;
         const stored = localStorage.getItem("password");
         if (entered === stored) {
           document.querySelector(".password-modal").remove();
         } else {
-          // Use custom notification instead of alert
-          showNotification("Incorrect password!");
+          alert("Incorrect password!");
         }
       }
+
       function setCredentials() {
         const username = document.getElementById("username-input").value;
         const newPass = document.getElementById("new-password").value;
@@ -915,351 +895,23 @@
           localStorage.setItem("password", newPass);
           document.querySelector(".password-modal").remove();
         } else {
-          showNotification("Username and password cannot be empty!");
+          alert("Username and password cannot be empty!");
         }
       }
+
+      // New function: change username.
       function changeUsername(newUsername) {
         localStorage.setItem("username", newUsername);
       }
+
+      // On DOM load.
       document.addEventListener("DOMContentLoaded", () => {
         loadInstalledApps().then(() => {
+          installFilesAppIfNotInstalled();
           showBootScreen();
           loadBackground();
         });
       });
-    </script>
-
-    <!-- ===============================
-         New Code for Filesystem & Notepad Apps
-         =============================== -->
-    <script>
-      (function(){
-        /* --- Notification System --- */
-        function showNotification(message) {
-          let notif = document.createElement("div");
-          notif.className = "notification";
-          notif.innerText = message;
-          document.body.appendChild(notif);
-          setTimeout(() => {
-            notif.classList.add("fade-out");
-            setTimeout(() => { notif.remove(); }, 500);
-          }, 3000);
-        }
-        window.showNotification = showNotification;
-
-        /* --- Confirm Modal --- */
-        function confirmAction(message, callback) {
-          let modal = document.createElement("div");
-          modal.className = "confirm-modal";
-          modal.innerHTML = `
-            <div class="confirm-content">
-              <p>${message}</p>
-              <button id="confirm-yes">Yes</button>
-              <button id="confirm-no">No</button>
-            </div>
-          `;
-          document.body.appendChild(modal);
-          modal.querySelector("#confirm-yes").onclick = function(){
-            callback();
-            modal.remove();
-          };
-          modal.querySelector("#confirm-no").onclick = function(){
-            modal.remove();
-          };
-        }
-        window.confirmAction = confirmAction;
-        
-        /* --- File System Implementation --- */
-        let fileSystem = [];
-        function loadFileSystem() {
-          const data = localStorage.getItem("fileSystem");
-          if (data) {
-            fileSystem = JSON.parse(data);
-          } else {
-            fileSystem = [];
-          }
-        }
-        function saveFileSystem() {
-          localStorage.setItem("fileSystem", JSON.stringify(fileSystem));
-        }
-        function addFile(file, autoRename=false) {
-          file.id = Date.now();
-          fileSystem.push(file);
-          saveFileSystem();
-          renderFileSystem();
-          if(autoRename) {
-            setTimeout(() => {
-              let row = document.querySelector(`tr[data-fileid="${file.id}"]`);
-              if(row) {
-                inlineRename(file.id, row.querySelector(".file-name"));
-              }
-            }, 100);
-          }
-        }
-        function renameFile(fileId, newName, newExtension) {
-          const file = fileSystem.find(f => f.id === fileId);
-          if(file) {
-            file.name = newName;
-            file.extension = newExtension;
-            saveFileSystem();
-            renderFileSystem();
-            showNotification("File renamed.");
-          }
-        }
-        function deleteFile(fileId) {
-          fileSystem = fileSystem.filter(f => f.id !== fileId);
-          saveFileSystem();
-          renderFileSystem();
-          showNotification("File deleted.");
-        }
-        function renderFileSystem() {
-          const container = document.getElementById("filesystem-container");
-          if(!container) return;
-          let html = '<table style="width:100%; color:#e0e0e0;"><tr><th>Name</th><th>Type</th><th>Actions</th></tr>';
-          fileSystem.forEach(file => {
-            html += `<tr data-fileid="${file.id}">
-              <td class="file-name">${file.name}.${file.extension}</td>
-              <td>${file.type}</td>
-              <td>
-                <button onclick="openFile(${file.id})">Open</button>
-              </td>
-            </tr>`;
-          });
-          html += '</table>';
-          container.innerHTML = html;
-        }
-        function openFile(fileId) {
-          const file = fileSystem.find(f => f.id === fileId);
-          if(!file) return;
-          if(file.extension.match(/png|jpg|jpeg|gif/i)) {
-            openFileWindow("image-"+file.id, file.name, `<img src="${file.content}" style="max-width:100%; max-height:100%;">`);
-          } else if(file.extension === "html") {
-            openFileWindow("html-"+file.id, file.name, file.content);
-          } else if(file.extension === "jsdos") {
-            openFileWindow("jsdos-"+file.id, file.name, `<div id="jsdos-container-${file.id}" style="width:100%; height:100%;"></div>`);
-            if(window.Dos) {
-              Dos(document.getElementById("jsdos-container-"+file.id), { wdosboxUrl: "https://js-dos.com/6.x/wdosbox.js" })
-                .run(file.content);
-            } else {
-              showNotification("js-dos library not loaded.");
-            }
-          } else if(file.type === "video") {
-            openFileWindow("video-"+file.id, file.name, `<video controls src="${file.content}" style="max-width:100%; max-height:100%;"></video>`);
-          } else if(file.type === "text") {
-            openFileWindow("text-"+file.id, file.name, `<textarea style="width:100%; height:100%;">${file.content}</textarea>`);
-          } else {
-            openFileWindow("file-"+file.id, file.name, `<pre>${file.content}</pre>`);
-          }
-        }
-        function openFileWindow(winId, title, content) {
-          if(document.getElementById(winId)) return;
-          const fileWindow = document.createElement("div");
-          fileWindow.classList.add("app-window");
-          fileWindow.id = winId;
-          fileWindow.innerHTML = `
-            <div class="window-header">
-              <span class="window-title">${title}</span>
-              <div>
-                <button class="window-btn" onclick="closeFileWindow('${winId}')">
-                  <img src="images/icons/x.png" alt="Close" />
-                </button>
-                <button class="window-btn" onclick="toggleFullscreen('${winId}')">
-                  <img src="images/icons/fullscreen.png" alt="Fullscreen" />
-                </button>
-              </div>
-            </div>
-            <div class="window-content">
-              ${content}
-            </div>
-            <div class="resize-handle"></div>
-          `;
-          document.body.appendChild(fileWindow);
-          makeDraggable(fileWindow);
-          makeResizable(fileWindow);
-        }
-        function closeFileWindow(winId) {
-          const win = document.getElementById(winId);
-          if(win) win.remove();
-        }
-        function inlineRename(fileId, tdElement) {
-          const file = fileSystem.find(f => f.id === fileId);
-          if(!file) return;
-          const inputName = document.createElement("input");
-          inputName.type = "text";
-          inputName.value = file.name;
-          inputName.style.width = "60%";
-          const inputExt = document.createElement("input");
-          inputExt.type = "text";
-          inputExt.value = file.extension;
-          inputExt.style.width = "30%";
-          tdElement.innerHTML = "";
-          tdElement.appendChild(inputName);
-          tdElement.appendChild(document.createTextNode("."));
-          tdElement.appendChild(inputExt);
-          inputName.focus();
-          function finishRename() {
-            const newName = inputName.value.trim() || file.name;
-            const newExt = inputExt.value.trim() || file.extension;
-            renameFile(fileId, newName, newExt);
-          }
-          inputName.addEventListener("blur", finishRename);
-          inputExt.addEventListener("blur", finishRename);
-          inputName.addEventListener("keypress", function(e) {
-            if(e.key === "Enter") { finishRename(); }
-          });
-          inputExt.addEventListener("keypress", function(e) {
-            if(e.key === "Enter") { finishRename(); }
-          });
-        }
-        // Initialize context menu for Filesystem
-        function initFilesystemContext() {
-          const container = document.getElementById("filesystem-container");
-          if(container) {
-            container.oncontextmenu = function(e) {
-              e.preventDefault();
-              let targetRow = e.target.closest("tr[data-fileid]");
-              if(targetRow) {
-                let fileId = parseInt(targetRow.getAttribute("data-fileid"));
-                showContextMenu([
-                  { label: "Rename", action: () => inlineRename(fileId, targetRow.querySelector(".file-name")) },
-                  { label: "Delete", action: () => {
-                      const file = fileSystem.find(f => f.id === fileId);
-                      confirmAction("Delete file " + file.name + "." + file.extension + "?", function(){
-                        deleteFile(fileId);
-                      });
-                  }}
-                ], e.pageX, e.pageY);
-              } else {
-                showContextMenu([
-                  { label: "Create New File", action: () => {
-                      addFile({ name: "NewFile", type: "text", extension: "txt", content: "" }, true);
-                  }}
-                ], e.pageX, e.pageY);
-              }
-            }
-          }
-        }
-        // Context Menu implementation
-        let fsContextMenu = document.createElement("div");
-        fsContextMenu.className = "context-menu";
-        fsContextMenu.style.display = "none";
-        document.body.appendChild(fsContextMenu);
-        fsContextMenu.addEventListener("click", function(e) {
-          e.stopPropagation();
-        });
-        function hideContextMenu() {
-          fsContextMenu.style.display = "none";
-        }
-        function showContextMenu(options, x, y) {
-          fsContextMenu.innerHTML = "";
-          options.forEach(opt => {
-            let item = document.createElement("div");
-            item.className = "context-menu-item";
-            item.innerText = opt.label;
-            item.onclick = function() {
-              hideContextMenu();
-              opt.action();
-            };
-            fsContextMenu.appendChild(item);
-          });
-          fsContextMenu.style.top = y + "px";
-          fsContextMenu.style.left = x + "px";
-          fsContextMenu.style.display = "block";
-        }
-        document.addEventListener("click", hideContextMenu);
-        
-        /* --- Filesystem App Content --- */
-        function filesystemAppContent() {
-          loadFileSystem();
-          setTimeout(renderFileSystem, 100);
-          return `
-            <div style="padding:10px; color:#e0e0e0;">
-              <h2>Filesystem</h2>
-              <p>Right-click to create a new file or manage existing files.</p>
-              <div id="filesystem-container" style="border:1px solid #444; padding:10px; min-height:200px;"></div>
-            </div>
-          `;
-        }
-        /* --- Notepad App --- */
-        function notepadAppContent() {
-          return `
-            <div style="padding:10px; color:#e0e0e0;">
-              <h2>Notepad</h2>
-              <textarea id="notepad-text" style="width:100%; height:200px;"></textarea>
-              <br>
-              <button onclick="saveNotepad()">Save</button>
-              <button onclick="openNotepadFile()">Open</button>
-            </div>
-          `;
-        }
-        function saveNotepad() {
-          const text = document.getElementById("notepad-text").value;
-          let fileName = prompt("Enter file name for note (without extension):", "Note");
-          if(fileName) {
-            addFile({name: fileName, type:"text", extension:"txt", content: text});
-            showNotification("Note saved.");
-          }
-        }
-        function openNotepadFile() {
-          loadFileSystem();
-          let modal = document.createElement("div");
-          modal.className = "confirm-modal";
-          let textFiles = fileSystem.filter(f => f.type === "text");
-          if(textFiles.length === 0) {
-            modal.innerHTML = `<div class="confirm-content"><p>No text files found.</p><button onclick="this.parentElement.parentElement.remove()">Close</button></div>`;
-          } else {
-            let listHtml = "<ul style='list-style:none; padding:0;'>";
-            textFiles.forEach(file => {
-              listHtml += `<li style="margin:5px 0; cursor:pointer;" onclick="selectNotepadFile(${file.id})">${file.name}.${file.extension}</li>`;
-            });
-            listHtml += "</ul>";
-            modal.innerHTML = `<div class="confirm-content"><p>Select a file to open:</p>${listHtml}<button onclick="this.parentElement.parentElement.remove()">Cancel</button></div>`;
-          }
-          document.body.appendChild(modal);
-        }
-        window.selectNotepadFile = function(fileId) {
-          const file = fileSystem.find(f => f.id === fileId);
-          if(file) {
-            document.getElementById("notepad-text").value = file.content;
-            showNotification("File loaded.");
-            document.querySelector(".confirm-modal").remove();
-          }
-        }
-        /* --- Install New Apps --- */
-        function installFilesystemApp() {
-          const fsInstalled = installedApps.some(app => app.name === "Filesystem");
-          if(!fsInstalled) {
-            installApp("Filesystem", "https://jxoj.github.io/Jxo-OS/apps/icons/files.png", "");
-            const fsApp = installedApps.find(app => app.name === "Filesystem");
-            if(fsApp) {
-              fsApp.htmlContent = filesystemAppContent();
-              localStorage.setItem("installedApps", JSON.stringify(installedApps));
-            }
-          }
-        }
-        function installNotepadApp() {
-          const noteInstalled = installedApps.some(app => app.name === "Notepad");
-          if(!noteInstalled) {
-            installApp("Notepad", "https://jxoj.github.io/Jxo-OS/apps/icons/notepad.png", "");
-            const noteApp = installedApps.find(app => app.name === "Notepad");
-            if(noteApp) {
-              noteApp.htmlContent = notepadAppContent();
-              localStorage.setItem("installedApps", JSON.stringify(installedApps));
-            }
-          }
-        }
-        document.addEventListener("DOMContentLoaded", () => {
-          installFilesystemApp();
-          installNotepadApp();
-        });
-        window.loadFileSystem = loadFileSystem;
-        window.saveFileSystem = saveFileSystem;
-        window.addFile = addFile;
-        window.renderFileSystem = renderFileSystem;
-        window.openFile = openFile;
-        window.openFileWindow = openFileWindow;
-        window.inlineRename = inlineRename;
-      })();
     </script>
   </body>
 </html>
