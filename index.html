@@ -298,6 +298,15 @@
         }
       }
 
+      // Install The Files app as default if not installed.
+      function installFilesAppIfNotInstalled() {
+        const filesInstalled = installedApps.some((app) => app.name === "Files");
+        if (!filesInstalled) {
+          installApp("Files", "https://jxoj.github.io/Jxo-OS/apps/icons/files.png", "https://jxoj.github.io/Jxo-OS/apps/files");
+          localStorage.setItem("installedApps", JSON.stringify(installedApps));
+        }
+      }
+
       // Global function: Fetch and render Jstore apps.
       function loadJstoreApps() {
         fetch("https://jxoj.github.io/Jxo-OS/apps/apps.json")
@@ -565,6 +574,7 @@
         // Install extra apps.
         installJstoreIfNotInstalled();
         installSettingsIfNotInstalled();
+        installFilesAppIfNotInstalled();
         renderDesktop();
         updateTaskbar();
         restoreOSTheme();
@@ -828,7 +838,7 @@
           <div class="shutdown-screen">
             <h2>Shutting down...</h2>
             <p>Goodbye!</p>
-            <button onclick="location.reload()">Boot Back</button>
+            <button onclick="location.reload()">Reboot</button>
           </div>
         `;
       }
@@ -897,6 +907,7 @@
       // On DOM load.
       document.addEventListener("DOMContentLoaded", () => {
         loadInstalledApps().then(() => {
+          installFilesAppIfNotInstalled();
           showBootScreen();
           loadBackground();
         });
