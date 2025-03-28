@@ -612,6 +612,7 @@
         document.body.style.background = bg;
         saveBackground(bg);
       }
+      onlyDoOnce(() => changeBackgroundimage("images/backgrounds/wallpaper7.jpg"));
       function onlyDoOnce(fn) {
         if (!localStorage.getItem(fn.name)) {
           fn();
