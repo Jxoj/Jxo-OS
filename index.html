@@ -196,7 +196,7 @@
       }
     </style>
   </head>
-  <body onload="showBootScreen()"></body>
+  <body>
     <script>
       // Global variables for installed apps and open apps.
       let installedApps = [];
@@ -568,7 +568,6 @@
         renderDesktop();
         updateTaskbar();
         restoreOSTheme();
-        loadBackground();
         setInterval(updateClock, 1000);
       }
 
@@ -612,7 +611,6 @@
         document.body.style.background = bg;
         saveBackground(bg);
       }
-      onlyDoOnce(() => changeBackgroundimage("images/backgrounds/wallpaper7.jpg"));
       function onlyDoOnce(fn) {
         if (!localStorage.getItem(fn.name)) {
           fn();
@@ -895,6 +893,14 @@
       function changeUsername(newUsername) {
         localStorage.setItem("username", newUsername);
       }
+
+      // On DOM load.
+      document.addEventListener("DOMContentLoaded", () => {
+        loadInstalledApps().then(() => {
+          showBootScreen();
+          loadBackground();
+        });
+      });
     </script>
   </body>
 </html>
