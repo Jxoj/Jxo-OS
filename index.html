@@ -893,14 +893,6 @@
       function changeUsername(newUsername) {
         localStorage.setItem("username", newUsername);
       }
-
-      // On DOM load.
-      document.addEventListener("DOMContentLoaded", () => {
-        loadInstalledApps().then(() => {
-          installFilesAppIfNotInstalled();
-          showBootScreen();
-          loadBackground();
-        });
       });
     </script>
   </body>
