@@ -23,5 +23,10 @@
       "name":"Jplay",
       "icon":"https://jxoj.github.io/Jxo-OS/apps/icons/jplay.png",
       "url":"https://usejxo.github.io/Jplay"
+    },
+    {
+      "name":"Bounce",
+      "icon":"https://jxoj.github.io/Jxo-OS/apps/icons/bounce.png",
+      "url":"https://tommalbran.github.io/games/bounce"
     }
 ]

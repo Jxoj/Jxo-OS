@@ -298,15 +298,6 @@
         }
       }
 
-      // Install The Files app as default if not installed.
-      function installFilesAppIfNotInstalled() {
-        const filesInstalled = installedApps.some((app) => app.name === "Files");
-        if (!filesInstalled) {
-          installApp("Files", "https://jxoj.github.io/Jxo-OS/apps/icons/files.png", "https://jxoj.github.io/Jxo-OS/apps/files");
-          localStorage.setItem("installedApps", JSON.stringify(installedApps));
-        }
-      }
-
       // Global function: Fetch and render Jstore apps.
       function loadJstoreApps() {
         fetch("https://jxoj.github.io/Jxo-OS/apps/apps.json")
