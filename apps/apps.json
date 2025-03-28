@@ -28,5 +28,10 @@
       "name":"Bounce",
       "icon":"https://jxoj.github.io/Jxo-OS/apps/icons/bounce.png",
       "url":"https://tommalbran.github.io/games/bounce"
+    },
+    {
+      "name":"Pacman",
+      "icon":"https://jxoj.github.io/Jxo-OS/apps/icons/pacman.png",
+      "url":"https://tommalbran.github.io/games/pacman"
     }
 ]
