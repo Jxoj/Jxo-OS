@@ -240,6 +240,12 @@
       .setup-step button:hover {
         background-color: #555;
       }
+      .preview-img {
+        max-width: 100px;
+        max-height: 100px;
+        margin: 10px auto;
+        display: block;
+      }
       /* Responsive adjustments for phones */
       @media (max-width: 600px) {
         .desktop-app img {
@@ -906,22 +912,36 @@
               setupContainer.innerHTML = `
                 <div class="setup-step">
                   <h2>Choose a Profile Picture</h2>
-                  <p>This is optional.</p>
-                  <!-- You could add image choices here. For now we use a default picture -->
-                  <img src="images/icons/profile/profile.png" alt="Default Profile" style="width:100px;height:100px;margin-bottom:10px;">
+                  <p>This is optional. Upload one if you like:</p>
+                  <input type="file" id="profile-upload" accept="image/*" />
+                  <img id="profile-preview" class="preview-img" src="images/icons/profile/profile.png" alt="Profile Preview">
                   <br>
                   <button id="setup-skip">Skip</button>
                   <button id="setup-next">Next</button>
                 </div>
               `;
+              // When a file is chosen, update the preview.
+              document.getElementById("profile-upload").addEventListener("change", (e) => {
+                const file = e.target.files[0];
+                if(file) {
+                  const reader = new FileReader();
+                  reader.onload = function(evt) {
+                    document.getElementById("profile-preview").src = evt.target.result;
+                    setupData.profilePic = evt.target.result;
+                  }
+                  reader.readAsDataURL(file);
+                }
+              });
               document.getElementById("setup-skip").addEventListener("click", () => {
                 setupData.profilePic = "images/icons/profile/profile.png";
                 currentStep++;
                 renderStep();
               });
               document.getElementById("setup-next").addEventListener("click", () => {
-                // If you add selection functionality, update setupData.profilePic accordingly.
-                setupData.profilePic = "images/icons/profile/profile.png";
+                // If user didn't upload, use default.
+                if(!setupData.profilePic) {
+                  setupData.profilePic = "images/icons/profile/profile.png";
+                }
                 currentStep++;
                 renderStep();
               });
@@ -930,17 +950,42 @@
               setupContainer.innerHTML = `
                 <div class="setup-step">
                   <h2>Choose your Default Wallpaper</h2>
-                  <p>Select a wallpaper for your desktop.</p>
-                  <select id="setup-wallpaper">
+                  <p>Select from the presets or upload your own:</p>
+                  <select id="setup-wallpaper-select">
                     <option value="images/backgrounds/wallpaper1.jpg">Wallpaper 1</option>
                     <option value="images/backgrounds/wallpaper2.jpg">Wallpaper 2</option>
                     <option value="images/backgrounds/wallpaper3.jpg">Wallpaper 3</option>
                   </select>
+                  <br>
+                  <input type="file" id="wallpaper-upload" accept="image/*" />
+                  <img id="wallpaper-preview" class="preview-img" src="images/backgrounds/wallpaper1.jpg" alt="Wallpaper Preview">
+                  <br>
                   <button id="setup-next">Next</button>
                 </div>
               `;
+              // Update preview when selecting from dropdown.
+              document.getElementById("setup-wallpaper-select").addEventListener("change", (e) => {
+                const selected = e.target.value;
+                document.getElementById("wallpaper-preview").src = selected;
+                setupData.wallpaper = selected;
+              });
+              // Update preview when uploading a file.
+              document.getElementById("wallpaper-upload").addEventListener("change", (e) => {
+                const file = e.target.files[0];
+                if(file) {
+                  const reader = new FileReader();
+                  reader.onload = function(evt) {
+                    document.getElementById("wallpaper-preview").src = evt.target.result;
+                    setupData.wallpaper = evt.target.result;
+                  }
+                  reader.readAsDataURL(file);
+                }
+              });
+              // Set default if none chosen.
               document.getElementById("setup-next").addEventListener("click", () => {
-                setupData.wallpaper = document.getElementById("setup-wallpaper").value;
+                if(!setupData.wallpaper) {
+                  setupData.wallpaper = document.getElementById("setup-wallpaper-select").value;
+                }
                 currentStep++;
                 renderStep();
               });
