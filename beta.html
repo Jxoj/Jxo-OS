@@ -646,39 +646,44 @@
         if (msg) msg.innerText = "Account updated successfully!";
       }
 
-      // Use the original login UI from your code.
       function showPasswordModal() {
-        let modal = document.createElement("div");
-        modal.classList.add("password-modal");
-        if (localStorage.getItem("password")) {
-          let usernameField = localStorage.getItem("username")
-            ? `<p>Welcome, ${localStorage.getItem("username")}!</p>`
-            : `<input type="text" id="username-input" placeholder="Enter your username">`;
-          modal.innerHTML = `
-            <div class="password-modal-content">
-              <img src="images/icons/profile/profile.png" alt="Profile Icon">
-              ${usernameField}
-              <h3>Enter Password</h3>
-              <input type="password" id="entered-password" placeholder="Enter password">
-              <br>
-              <button onclick="checkPassword()">Enter</button>
-            </div>
-          `;
-        } else {
-          modal.innerHTML = `
-            <div class="password-modal-content">
-              <img src="images/icons/profile/profile.png" alt="Profile Icon">
-              <h3>Set up your account</h3>
-              <input type="text" id="username-input" placeholder="Enter your username">
-              <br>
-              <input type="password" id="new-password" placeholder="Enter new password">
-              <br>
-              <button onclick="setCredentials()">Set Credentials</button>
-            </div>
-          `;
-        }
-        document.body.appendChild(modal);
-      }
+  let modal = document.createElement("div");
+  modal.classList.add("password-modal");
+  if (localStorage.getItem("password")) {
+    let usernameField = localStorage.getItem("username")
+      ? `<p>Welcome, ${localStorage.getItem("username")}!</p>`
+      : `<input type="text" id="username-input" placeholder="Enter your username">`;
+    modal.innerHTML = `
+      <div class="password-modal-content">
+        <img src="images/icons/profile/profile.png" alt="Profile Icon">
+        ${usernameField}
+        <h3>Enter Password</h3>
+        <div style="display:inline-flex; align-items:center;">
+          <input type="password" id="entered-password" placeholder="Enter password">
+          <button class="toggle-password" onclick="toggleInputPassword('entered-password', this)">
+            <img src="images/setup/show.png" alt="Show">
+          </button>
+        </div>
+        <br>
+        <button onclick="checkPassword()">Enter</button>
+      </div>
+    `;
+  } else {
+    modal.innerHTML = `
+      <div class="password-modal-content">
+        <img src="images/icons/profile/profile.png" alt="Profile Icon">
+        <h3>Set up your account</h3>
+        <input type="text" id="username-input" placeholder="Enter your username">
+        <br>
+        <input type="password" id="new-password" placeholder="Enter new password">
+        <br>
+        <button onclick="setCredentials()">Set Credentials</button>
+      </div>
+    `;
+  }
+  document.body.appendChild(modal);
+}
+
 
       function checkPassword() {
         const entered = document.getElementById("entered-password").value;
