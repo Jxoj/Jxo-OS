@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <link rel="icon" href="images/icons/favicon.png" type="image/png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jxo OS</title>
+    <link rel="icon" href="images/icons/favicon.png" type="image/png" />
     <link rel="stylesheet" href="assets/css/default.css" />
     <style>
       /* Dark Theme Base */
@@ -18,17 +18,16 @@
         background-color: #1f1f1f;
         border-top: 1px solid #333;
       }
-      /* Adjust desktop icon scale */
+      /* Desktop & App Icon Styles */
       .desktop-app img {
         width: 64px;
         height: 64px;
       }
-      /* Open apps icons on taskbar */
       #open-apps img {
         width: 32px;
         height: 32px;
       }
-      /* Start menu (search menu) styling modifications */
+      /* Search Menu */
       #search-menu {
         background-color: #2a2a2a;
         max-height: 70vh;
@@ -52,7 +51,7 @@
         color: #e0e0e0;
         font-size: 16px;
       }
-      /* App list styling */
+      /* App List */
       #app-list {
         display: flex;
         flex-direction: column;
@@ -68,13 +67,13 @@
         height: 32px;
         margin-right: 10px;
       }
-      /* Set appropriate size for start menu icon in taskbar */
+      /* Start Button */
       #start-button img {
         width: 24px;
         height: 24px;
         vertical-align: middle;
       }
-      /* Styling for the Jstore app content */
+      /* Jstore App Content */
       #jstore-container {
         padding: 20px;
       }
@@ -116,7 +115,7 @@
       .jstore-app-item button:hover {
         background-color: #555;
       }
-      /* Improved Settings UI */
+      /* Settings UI */
       #settings-app {
         display: flex;
         height: calc(100vh - 50px);
@@ -126,7 +125,7 @@
         width: 250px;
         background-color: #2b2b2b;
         padding: 20px;
-        box-shadow: inset -1px 0 0 rgba(255,255,255,0.1);
+        box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.1);
       }
       #settings-sidebar input[type="text"] {
         width: 100%;
@@ -165,7 +164,7 @@
         padding: 30px;
         background-color: #222;
         border-left: 1px solid #333;
-        overflow: visible; /* Fix dropdown clipping */
+        overflow: visible;
       }
       #settings-content h2 {
         margin-top: 0;
@@ -176,7 +175,7 @@
         margin-top: 20px;
         font-size: 20px;
       }
-      /* Personalization tab elements */
+      /* Personalization Tab */
       #bg-preview-container {
         border: 1px solid #444;
         padding: 10px;
@@ -197,7 +196,7 @@
         position: relative;
         z-index: 10;
       }
-      /* Setup Screen Styles */
+      /* Setup Screen */
       .setup-screen {
         position: fixed;
         top: 0;
@@ -220,7 +219,8 @@
         text-align: center;
         margin-bottom: 20px;
       }
-      .setup-step input, .setup-step select {
+      .setup-step input,
+      .setup-step select {
         width: 90%;
         padding: 10px;
         margin: 10px 0;
@@ -241,7 +241,7 @@
       .setup-step button:hover {
         background-color: #555;
       }
-      /* Styled File Input for Profile Pic */
+      /* File Input */
       .file-input-wrapper {
         position: relative;
         display: inline-block;
@@ -269,7 +269,7 @@
         margin: 10px auto;
         display: block;
       }
-      /* Toggle Password Button using Images (smaller) */
+      /* Toggle Password Button */
       .toggle-password {
         cursor: pointer;
         background: none;
@@ -282,11 +282,11 @@
         height: 16px;
         vertical-align: middle;
       }
-      /* Use original Login UI from your uploaded code */
-      /* The following login modal function is exactly as in your file */
-      /* DO NOT change the login UI appearance here */
-      /* Username and Password Modal from your file: */
-      /* (No additional styling modifications to this block) */
+      /* Use original login UI from uploaded file */
+      /* Login Modal (unchanged) */
+      .password-modal {
+        /* You can add styles for the modal container if needed */
+      }
       /* Lock Button on Taskbar */
       .lock-button {
         padding: 5px 10px;
@@ -300,7 +300,7 @@
       .lock-button:hover {
         background-color: #555;
       }
-      /* Responsive adjustments for phones */
+      /* Responsive */
       @media (max-width: 600px) {
         .desktop-app img {
           width: 48px;
@@ -321,12 +321,12 @@
   </head>
   <body>
     <script>
-      // Clear sessionStorage so login UI shows on every reload.
+      // Clear sessionStorage to force login on every reload.
       document.addEventListener("DOMContentLoaded", () => {
         sessionStorage.removeItem("loggedIn");
       });
 
-      // Global variables for installed and open apps.
+      // Global variables
       let installedApps = [];
       let openApps = [];
 
@@ -341,24 +341,15 @@
         });
       }
 
-      // Save OS theme to localStorage.
       function saveOSTheme(osName) {
         localStorage.setItem("osTheme", osName);
       }
 
-      // Change OS theme, save it, and update the stylesheet.
       function changeOS(osName) {
         saveOSTheme(osName);
         const stylesheet = document.querySelector('link[rel="stylesheet"]');
         const startBtn = document.getElementById("start-button");
-        if (!stylesheet) {
-          console.error("Stylesheet link element not found.");
-          return;
-        }
-        if (!startBtn) {
-          console.error("Start button with id 'start-button' not found.");
-          return;
-        }
+        if (!stylesheet || !startBtn) return;
         if (osName === "default") {
           stylesheet.href = "assets/css/default.css";
           startBtn.innerHTML = "❖";
@@ -368,7 +359,6 @@
         }
       }
 
-      // On load, restore OS theme if saved.
       function restoreOSTheme() {
         const savedOS = localStorage.getItem("osTheme");
         if (savedOS) {
@@ -376,12 +366,24 @@
         }
       }
 
-      // Install Jstore if not installed.
+      function changeColorScheme(scheme) {
+        localStorage.setItem("colorScheme", scheme);
+        if (scheme === "light") {
+          document.body.classList.add("light-mode");
+        } else {
+          document.body.classList.remove("light-mode");
+        }
+      }
+
+      function restoreColorScheme() {
+        const scheme = localStorage.getItem("colorScheme") || "dark";
+        changeColorScheme(scheme);
+      }
+
       function installJstoreIfNotInstalled() {
-        const jstoreInstalled = installedApps.some((app) => app.name === "Jstore");
-        if (!jstoreInstalled) {
+        if (!installedApps.some((app) => app.name === "Jstore")) {
           installApp("Jstore", "apps/icons/jstore.png", "");
-          const jstoreApp = installedApps.find((app) => app.name === "Jstore");
+          let jstoreApp = installedApps.find((app) => app.name === "Jstore");
           if (jstoreApp) {
             jstoreApp.htmlContent = `
               <div id="jstore-container">
@@ -395,12 +397,10 @@
         }
       }
 
-      // Install Settings if not installed.
       function installSettingsIfNotInstalled() {
-        const settingsInstalled = installedApps.some((app) => app.name === "Settings");
-        if (!settingsInstalled) {
+        if (!installedApps.some((app) => app.name === "Settings")) {
           installApp("Settings", "apps/icons/settings.png", "");
-          const settingsApp = installedApps.find((app) => app.name === "Settings");
+          let settingsApp = installedApps.find((app) => app.name === "Settings");
           if (settingsApp) {
             settingsApp.htmlContent = `
               <div id="settings-app">
@@ -425,13 +425,10 @@
         }
       }
 
-      // Global function: Fetch and render Jstore apps.
       function loadJstoreApps() {
         fetch("https://jxoj.github.io/Jxo-OS/apps/apps.json")
           .then((response) => {
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
-            }
+            if (!response.ok) throw new Error("Network response was not ok");
             return response.json();
           })
           .then((apps) => {
@@ -467,21 +464,18 @@
           });
       }
 
-      // Global function: Install an app from Jstore with immediate button update.
       function installJstoreApp(name, icon, url, button) {
         installApp(name, icon, url);
         button.textContent = 'Uninstall';
         button.onclick = () => uninstallJstoreApp(name, button);
       }
 
-      // Global function: Uninstall an app from Jstore with immediate button update.
       function uninstallJstoreApp(name, button) {
         uninstallApp(name);
         button.textContent = 'Install';
         button.onclick = () => installJstoreApp(name, button.dataset.icon, button.dataset.url, button);
       }
 
-      // Filter apps in Jstore by search query.
       function filterJstoreApps(query) {
         const apps = document.querySelectorAll('.jstore-app-item');
         apps.forEach(app => {
@@ -490,7 +484,6 @@
         });
       }
 
-      // Global function: Install an app (adds to installedApps and updates desktop).
       function installApp(name, image, iframeUrl) {
         const newApp = {
           name: name,
@@ -511,9 +504,6 @@
         renderDesktop();
       }
 
-      // Settings App functions
-
-      // Initialize the Settings app.
       function initSettingsApp() {
         const searchInput = document.getElementById("settings-search");
         const optionsList = document.getElementById("settings-options");
@@ -543,7 +533,6 @@
         loadPersonalizationTab();
       }
 
-      // Load the Personalization tab.
       function loadPersonalizationTab() {
         const content = document.getElementById("settings-content");
         if (!content) return;
@@ -566,7 +555,9 @@
               <img id="bg-preview" src="images/backgrounds/wallpaper1.jpg" alt="Background Preview" />
             </div>
             <select id="wallpaper-dropdown">
-              ${wallpapers.map((wp) => `<option value="images/backgrounds/${wp}.jpg">${wp}.jpg</option>`).join("")}
+              ${wallpapers
+                .map((wp) => `<option value="images/backgrounds/${wp}.jpg">${wp}.jpg</option>`)
+                .join("")}
             </select>
           </div>
           <div style="margin-bottom:20px;">
@@ -600,7 +591,6 @@
         });
       }
 
-      // Load the Account tab.
       function loadAccountTab() {
         const content = document.getElementById("settings-content");
         if (!content) return;
@@ -618,7 +608,7 @@
                 <img src="images/setup/show.png" alt="Show" />
               </button>
             </div>
-            <button onclick="updateAccount(document.getElementById('new-username').value,document.getElementById('new-password').value)" style="padding:10px 20px; background:#555; border:none; border-radius:4px; cursor:pointer; color:#e0e0e0;">Update Account</button>
+            <button onclick="updateAccount(document.getElementById('new-username').value, document.getElementById('new-password').value)" style="padding:10px 20px; background:#555; border:none; border-radius:4px; cursor:pointer; color:#e0e0e0;">Update Account</button>
             <div id="account-message" style="margin-top:10px;"></div>
           </div>
         `;
@@ -646,7 +636,7 @@
         if (msg) msg.innerText = "Account updated successfully!";
       }
 
-      // Use the original login UI from your code.
+      // Original login UI (unchanged except for adding toggle button)
       function showPasswordModal() {
         let modal = document.createElement("div");
         modal.classList.add("password-modal");
@@ -659,7 +649,12 @@
               <img src="images/icons/profile/profile.png" alt="Profile Icon">
               ${usernameField}
               <h3>Enter Password</h3>
-              <input type="password" id="entered-password" placeholder="Enter password">
+              <div style="display:inline-flex; align-items:center;">
+                <input type="password" id="entered-password" placeholder="Enter password">
+                <button class="toggle-password" onclick="toggleInputPassword('entered-password', this)">
+                  <img src="images/setup/show.png" alt="Show">
+                </button>
+              </div>
               <br>
               <button onclick="checkPassword()">Enter</button>
             </div>
@@ -702,363 +697,24 @@
         }
       }
 
-      // New function: change username.
       function changeUsername(newUsername) {
         localStorage.setItem("username", newUsername);
       }
 
-      // Boot screen.
-      function showBootScreen() {
-        document.body.innerHTML = `
-          <div id="boot-screen" class="boot-screen">
-            <div class="boot-content">
-              <span class="boot-title" style="font-size:4em;">Jx</span>
-              <div class="loading-circle"></div>
-            </div>
-          </div>
-        `;
-        setTimeout(() => {
-          // Always show login modal on every reload.
-          if (localStorage.getItem("setupComplete")) {
-            showPasswordModal();
-          } else {
-            loadOS();
-          }
-        }, 2000);
-      }
-
-      // OS Loading.
-      function loadOS() {
-        document.body.innerHTML = `
-          <div id="desktop"></div>
-          <div id="taskbar" class="taskbar">
-            <button id="start-button" onclick="toggleSearchMenu()" class="taskbar-button search-btn">❖</button>
-            <div id="open-apps"></div>
-            <div id="taskbar-right">
-              <div id="clock-container">
-                <span id="date"></span>
-                <span id="clock"></span>
-              </div>
-              <button class="lock-button" onclick="showPasswordModal()">Lock</button>
-              <button onclick="powerOff()" class="power-button">Power Down</button>
-            </div>
-          </div>
-          <div id="search-menu" class="search-menu" style="display:none;">
-            <span class="close-btn" onclick="toggleSearchMenu()">
-              <img src="images/icons/x.png" alt="Close" />
-            </span>
-            <input type="text" placeholder="Search apps..." oninput="filterApps(this.value)" />
-            <div id="app-list"></div>
-          </div>
-        `;
-        installJstoreIfNotInstalled();
-        installSettingsIfNotInstalled();
-        renderDesktop();
-        updateTaskbar();
-        restoreOSTheme();
-        setInterval(updateClock, 1000);
-      }
-
-      function loadBackground() {
-        const background = localStorage.getItem("background");
-        if (background) {
-          document.body.style.background = background;
-        }
-      }
-      function saveBackground(backgroundValue) {
-        localStorage.setItem("background", backgroundValue);
-        loadBackground();
-      }
-      function changeBackground(r, g, b) {
-        const color = `rgb(${r}, ${g}, ${b})`;
-        document.body.style.background = color;
-        saveBackground(color);
-      }
-      function changeBackgroundimage(url) {
-        const bg = `url(${url}) center center/cover no-repeat fixed`;
-        document.body.style.background = bg;
-        saveBackground(bg);
-      }
-
-      // Render desktop icons.
-      function renderDesktop() {
-        const desktop = document.getElementById("desktop");
-        if (!desktop) return;
-        desktop.innerHTML = "";
-        installedApps.forEach((app) => {
-          const appShortcut = document.createElement("div");
-          appShortcut.classList.add("desktop-app");
-          appShortcut.innerHTML = `<img src="${app.image}" alt="${app.name} icon"><span>${app.name}</span>`;
-          appShortcut.onclick = () => openAppWindow(app.appId);
-          desktop.appendChild(appShortcut);
-        });
-      }
-
-      // Open app window.
-      function openAppWindow(appId) {
-        const app = installedApps.find((app) => app.appId === appId);
-        if (app) {
-          if (document.getElementById(appId)) return;
-          const appWindow = document.createElement("div");
-          appWindow.classList.add("app-window");
-          appWindow.id = appId;
-          appWindow.innerHTML = `
-            <div class="window-header">
-              <span class="window-title">${app.name}</span>
-              <div>
-                <button class="window-btn" onclick="closeWindow(&quot;${appId}&quot;)">
-                  <img src="images/icons/x.png" alt="Close" />
-                </button>
-                <button class="window-btn" onclick="toggleFullscreen(&quot;${appId}&quot;)">
-                  <img src="images/icons/fullscreen.png" alt="Fullscreen" />
-                </button>
-              </div>
-            </div>
-            <div class="window-content">
-              ${app.htmlContent ? app.htmlContent : `<iframe src="${app.htmlUrl}" width="100%" height="100%" style="border:none;"></iframe>`}
-            </div>
-            <div class="resize-handle"></div>
-          `;
-          document.body.appendChild(appWindow);
-          makeDraggable(appWindow);
-          makeResizable(appWindow);
-          if (!openApps.includes(appId)) {
-            openApps.push(appId);
-            updateTaskbar();
-          }
-          if (appId === "jstore") {
-            setTimeout(loadJstoreApps, 100);
-          }
-          if (appId === "settings") {
-            setTimeout(initSettingsApp, 100);
-          }
-        }
-      }
-
-      // Close app window.
-      function closeWindow(appId) {
-        const appWindow = document.getElementById(appId);
-        if (appWindow) {
-          appWindow.remove();
-          openApps = openApps.filter((id) => id !== appId);
-          updateTaskbar();
-        }
-      }
-
-      // Updated toggleFullscreen: full screen apps now cover the taskbar.
-      function toggleFullscreen(appId) {
-        const appWindow = document.getElementById(appId);
-        if (appWindow) {
-          if (appWindow.style.position === "fixed") {
-            appWindow.style.position = "absolute";
-            appWindow.style.width = "600px";
-            appWindow.style.height = "400px";
-            appWindow.style.zIndex = "";
-          } else {
-            appWindow.style.position = "fixed";
-            appWindow.style.top = "0";
-            appWindow.style.left = "0";
-            appWindow.style.width = "100vw";
-            appWindow.style.height = "100vh";
-            appWindow.style.zIndex = "10000";
-          }
-        }
-      }
-
-      // Draggable functionality.
-      function makeDraggable(windowElement) {
-        const header = windowElement.querySelector(".window-header");
-        let isDragging = false;
-        let offsetX = 0, offsetY = 0;
-        header.addEventListener("mousedown", (e) => {
-          isDragging = true;
-          offsetX = e.clientX - windowElement.offsetLeft;
-          offsetY = e.clientY - windowElement.offsetTop;
-        });
-        windowElement.addEventListener("mousemove", (e) => {
-          if (isDragging) {
-            windowElement.style.left = `${e.clientX - offsetX}px`;
-            windowElement.style.top = `${e.clientY - offsetY}px`;
-          }
-        });
-        windowElement.addEventListener("mouseup", () => {
-          isDragging = false;
-        });
-      }
-
-      // Resizable functionality.
-      function makeResizable(windowElement) {
-        const resizeHandle = windowElement.querySelector(".resize-handle");
-        let isResizing = false;
-        let lastX, lastY;
-        resizeHandle.addEventListener("mousedown", (e) => {
-          isResizing = true;
-          lastX = e.clientX;
-          lastY = e.clientY;
-          e.preventDefault();
-        });
-        window.addEventListener("mousemove", (e) => {
-          if (isResizing) {
-            const dx = e.clientX - lastX;
-            const dy = e.clientY - lastY;
-            windowElement.style.width = windowElement.offsetWidth + dx + "px";
-            windowElement.style.height = windowElement.offsetHeight + dy + "px";
-            lastX = e.clientX;
-            lastY = e.clientY;
-          }
-        });
-        window.addEventListener("mouseup", () => {
-          isResizing = false;
-        });
-      }
-
-      // Update clock display.
-      function updateClock() {
-        const now = new Date();
-        const clock = document.getElementById("clock");
-        const date = document.getElementById("date");
-        if (clock && date) {
-          clock.innerText = now.toLocaleTimeString();
-          date.innerText = now.toLocaleDateString();
-        }
-      }
-
-      // Toggle search menu.
-      function toggleSearchMenu() {
-        const menu = document.getElementById("search-menu");
-        if (menu.style.display === "none" || menu.style.display === "") {
-          filterApps("");
-          menu.style.display = "block";
-        } else {
-          menu.style.display = "none";
-        }
-      }
-
-      // Search apps in start menu.
-      function filterApps(query) {
-        const appList = document.getElementById("app-list");
-        appList.innerHTML = "";
-        let apps = installedApps.slice().sort((a, b) => a.name.localeCompare(b.name));
-        if (query) {
-          apps = apps.filter((app) =>
-            app.name.toLowerCase().includes(query.toLowerCase())
-          );
-        }
-        apps.forEach((app) => {
-          const appItem = document.createElement("div");
-          appItem.classList.add("app-item");
-          appItem.innerHTML = `<img src="${app.image}" alt="${app.name} icon"><span>${app.name}</span>`;
-          appItem.onclick = () => openAppWindow(app.appId);
-          appList.appendChild(appItem);
-        });
-      }
-
-      // Update taskbar.
-      function updateTaskbar() {
-        const openContainer = document.getElementById("open-apps");
-        openContainer.innerHTML = "";
-        openApps.forEach((appId) => {
-          const app = installedApps.find((app) => app.appId === appId);
-          if (app) {
-            const icon = document.createElement("img");
-            icon.src = app.image;
-            icon.alt = app.name;
-            icon.title = app.name;
-            icon.style.width = "32px";
-            icon.style.height = "32px";
-            icon.style.cursor = "pointer";
-            icon.onclick = () => bringToFront(appId);
-            openContainer.appendChild(icon);
-          }
-        });
-      }
-
-      function bringToFront(appId) {
-        const appWindow = document.getElementById(appId);
-        if (appWindow) {
-          document.body.appendChild(appWindow);
-        }
-      }
-
-      // Power Down.
-      function powerOff() {
-        document.body.innerHTML = `
-          <div class="shutdown-screen">
-            <h2>Shutting down...</h2>
-            <p>Goodbye!</p>
-            <button onclick="location.reload()">Reboot</button>
-          </div>
-        `;
-      }
-
-      // Use the original login UI from your uploaded file.
-      function showPasswordModal() {
-        let modal = document.createElement("div");
-        modal.classList.add("password-modal");
-        if (localStorage.getItem("password")) {
-          let usernameField = localStorage.getItem("username")
-            ? `<p>Welcome, ${localStorage.getItem("username")}!</p>`
-            : `<input type="text" id="username-input" placeholder="Enter your username">`;
-          modal.innerHTML = `
-            <div class="password-modal-content">
-              <img src="images/icons/profile/profile.png" alt="Profile Icon">
-              ${usernameField}
-              <h3>Enter Password</h3>
-              <input type="password" id="entered-password" placeholder="Enter password">
-              <br>
-              <button onclick="checkPassword()">Enter</button>
-            </div>
-          `;
-        } else {
-          modal.innerHTML = `
-            <div class="password-modal-content">
-              <img src="images/icons/profile/profile.png" alt="Profile Icon">
-              <h3>Set up your account</h3>
-              <input type="text" id="username-input" placeholder="Enter your username">
-              <br>
-              <input type="password" id="new-password" placeholder="Enter new password">
-              <br>
-              <button onclick="setCredentials()">Set Credentials</button>
-            </div>
-          `;
-        }
-        document.body.appendChild(modal);
-      }
-
-      function checkPassword() {
-        const entered = document.getElementById("entered-password").value;
-        const stored = localStorage.getItem("password");
-        if (entered === stored) {
-          document.querySelector(".password-modal").remove();
-        } else {
-          alert("Incorrect password!");
-        }
-      }
-
-      function setCredentials() {
-        const username = document.getElementById("username-input").value;
-        const newPass = document.getElementById("new-password").value;
-        if (username && newPass) {
-          localStorage.setItem("username", username);
-          localStorage.setItem("password", newPass);
-          document.querySelector(".password-modal").remove();
-        } else {
-          alert("Username and password cannot be empty!");
-        }
-      }
-
-      // New function: change username.
-      function changeUsername(newUsername) {
-        localStorage.setItem("username", newUsername);
-      }
-
-      // Multi-step Setup Screen.
+      // Setup Screen
       function showSetupScreen() {
         const container = document.createElement("div");
         container.classList.add("setup-screen");
         document.body.appendChild(container);
         let currentStep = 1;
-        const data = { username: "", password: "", profilePic: "", wallpaper: "", osTheme: "", colorScheme: "" };
+        const data = {
+          username: "",
+          password: "",
+          profilePic: "",
+          wallpaper: "",
+          osTheme: "",
+          colorScheme: ""
+        };
         function renderStep() {
           switch (currentStep) {
             case 1:
@@ -1079,7 +735,7 @@
               document.getElementById("setup-next").addEventListener("click", () => {
                 const u = document.getElementById("setup-username").value.trim();
                 const p = document.getElementById("setup-password").value.trim();
-                if(u && p) {
+                if (u && p) {
                   data.username = u;
                   data.password = p;
                   currentStep++;
@@ -1106,7 +762,7 @@
               `;
               document.getElementById("profile-upload").addEventListener("change", (e) => {
                 const file = e.target.files[0];
-                if(file) {
+                if (file) {
                   const reader = new FileReader();
                   reader.onload = evt => {
                     document.getElementById("profile-preview").src = evt.target.result;
@@ -1121,7 +777,8 @@
                 renderStep();
               });
               document.getElementById("setup-next").addEventListener("click", () => {
-                if(!data.profilePic) data.profilePic = "images/icons/profile/profile.png";
+                if (!data.profilePic)
+                  data.profilePic = "images/icons/profile/profile.png";
                 currentStep++;
                 renderStep();
               });
@@ -1152,7 +809,8 @@
                 data.wallpaper = sel;
               });
               document.getElementById("setup-next").addEventListener("click", () => {
-                if(!data.wallpaper) data.wallpaper = document.getElementById("setup-wallpaper-select").value;
+                if (!data.wallpaper)
+                  data.wallpaper = document.getElementById("setup-wallpaper-select").value;
                 currentStep++;
                 renderStep();
               });
@@ -1189,7 +847,6 @@
                 localStorage.setItem("osTheme", data.osTheme);
                 localStorage.setItem("colorScheme", data.colorScheme);
                 localStorage.setItem("setupComplete", "true");
-                // Clear sessionStorage to force login on next reload.
                 sessionStorage.removeItem("loggedIn");
                 container.remove();
                 showBootScreen();
