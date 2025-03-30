@@ -23,9 +23,17 @@
         background-color: #f0f0f0;
         color: #333;
       }
-      .light-mode .taskbar {
+      body.light-mode .taskbar {
         background-color: #ddd;
         border-top: 1px solid #aaa;
+      }
+      /* Ensure UI components follow the theme */
+      body.light-mode .login-modal,
+      body.light-mode .setup-screen,
+      body.light-mode #settings-app {
+        background-color: #fff;
+        color: #333;
+        border: 1px solid #aaa;
       }
       /* Desktop & App Icon Styles */
       .desktop-app img {
@@ -219,6 +227,10 @@
         padding: 20px;
         box-sizing: border-box;
       }
+      body.light-mode .setup-screen {
+        background-color: #f0f0f0;
+        color: #333;
+      }
       .setup-step {
         max-width: 500px;
         width: 100%;
@@ -233,6 +245,12 @@
         border-radius: 4px;
         background-color: #333;
         color: #e0e0e0;
+      }
+      body.light-mode .setup-step input,
+      body.light-mode .setup-step select {
+        background-color: #eee;
+        color: #333;
+        border: 1px solid #aaa;
       }
       .setup-step button {
         padding: 10px 20px;
@@ -274,15 +292,18 @@
         margin: 10px auto;
         display: block;
       }
-      /* Password Show/Hide Button */
+      /* Toggle Password Button using Images */
       .toggle-password {
         cursor: pointer;
-        padding: 5px 10px;
-        background-color: #555;
+        background: none;
         border: none;
-        border-radius: 4px;
-        color: #e0e0e0;
+        padding: 0;
         margin-left: 5px;
+      }
+      .toggle-password img {
+        width: 20px;
+        height: 20px;
+        vertical-align: middle;
       }
       /* Login Modal Styles (Floating UI) */
       .login-modal {
@@ -298,11 +319,28 @@
         width: 90%;
         max-width: 400px;
       }
+      body.light-mode .login-modal {
+        background: #fff;
+        color: #333;
+        border: 1px solid #aaa;
+      }
       .login-modal img {
         width: 80px;
         height: 80px;
         border-radius: 50%;
         margin-bottom: 10px;
+      }
+      .login-modal button {
+        padding: 10px 20px;
+        background-color: #444;
+        border: none;
+        border-radius: 4px;
+        color: #e0e0e0;
+        cursor: pointer;
+        margin-top: 10px;
+      }
+      .login-modal button:hover {
+        background-color: #555;
       }
       .login-error {
         color: #ff8080;
@@ -611,16 +649,24 @@
             <div style="margin-bottom:10px;">
               <label style="display:block; margin-bottom:5px;">New Password:</label>
               <input type="password" id="new-password" placeholder="Enter new password" />
-              <button class="toggle-password" onclick="toggleInputPassword('new-password')">Show</button>
+              <button class="toggle-password" onclick="toggleInputPassword('new-password', this)">
+                <img src="images/setup/show.png" alt="Show" />
+              </button>
             </div>
             <button onclick="updateAccount(document.getElementById('new-username').value, document.getElementById('new-password').value)" style="padding:10px 20px; background:#555; border:none; border-radius:4px; cursor:pointer; color:#e0e0e0;">Update Account</button>
             <div id="account-message" style="margin-top:10px;"></div>
           </div>
         `;
       }
-      function toggleInputPassword(id) {
+      function toggleInputPassword(id, btn) {
         const input = document.getElementById(id);
-        input.type = input.type === "password" ? "text" : "password";
+        if (input.type === "password") {
+          input.type = "text";
+          if (btn) btn.innerHTML = `<img src="images/setup/hide.png" alt="Hide" />`;
+        } else {
+          input.type = "password";
+          if (btn) btn.innerHTML = `<img src="images/setup/show.png" alt="Show" />`;
+        }
       }
       function changePassword(newPassword) {
         localStorage.setItem("password", newPassword);
@@ -643,7 +689,7 @@
         `;
         setTimeout(() => {
           // On initial setup finish, sessionStorage.loggedIn is set.
-          // On subsequent page loads, if not logged in (sessionStorage flag missing), show login modal.
+          // On subsequent loads, if not logged in, show login modal.
           if (localStorage.getItem("setupComplete") && !sessionStorage.getItem("loggedIn")) {
             showLoginModal();
           } else {
@@ -884,7 +930,9 @@
           <h3>Welcome, ${username}</h3>
           <div>
             <input type="password" id="login-password" placeholder="Enter password" />
-            <button class="toggle-password" onclick="toggleInputPassword('login-password')">Show</button>
+            <button class="toggle-password" onclick="toggleInputPassword('login-password', this)">
+              <img src="images/setup/show.png" alt="Show" />
+            </button>
           </div>
           <div id="login-error" class="login-error"></div>
           <button id="login-btn">Login</button>
@@ -894,7 +942,6 @@
           const entered = document.getElementById("login-password").value;
           const stored = localStorage.getItem("password");
           if (entered === stored) {
-            // Set session flag and remove modal.
             sessionStorage.setItem("loggedIn", "true");
             modal.remove();
             loadOS();
@@ -920,7 +967,9 @@
                   <input type="text" id="setup-username" placeholder="Username" />
                   <div>
                     <input type="password" id="setup-password" placeholder="Password" />
-                    <button class="toggle-password" onclick="toggleInputPassword('setup-password')">Show</button>
+                    <button class="toggle-password" onclick="toggleInputPassword('setup-password', this)">
+                      <img src="images/setup/show.png" alt="Show" />
+                    </button>
                   </div>
                   <button id="setup-next">Next</button>
                 </div>
@@ -976,14 +1025,19 @@
               });
               break;
             case 3:
+              // Generate wallpaper options for all 41 wallpapers.
               container.innerHTML = `
                 <div class="setup-step">
                   <h2>Choose your Default Wallpaper</h2>
                   <p>Select a wallpaper for your desktop.</p>
                   <select id="setup-wallpaper-select">
-                    <option value="images/backgrounds/wallpaper1.jpg">Wallpaper 1</option>
-                    <option value="images/backgrounds/wallpaper2.jpg">Wallpaper 2</option>
-                    <option value="images/backgrounds/wallpaper3.jpg">Wallpaper 3</option>
+                    ${(() => {
+                      let opts = "";
+                      for (let i = 1; i <= 41; i++) {
+                        opts += `<option value="images/backgrounds/wallpaper${i}.jpg">Wallpaper ${i}</option>`;
+                      }
+                      return opts;
+                    })()}
                   </select>
                   <br>
                   <img id="wallpaper-preview" class="preview-img" src="images/backgrounds/wallpaper1.jpg" alt="Wallpaper Preview">
@@ -1034,7 +1088,7 @@
                 localStorage.setItem("osTheme", data.osTheme);
                 localStorage.setItem("colorScheme", data.colorScheme);
                 localStorage.setItem("setupComplete", "true");
-                // Set session flag so initial boot after setup doesn't show login.
+                // Set session flag so that on initial setup finish no login is shown.
                 sessionStorage.setItem("loggedIn", "true");
                 container.remove();
                 showBootScreen();
