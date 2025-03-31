@@ -662,13 +662,15 @@
       function showPasswordModal() {
         let modal = document.createElement("div");
         modal.classList.add("password-modal");
+        // Use stored profilePic if available.
+        let profilePic = localStorage.getItem("profilePic") || "images/icons/profile/profile.png";
         if (localStorage.getItem("password")) {
           let usernameField = localStorage.getItem("username")
             ? `<p>Welcome, ${localStorage.getItem("username")}!</p>`
             : `<input type="text" id="username-input" placeholder="Enter your username">`;
           modal.innerHTML = `
             <div class="password-modal-content">
-              <img src="images/icons/profile/profile.png" alt="Profile Icon">
+              <img src="${profilePic}" alt="Profile Icon">
               ${usernameField}
               <h3>Enter Password</h3>
               <div style="display:inline-flex; align-items:center;">
@@ -684,7 +686,7 @@
         } else {
           modal.innerHTML = `
             <div class="password-modal-content">
-              <img src="images/icons/profile/profile.png" alt="Profile Icon">
+              <img src="${profilePic}" alt="Profile Icon">
               <h3>Set up your account</h3>
               <input type="text" id="username-input" placeholder="Enter your username">
               <br>
@@ -724,8 +726,7 @@
         localStorage.setItem("username", newUsername);
       }
 
-      // Updated function to toggle Light/Dark mode based on selection.
-      // It uses a stored background (if any) and otherwise applies a default color.
+      // Updated function to toggle Light/Dark mode.
       function toggleLightDark(mode) {
         localStorage.setItem("mode", mode);
         const storedBackground = localStorage.getItem("background");
@@ -1177,6 +1178,8 @@
                 localStorage.setItem("osTheme", data.osTheme);
                 localStorage.setItem("colorScheme", data.colorScheme);
                 localStorage.setItem("setupComplete", "true");
+                // Reapply chosen wallpaper after finishing setup
+                changeBackgroundimage(data.wallpaper);
                 // Clear sessionStorage to force login on next reload.
                 sessionStorage.removeItem("loggedIn");
                 container.remove();
