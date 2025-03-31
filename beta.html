@@ -196,6 +196,9 @@
         margin-top: 10px;
         position: relative;
         z-index: 10;
+        /* Added to ensure it doesn't overflow its container */
+        max-width: 100%;
+        box-sizing: border-box;
       }
       /* Setup Screen Styles */
       .setup-screen {
