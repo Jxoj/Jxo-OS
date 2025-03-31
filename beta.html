@@ -628,7 +628,7 @@
               <label style="display:block; margin-bottom:5px;">New Password:</label>
               <input type="password" id="new-password" placeholder="Enter new password">
               <button class="toggle-password" onclick="toggleInputPassword('new-password', this)">
-                <img src="images/setup/show.png" alt="Show">
+                <img src="images/icons/setup/show.png" alt="Show">
               </button>
             </div>
             <button onclick="updateAccount(document.getElementById('new-username').value,document.getElementById('new-password').value)" style="padding:10px 20px; background:#555; border:none; border-radius:4px; cursor:pointer; color:#e0e0e0;">Update Account</button>
@@ -641,10 +641,10 @@
         const input = document.getElementById(id);
         if (input.type === "password") {
           input.type = "text";
-          if (btn) btn.innerHTML = `<img src="images/setup/hide.png" alt="Hide" />`;
+          if (btn) btn.innerHTML = `<img src="images/icons/setup/hide.png" alt="Hide" />`;
         } else {
           input.type = "password";
-          if (btn) btn.innerHTML = `<img src="images/setup/show.png" alt="Show" />`;
+          if (btn) btn.innerHTML = `<img src="images/icons/setup/show.png" alt="Show" />`;
         }
       }
 
@@ -674,7 +674,7 @@
               <div style="display:inline-flex; align-items:center;">
                 <input type="password" id="entered-password" placeholder="Enter password">
                 <button class="toggle-password" onclick="toggleInputPassword('entered-password', this)">
-                  <img src="images/setup/show.png" alt="Show">
+                  <img src="images/icons/setup/show.png" alt="Show">
                 </button>
               </div>
               <br>
@@ -1051,7 +1051,7 @@
                   <div>
                     <input type="password" id="setup-password" placeholder="Password" />
                     <button class="toggle-password" onclick="toggleInputPassword('setup-password', this)">
-                      <img src="images/setup/show.png" alt="Show" />
+                      <img src="images/icons/setup/show.png" alt="Show" />
                     </button>
                   </div>
                   <button id="setup-next">Next</button>
