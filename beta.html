@@ -282,11 +282,6 @@
         height: 16px;
         vertical-align: middle;
       }
-      /* Use original Login UI from your uploaded code */
-      /* The following login modal function is exactly as in your file */
-      /* DO NOT change the login UI appearance here */
-      /* Username and Password Modal from your file: */
-      /* (No additional styling modifications to this block) */
       /* Lock Button on Taskbar */
       .lock-button {
         padding: 5px 10px;
@@ -573,6 +568,13 @@
             <h3>Change Background Color</h3>
             <input type="color" id="bg-color-picker" />
           </div>
+          <div style="margin-bottom:20px;">
+            <h3>Toggle Light/Dark Mode</h3>
+            <select id="mode-toggle">
+              <option value="dark">Dark Mode</option>
+              <option value="light">Light Mode</option>
+            </select>
+          </div>
         `;
         const osDropdown = document.getElementById("os-dropdown");
         osDropdown.value = localStorage.getItem("osTheme") || "default";
@@ -598,6 +600,14 @@
           const b = parseInt(hex.substr(5, 2), 16);
           changeBackground(r, g, b);
         });
+        // Setup the light/dark mode toggle.
+        const modeToggle = document.getElementById("mode-toggle");
+        modeToggle.value = localStorage.getItem("mode") || "dark";
+        modeToggle.addEventListener("change", function () {
+          toggleLightDark(modeToggle.value);
+        });
+        // Apply the stored mode on load.
+        toggleLightDark(modeToggle.value);
       }
 
       // Load the Account tab.
@@ -613,9 +623,9 @@
             </div>
             <div style="margin-bottom:10px;">
               <label style="display:block; margin-bottom:5px;">New Password:</label>
-              <input type="password" id="new-password" placeholder="Enter new password" />
+              <input type="password" id="new-password" placeholder="Enter new password">
               <button class="toggle-password" onclick="toggleInputPassword('new-password', this)">
-                <img src="images/setup/show.png" alt="Show" />
+                <img src="images/setup/show.png" alt="Show">
               </button>
             </div>
             <button onclick="updateAccount(document.getElementById('new-username').value,document.getElementById('new-password').value)" style="padding:10px 20px; background:#555; border:none; border-radius:4px; cursor:pointer; color:#e0e0e0;">Update Account</button>
@@ -647,43 +657,42 @@
       }
 
       function showPasswordModal() {
-  let modal = document.createElement("div");
-  modal.classList.add("password-modal");
-  if (localStorage.getItem("password")) {
-    let usernameField = localStorage.getItem("username")
-      ? `<p>Welcome, ${localStorage.getItem("username")}!</p>`
-      : `<input type="text" id="username-input" placeholder="Enter your username">`;
-    modal.innerHTML = `
-      <div class="password-modal-content">
-        <img src="images/icons/profile/profile.png" alt="Profile Icon">
-        ${usernameField}
-        <h3>Enter Password</h3>
-        <div style="display:inline-flex; align-items:center;">
-          <input type="password" id="entered-password" placeholder="Enter password">
-          <button class="toggle-password" onclick="toggleInputPassword('entered-password', this)">
-            <img src="images/setup/show.png" alt="Show">
-          </button>
-        </div>
-        <br>
-        <button onclick="checkPassword()">Enter</button>
-      </div>
-    `;
-  } else {
-    modal.innerHTML = `
-      <div class="password-modal-content">
-        <img src="images/icons/profile/profile.png" alt="Profile Icon">
-        <h3>Set up your account</h3>
-        <input type="text" id="username-input" placeholder="Enter your username">
-        <br>
-        <input type="password" id="new-password" placeholder="Enter new password">
-        <br>
-        <button onclick="setCredentials()">Set Credentials</button>
-      </div>
-    `;
-  }
-  document.body.appendChild(modal);
-}
-
+        let modal = document.createElement("div");
+        modal.classList.add("password-modal");
+        if (localStorage.getItem("password")) {
+          let usernameField = localStorage.getItem("username")
+            ? `<p>Welcome, ${localStorage.getItem("username")}!</p>`
+            : `<input type="text" id="username-input" placeholder="Enter your username">`;
+          modal.innerHTML = `
+            <div class="password-modal-content">
+              <img src="images/icons/profile/profile.png" alt="Profile Icon">
+              ${usernameField}
+              <h3>Enter Password</h3>
+              <div style="display:inline-flex; align-items:center;">
+                <input type="password" id="entered-password" placeholder="Enter password">
+                <button class="toggle-password" onclick="toggleInputPassword('entered-password', this)">
+                  <img src="images/setup/show.png" alt="Show">
+                </button>
+              </div>
+              <br>
+              <button onclick="checkPassword()">Enter</button>
+            </div>
+          `;
+        } else {
+          modal.innerHTML = `
+            <div class="password-modal-content">
+              <img src="images/icons/profile/profile.png" alt="Profile Icon">
+              <h3>Set up your account</h3>
+              <input type="text" id="username-input" placeholder="Enter your username">
+              <br>
+              <input type="password" id="new-password" placeholder="Enter new password">
+              <br>
+              <button onclick="setCredentials()">Set Credentials</button>
+            </div>
+          `;
+        }
+        document.body.appendChild(modal);
+      }
 
       function checkPassword() {
         const entered = document.getElementById("entered-password").value;
@@ -712,23 +721,43 @@
         localStorage.setItem("username", newUsername);
       }
 
+      // Function to toggle Light/Dark mode across the OS.
+      function toggleLightDark(mode) {
+        localStorage.setItem("mode", mode);
+        if (mode === "light") {
+          document.body.style.backgroundColor = "#ffffff";
+          document.body.style.color = "#000000";
+          const taskbar = document.getElementById("taskbar");
+          if (taskbar) taskbar.style.backgroundColor = "#f0f0f0";
+          // Additional elements can be styled here for Light Mode.
+        } else {
+          // Dark mode: revert to default dark colors.
+          document.body.style.backgroundColor = "#121212";
+          document.body.style.color = "#e0e0e0";
+          const taskbar = document.getElementById("taskbar");
+          if (taskbar) taskbar.style.backgroundColor = "#1f1f1f";
+          // Additional elements can be styled here for Dark Mode.
+        }
+      }
+
+      // Boot screen.
       function showBootScreen() {
-  document.body.innerHTML = `
-    <div id="boot-screen" class="boot-screen">
-      <div class="boot-content">
-        <span class="boot-title" style="font-size:4em;">Jx</span>
-        <div class="loading-circle"></div>
-      </div>
-    </div>
-  `;
-  setTimeout(() => {
-    loadOS();
-    // Show the login modal after the OS is rendered (e.g., 500ms delay)
-    if (localStorage.getItem("setupComplete")) {
-      setTimeout(showPasswordModal, 500);
-    }
-  }, 2000);
-}
+        document.body.innerHTML = `
+          <div id="boot-screen" class="boot-screen">
+            <div class="boot-content">
+              <span class="boot-title" style="font-size:4em;">Jx</span>
+              <div class="loading-circle"></div>
+            </div>
+          </div>
+        `;
+        setTimeout(() => {
+          loadOS();
+          // Show the login modal after OS loads (500ms delay)
+          if (localStorage.getItem("setupComplete")) {
+            setTimeout(showPasswordModal, 500);
+          }
+        }, 2000);
+      }
 
       // OS Loading.
       function loadOS() {
@@ -994,71 +1023,6 @@
         `;
       }
 
-      function showPasswordModal() {
-  let modal = document.createElement("div");
-  modal.classList.add("password-modal");
-  if (localStorage.getItem("password")) {
-    let usernameField = localStorage.getItem("username")
-      ? `<p>Welcome, ${localStorage.getItem("username")}!</p>`
-      : `<input type="text" id="username-input" placeholder="Enter your username">`;
-    modal.innerHTML = `
-      <div class="password-modal-content">
-        <img src="images/icons/profile/profile.png" alt="Profile Icon">
-        ${usernameField}
-        <h3>Enter Password</h3>
-        <div style="display:inline-flex; align-items:center;">
-          <input type="password" id="entered-password" placeholder="Enter password">
-          <button class="toggle-password" onclick="toggleInputPassword('entered-password', this)">
-            <img src="images/setup/show.png" alt="Show">
-          </button>
-        </div>
-        <br>
-        <button onclick="checkPassword()">Enter</button>
-      </div>
-    `;
-  } else {
-    modal.innerHTML = `
-      <div class="password-modal-content">
-        <img src="images/icons/profile/profile.png" alt="Profile Icon">
-        <h3>Set up your account</h3>
-        <input type="text" id="username-input" placeholder="Enter your username">
-        <br>
-        <input type="password" id="new-password" placeholder="Enter new password">
-        <br>
-        <button onclick="setCredentials()">Set Credentials</button>
-      </div>
-    `;
-  }
-  document.body.appendChild(modal);
-}
-
-      function checkPassword() {
-        const entered = document.getElementById("entered-password").value;
-        const stored = localStorage.getItem("password");
-        if (entered === stored) {
-          document.querySelector(".password-modal").remove();
-        } else {
-          alert("Incorrect password!");
-        }
-      }
-
-      function setCredentials() {
-        const username = document.getElementById("username-input").value;
-        const newPass = document.getElementById("new-password").value;
-        if (username && newPass) {
-          localStorage.setItem("username", username);
-          localStorage.setItem("password", newPass);
-          document.querySelector(".password-modal").remove();
-        } else {
-          alert("Username and password cannot be empty!");
-        }
-      }
-
-      // New function: change username.
-      function changeUsername(newUsername) {
-        localStorage.setItem("username", newUsername);
-      }
-
       // Multi-step Setup Screen.
       function showSetupScreen() {
         const container = document.createElement("div");
@@ -1186,9 +1150,16 @@
                   <button id="setup-finish">Finish</button>
                 </div>
               `;
+              const colorSchemeSelect = document.getElementById("setup-colorscheme");
+              // Immediately apply the chosen color scheme during setup.
+              colorSchemeSelect.addEventListener("change", function(){
+                toggleLightDark(this.value);
+              });
               document.getElementById("setup-finish").addEventListener("click", () => {
                 data.osTheme = document.getElementById("setup-ostheme").value;
                 data.colorScheme = document.getElementById("setup-colorscheme").value;
+                // Apply selected light/dark mode immediately
+                toggleLightDark(data.colorScheme);
                 localStorage.setItem("username", data.username);
                 localStorage.setItem("password", data.password);
                 localStorage.setItem("profilePic", data.profilePic);
