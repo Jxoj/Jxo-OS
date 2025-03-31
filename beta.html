@@ -721,22 +721,29 @@
         localStorage.setItem("username", newUsername);
       }
 
-      // Function to toggle Light/Dark mode across the OS.
+      // Updated function to toggle Light/Dark mode based on selection.
+      // It uses a stored background (if any) and otherwise applies a default color.
       function toggleLightDark(mode) {
         localStorage.setItem("mode", mode);
+        const storedBackground = localStorage.getItem("background");
         if (mode === "light") {
-          document.body.style.backgroundColor = "#ffffff";
           document.body.style.color = "#000000";
+          if (storedBackground) {
+            document.body.style.background = storedBackground;
+          } else {
+            document.body.style.backgroundColor = "#f0f0f0";
+          }
           const taskbar = document.getElementById("taskbar");
-          if (taskbar) taskbar.style.backgroundColor = "#f0f0f0";
-          // Additional elements can be styled here for Light Mode.
+          if (taskbar) taskbar.style.backgroundColor = "#e0e0e0";
         } else {
-          // Dark mode: revert to default dark colors.
-          document.body.style.backgroundColor = "#121212";
           document.body.style.color = "#e0e0e0";
+          if (storedBackground) {
+            document.body.style.background = storedBackground;
+          } else {
+            document.body.style.backgroundColor = "#121212";
+          }
           const taskbar = document.getElementById("taskbar");
           if (taskbar) taskbar.style.backgroundColor = "#1f1f1f";
-          // Additional elements can be styled here for Dark Mode.
         }
       }
 
