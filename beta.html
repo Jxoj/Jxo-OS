@@ -17,6 +17,9 @@
       .taskbar {
         background-color: #1f1f1f;
         border-top: 1px solid #333;
+        display: flex;
+        align-items: center;
+        padding: 0 10px;
       }
       /* Adjust desktop icon scale */
       .desktop-app img {
@@ -69,7 +72,7 @@
         margin-right: 10px;
       }
       /* Set appropriate size for start menu icon in taskbar */
-      #start-button img {
+      #start-button img, #gm-button img {
         width: 24px;
         height: 24px;
         vertical-align: middle;
@@ -298,6 +301,51 @@
       .lock-button:hover {
         background-color: #555;
       }
+      /* Game Bar Styles */
+      #gamebar {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background-color: #222;
+        z-index: 15000;
+        /* Two rows: launcher and widgets */
+      }
+      #gm-launcher-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 5px 10px;
+        border-bottom: 1px solid #444;
+      }
+      #gm-launcher {
+        flex-grow: 1;
+        text-align: center;
+        cursor: pointer;
+      }
+      #gm-launcher img {
+        width: 32px;
+        height: 32px;
+        vertical-align: middle;
+      }
+      #gm-widgets-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 5px 10px;
+      }
+      .gm-widget {
+        margin: 0 5px;
+        padding: 5px 10px;
+        background-color: #333;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      /* Clock widget style */
+      .gm-clock {
+        font-size: 14px;
+      }
       /* Responsive adjustments for phones */
       @media (max-width: 600px) {
         .desktop-app img {
@@ -327,6 +375,11 @@
       // Global variables for installed and open apps.
       let installedApps = [];
       let openApps = [];
+      // Variables for Game Mode
+      let gameModeOn = false;
+      let gmApps = [];
+      let gmCurrentIndex = 0;
+      let gamepadInterval = null;
 
       function loadInstalledApps() {
         return new Promise((resolve) => {
@@ -751,6 +804,144 @@
         }
       }
 
+      // Game Mode functions
+      function toggleGameMode() {
+        gameModeOn = !gameModeOn;
+        // Update the GM button icon.
+        const gmIcon = document.getElementById("gm-icon");
+        if (gameModeOn) {
+          gmIcon.src = "images/icons/gm/on.png";
+          showGameBar();
+          // Filter gmApps: exclude Settings and Jstore.
+          gmApps = installedApps.filter(app => app.name !== "Settings" && app.name !== "Jstore");
+          if (gmApps.length > 0) {
+            // Start with a random app.
+            gmCurrentIndex = Math.floor(Math.random() * gmApps.length);
+            updateGMLauncher();
+          }
+          // Start polling for gamepad input.
+          startGamepadPolling();
+        } else {
+          gmIcon.src = "images/icons/gm/off.png";
+          hideGameBar();
+          stopGamepadPolling();
+        }
+      }
+
+      function showGameBar() {
+        const gamebar = document.getElementById("gamebar");
+        if (gamebar) {
+          gamebar.style.display = "block";
+        }
+      }
+
+      function hideGameBar() {
+        const gamebar = document.getElementById("gamebar");
+        if (gamebar) {
+          gamebar.style.display = "none";
+        }
+      }
+
+      function updateGMLauncher() {
+        const launcher = document.getElementById("gm-launcher");
+        if (gmApps.length === 0) {
+          launcher.innerHTML = "No apps available";
+          return;
+        }
+        const app = gmApps[gmCurrentIndex];
+        launcher.innerHTML = `<img src="${app.image}" alt="${app.name} icon"><br>${app.name}`;
+      }
+
+      function cycleApp(direction) {
+        if (gmApps.length === 0) return;
+        gmCurrentIndex = (gmCurrentIndex + direction + gmApps.length) % gmApps.length;
+        updateGMLauncher();
+      }
+
+      function launchGMApp() {
+        if (gmApps.length === 0) return;
+        const app = gmApps[gmCurrentIndex];
+        // If the app has a URL, append ?controller=true (or &controller=true if needed).
+        if (app.htmlUrl) {
+          let url = app.htmlUrl;
+          if (url.indexOf("?") === -1) {
+            url += "?controller=true";
+          } else {
+            url += "&controller=true";
+          }
+          openAppWindowWithUrl(app.appId, url);
+        } else {
+          // If no URL, simply open the app window.
+          openAppWindow(app.appId);
+        }
+      }
+
+      // Opens app window with a provided URL (used by GM launch with controller param)
+      function openAppWindowWithUrl(appId, url) {
+        const app = installedApps.find((app) => app.appId === appId);
+        if (app) {
+          if (document.getElementById(appId)) return;
+          const appWindow = document.createElement("div");
+          appWindow.classList.add("app-window");
+          appWindow.id = appId;
+          appWindow.innerHTML = `
+            <div class="window-header">
+              <span class="window-title">${app.name}</span>
+              <div>
+                <button class="window-btn" onclick="closeWindow(&quot;${appId}&quot;)">
+                  <img src="images/icons/x.png" alt="Close" />
+                </button>
+                <button class="window-btn" onclick="toggleFullscreen(&quot;${appId}&quot;)">
+                  <img src="images/icons/fullscreen.png" alt="Fullscreen" />
+                </button>
+              </div>
+            </div>
+            <div class="window-content">
+              <iframe src="${url}" width="100%" height="100%" style="border:none;"></iframe>
+            </div>
+            <div class="resize-handle"></div>
+          `;
+          document.body.appendChild(appWindow);
+          makeDraggable(appWindow);
+          makeResizable(appWindow);
+          if (!openApps.includes(appId)) {
+            openApps.push(appId);
+            updateTaskbar();
+          }
+        }
+      }
+
+      // Basic gamepad support: poll for left/right navigation.
+      function startGamepadPolling() {
+        if (gamepadInterval) return;
+        gamepadInterval = setInterval(() => {
+          const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+          if (!gamepads) return;
+          for (let gp of gamepads) {
+            if (gp) {
+              // For example, assume button 14 is left and 15 is right.
+              if (gp.buttons[14] && gp.buttons[14].pressed) {
+                cycleApp(-1);
+              }
+              if (gp.buttons[15] && gp.buttons[15].pressed) {
+                cycleApp(1);
+              }
+              // Assume button 0 is A: launch the app.
+              if (gp.buttons[0] && gp.buttons[0].pressed) {
+                launchGMApp();
+              }
+            }
+          }
+        }, 100);
+      }
+
+      function stopGamepadPolling() {
+        if (gamepadInterval) {
+          clearInterval(gamepadInterval);
+          gamepadInterval = null;
+        }
+      }
+
       // Boot screen.
       function showBootScreen() {
         document.body.innerHTML = `
@@ -773,9 +964,26 @@
       // OS Loading.
       function loadOS() {
         document.body.innerHTML = `
+          <!-- Game Bar (hidden by default) -->
+          <div id="gamebar">
+            <div id="gm-launcher-row" style="display:flex; align-items:center; justify-content:space-between;">
+              <button id="gm-left" onclick="cycleApp(-1)">&#9664;</button>
+              <div id="gm-launcher" onclick="launchGMApp()" style="flex-grow:1; text-align:center; cursor:pointer;"></div>
+              <button id="gm-right" onclick="cycleApp(1)">&#9654;</button>
+            </div>
+            <div id="gm-widgets-row" style="display:flex; align-items:center; justify-content:center;">
+              <div class="gm-widget gm-clock" id="gm-clock-widget">--:--:--</div>
+              <div class="gm-widget">...</div>
+              <div class="gm-widget">...</div>
+            </div>
+          </div>
           <div id="desktop"></div>
           <div id="taskbar" class="taskbar">
             <button id="start-button" onclick="toggleSearchMenu()" class="taskbar-button search-btn">❖</button>
+            <!-- Game Mode button added here -->
+            <button id="gm-button" onclick="toggleGameMode()" class="taskbar-button">
+              <img id="gm-icon" src="images/icons/gm/off.png" alt="Game Mode">
+            </button>
             <div id="open-apps"></div>
             <div id="taskbar-right">
               <div id="clock-container">
@@ -800,6 +1008,8 @@
         updateTaskbar();
         restoreOSTheme();
         setInterval(updateClock, 1000);
+        // Also update GM clock widget every second.
+        setInterval(updateGMClock, 1000);
       }
 
       function loadBackground() {
@@ -963,6 +1173,15 @@
         if (clock && date) {
           clock.innerText = now.toLocaleTimeString();
           date.innerText = now.toLocaleDateString();
+        }
+      }
+
+      // Update Game Mode clock widget.
+      function updateGMClock() {
+        const widget = document.getElementById("gm-clock-widget");
+        if (widget) {
+          const now = new Date();
+          widget.innerText = now.toLocaleTimeString();
         }
       }
 
