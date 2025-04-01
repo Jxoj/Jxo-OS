@@ -336,6 +336,12 @@
         cursor: pointer;
         font-size: 18px;
       }
+      /* Make the game bar app images a bit smaller */
+      #gm-launcher img {
+        width: 24px;
+        height: 24px;
+        vertical-align: middle;
+      }
       /* Responsive adjustments for phones */
       @media (max-width: 600px) {
         .desktop-app img {
@@ -652,7 +658,6 @@
         modeToggle.addEventListener("change", function () {
           toggleLightDark(modeToggle.value);
         });
-        // Apply the stored mode on load.
         toggleLightDark(modeToggle.value);
       }
 
@@ -705,7 +710,6 @@
       function showPasswordModal() {
         let modal = document.createElement("div");
         modal.classList.add("password-modal");
-        // Use stored profilePic if available.
         let profilePic = localStorage.getItem("profilePic") || "images/icons/profile/profile.png";
         if (localStorage.getItem("password")) {
           let usernameField = localStorage.getItem("username")
@@ -801,7 +805,6 @@
         if (gameModeOn) {
           gmIcon.src = "images/icons/gm/on.png";
           showGameBar();
-          // Use installedApps from localStorage filtering out Settings and Jstore.
           gmApps = installedApps.filter(app => app.name !== "Settings" && app.name !== "Jstore");
           if (gmApps.length > 0) {
             gmCurrentIndex = Math.floor(Math.random() * gmApps.length);
