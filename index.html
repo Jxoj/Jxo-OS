@@ -11,6 +11,8 @@
       body {
         background-color: #121212;
         color: #e0e0e0;
+        font-family: Arial, sans-serif;
+        margin: 0;
       }
       .taskbar {
         background-color: #1f1f1f;
@@ -33,7 +35,6 @@
         overflow-y: auto;
         padding: 10px;
       }
-      /* Close button styling */
       #search-menu .close-btn {
         cursor: pointer;
       }
@@ -41,7 +42,6 @@
         width: 16px;
         height: 16px;
       }
-      /* Improved search input styling */
       #search-menu input[type="text"] {
         width: calc(100% - 20px);
         padding: 10px;
@@ -165,6 +165,7 @@
         padding: 30px;
         background-color: #222;
         border-left: 1px solid #333;
+        overflow: visible; /* Fix dropdown clipping */
       }
       #settings-content h2 {
         margin-top: 0;
@@ -193,17 +194,142 @@
         background-color: #333;
         color: #e0e0e0;
         margin-top: 10px;
+        position: relative;
+        z-index: 10;
+        /* Added to ensure it doesn't overflow its container */
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+      /* Setup Screen Styles */
+      .setup-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: #121212;
+        color: #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 20000;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+      .setup-step {
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .setup-step input, .setup-step select {
+        width: 90%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #444;
+        border-radius: 4px;
+        background-color: inherit;
+        color: inherit;
+      }
+      .setup-step button {
+        padding: 10px 20px;
+        background-color: #444;
+        border: none;
+        border-radius: 4px;
+        color: #e0e0e0;
+        cursor: pointer;
+        margin: 5px;
+      }
+      .setup-step button:hover {
+        background-color: #555;
+      }
+      /* Styled File Input for Profile Pic */
+      .file-input-wrapper {
+        position: relative;
+        display: inline-block;
+        margin: 10px 0;
+      }
+      .file-input-wrapper input[type="file"] {
+        opacity: 0;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+      }
+      .file-input-label {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #444;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .preview-img {
+        max-width: 100px;
+        max-height: 100px;
+        margin: 10px auto;
+        display: block;
+      }
+      /* Toggle Password Button using Images (smaller) */
+      .toggle-password {
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 0;
+        margin-left: 5px;
+      }
+      .toggle-password img {
+        width: 16px;
+        height: 16px;
+        vertical-align: middle;
+      }
+      /* Lock Button on Taskbar */
+      .lock-button {
+        padding: 5px 10px;
+        background-color: #444;
+        border: none;
+        border-radius: 4px;
+        color: #e0e0e0;
+        cursor: pointer;
+        margin-right: 10px;
+      }
+      .lock-button:hover {
+        background-color: #555;
+      }
+      /* Responsive adjustments for phones */
+      @media (max-width: 600px) {
+        .desktop-app img {
+          width: 48px;
+          height: 48px;
+        }
+        #settings-sidebar {
+          width: 200px;
+          padding: 15px;
+        }
+        #settings-content {
+          padding: 20px;
+        }
+        .setup-step {
+          max-width: 90%;
+        }
       }
     </style>
   </head>
   <body>
     <script>
-      // Global variables for installed apps and open apps.
+      // Clear sessionStorage so login UI shows on every reload.
+      document.addEventListener("DOMContentLoaded", () => {
+        sessionStorage.removeItem("loggedIn");
+      });
+
+      // Global variables for installed and open apps.
       let installedApps = [];
       let openApps = [];
 
       function loadInstalledApps() {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
           if (localStorage.getItem("installedApps")) {
             installedApps = JSON.parse(localStorage.getItem("installedApps"));
           } else {
@@ -222,11 +348,11 @@
       function changeOS(osName) {
         saveOSTheme(osName);
         const stylesheet = document.querySelector('link[rel="stylesheet"]');
+        const startBtn = document.getElementById("start-button");
         if (!stylesheet) {
           console.error("Stylesheet link element not found.");
           return;
         }
-        const startBtn = document.getElementById("start-button");
         if (!startBtn) {
           console.error("Start button with id 'start-button' not found.");
           return;
@@ -255,7 +381,6 @@
           installApp("Jstore", "apps/icons/jstore.png", "");
           const jstoreApp = installedApps.find((app) => app.name === "Jstore");
           if (jstoreApp) {
-            // Updated Jstore content with a search bar
             jstoreApp.htmlContent = `
               <div id="jstore-container">
                 <h1>Jstore</h1>
@@ -314,7 +439,6 @@
             apps.forEach((app) => {
               const isInstalled = installedApps.some((a) => a.name === app.name);
               const button = document.createElement("button");
-              // Save app icon and URL in dataset for later use
               button.dataset.icon = app.icon;
               button.dataset.url = app.url;
               if (isInstalled) {
@@ -387,15 +511,14 @@
 
       // Settings App functions
 
-      // Initialize the Settings app (attach sidebar event listeners).
+      // Initialize the Settings app.
       function initSettingsApp() {
         const searchInput = document.getElementById("settings-search");
         const optionsList = document.getElementById("settings-options");
         if (searchInput && optionsList) {
           searchInput.addEventListener("input", function () {
             const query = searchInput.value.toLowerCase();
-            const items = optionsList.getElementsByTagName("li");
-            Array.from(items).forEach((li) => {
+            Array.from(optionsList.getElementsByTagName("li")).forEach((li) => {
               li.style.display = li.textContent.toLowerCase().includes(query)
                 ? ""
                 : "none";
@@ -415,7 +538,6 @@
             }
           });
         });
-        // Default to Personalization tab.
         loadPersonalizationTab();
       }
 
@@ -423,21 +545,17 @@
       function loadPersonalizationTab() {
         const content = document.getElementById("settings-content");
         if (!content) return;
-        // Create an array of wallpaper names from wallpaper1 to wallpaper41.
         const wallpapers = [];
         for (let i = 1; i <= 41; i++) {
           wallpapers.push("wallpaper" + i);
         }
-        // OS options: default and windows10.
         const osOptions = ["default", "windows10"];
         content.innerHTML = `
           <h2>Personalization</h2>
           <div style="margin-bottom:20px;">
             <h3>Change OS Theme</h3>
             <select id="os-dropdown">
-              ${osOptions
-                .map((os) => `<option value="${os}">${os}</option>`)
-                .join("")}
+              ${osOptions.map((os) => `<option value="${os}">${os}</option>`).join("")}
             </select>
           </div>
           <div style="margin-bottom:20px;">
@@ -446,27 +564,26 @@
               <img id="bg-preview" src="images/backgrounds/wallpaper1.jpg" alt="Background Preview" />
             </div>
             <select id="wallpaper-dropdown">
-              ${wallpapers
-                .map(
-                  (wp) =>
-                    `<option value="images/backgrounds/${wp}.jpg">${wp}.jpg</option>`
-                )
-                .join("")}
+              ${wallpapers.map((wp) => `<option value="images/backgrounds/${wp}.jpg">${wp}.jpg</option>`).join("")}
             </select>
           </div>
-          <div>
+          <div style="margin-bottom:20px;">
             <h3>Change Background Color</h3>
             <input type="color" id="bg-color-picker" />
           </div>
+          <div style="margin-bottom:20px;">
+            <h3>Toggle Light/Dark Mode</h3>
+            <select id="mode-toggle">
+              <option value="dark">Dark Mode</option>
+              <option value="light">Light Mode</option>
+            </select>
+          </div>
         `;
-        // Set OS dropdown to saved theme if available.
         const osDropdown = document.getElementById("os-dropdown");
-        const savedOS = localStorage.getItem("osTheme") || "default";
-        osDropdown.value = savedOS;
+        osDropdown.value = localStorage.getItem("osTheme") || "default";
         osDropdown.addEventListener("change", function () {
           changeOS(osDropdown.value);
         });
-        // Wallpaper dropdown event.
         const wallpaperDropdown = document.getElementById("wallpaper-dropdown");
         const bgPreview = document.getElementById("bg-preview");
         if (wallpaperDropdown && bgPreview) {
@@ -478,7 +595,6 @@
             changeBackgroundimage(selected);
           });
         }
-        // Handle color picker.
         const colorPicker = document.getElementById("bg-color-picker");
         colorPicker.addEventListener("input", function () {
           const hex = colorPicker.value;
@@ -487,6 +603,14 @@
           const b = parseInt(hex.substr(5, 2), 16);
           changeBackground(r, g, b);
         });
+        // Setup the light/dark mode toggle.
+        const modeToggle = document.getElementById("mode-toggle");
+        modeToggle.value = localStorage.getItem("mode") || "dark";
+        modeToggle.addEventListener("change", function () {
+          toggleLightDark(modeToggle.value);
+        });
+        // Apply the stored mode on load.
+        toggleLightDark(modeToggle.value);
       }
 
       // Load the Account tab.
@@ -502,7 +626,10 @@
             </div>
             <div style="margin-bottom:10px;">
               <label style="display:block; margin-bottom:5px;">New Password:</label>
-              <input type="password" id="new-password" placeholder="Enter new password" />
+              <input type="password" id="new-password" placeholder="Enter new password">
+              <button class="toggle-password" onclick="toggleInputPassword('new-password', this)">
+                <img src="images/icons/setup/show.png" alt="Show">
+              </button>
             </div>
             <button onclick="updateAccount(document.getElementById('new-username').value,document.getElementById('new-password').value)" style="padding:10px 20px; background:#555; border:none; border-radius:4px; cursor:pointer; color:#e0e0e0;">Update Account</button>
             <div id="account-message" style="margin-top:10px;"></div>
@@ -510,17 +637,118 @@
         `;
       }
 
-      // New function: change password.
+      function toggleInputPassword(id, btn) {
+        const input = document.getElementById(id);
+        if (input.type === "password") {
+          input.type = "text";
+          if (btn) btn.innerHTML = `<img src="images/icons/setup/hide.png" alt="Hide" />`;
+        } else {
+          input.type = "password";
+          if (btn) btn.innerHTML = `<img src="images/icons/setup/show.png" alt="Show" />`;
+        }
+      }
+
       function changePassword(newPassword) {
         localStorage.setItem("password", newPassword);
       }
 
-      // New function: update account settings.
       function updateAccount(newUsername, newPassword) {
-        changeUsername(newUsername);
+        localStorage.setItem("username", newUsername);
         changePassword(newPassword);
         const msg = document.getElementById("account-message");
         if (msg) msg.innerText = "Account updated successfully!";
+      }
+
+      function showPasswordModal() {
+        let modal = document.createElement("div");
+        modal.classList.add("password-modal");
+        // Use stored profilePic if available.
+        let profilePic = localStorage.getItem("profilePic") || "images/icons/profile/profile.png";
+        if (localStorage.getItem("password")) {
+          let usernameField = localStorage.getItem("username")
+            ? `<p>Welcome, ${localStorage.getItem("username")}!</p>`
+            : `<input type="text" id="username-input" placeholder="Enter your username">`;
+          modal.innerHTML = `
+            <div class="password-modal-content">
+              <img src="${profilePic}" alt="Profile Icon">
+              ${usernameField}
+              <h3>Enter Password</h3>
+              <div style="display:inline-flex; align-items:center;">
+                <input type="password" id="entered-password" placeholder="Enter password">
+                <button class="toggle-password" onclick="toggleInputPassword('entered-password', this)">
+                  <img src="images/icons/setup/show.png" alt="Show">
+                </button>
+              </div>
+              <br>
+              <button onclick="checkPassword()">Enter</button>
+            </div>
+          `;
+        } else {
+          modal.innerHTML = `
+            <div class="password-modal-content">
+              <img src="${profilePic}" alt="Profile Icon">
+              <h3>Set up your account</h3>
+              <input type="text" id="username-input" placeholder="Enter your username">
+              <br>
+              <input type="password" id="new-password" placeholder="Enter new password">
+              <br>
+              <button onclick="setCredentials()">Set Credentials</button>
+            </div>
+          `;
+        }
+        document.body.appendChild(modal);
+      }
+
+      function checkPassword() {
+        const entered = document.getElementById("entered-password").value;
+        const stored = localStorage.getItem("password");
+        if (entered === stored) {
+          document.querySelector(".password-modal").remove();
+        } else {
+          alert("Incorrect password!");
+        }
+      }
+
+      function setCredentials() {
+        const username = document.getElementById("username-input").value;
+        const newPass = document.getElementById("new-password").value;
+        if (username && newPass) {
+          localStorage.setItem("username", username);
+          localStorage.setItem("password", newPass);
+          document.querySelector(".password-modal").remove();
+        } else {
+          alert("Username and password cannot be empty!");
+        }
+      }
+
+      // New function: change username.
+      function changeUsername(newUsername) {
+        localStorage.setItem("username", newUsername);
+      }
+
+      // Updated function to toggle Light/Dark mode.
+      function toggleLightDark(mode) {
+        localStorage.setItem("mode", mode);
+        const storedBackground = localStorage.getItem("background");
+        if (mode === "light") {
+          document.body.style.color = "#000000";
+          if (storedBackground) {
+            document.body.style.background = storedBackground;
+          } else {
+            document.body.style.backgroundColor = "#f0f0f0";
+          }
+          const taskbar = document.getElementById("taskbar");
+          if (taskbar) taskbar.style.backgroundColor = "#e0e0e0";
+        } else {
+          document.body.style.color = "#e0e0e0";
+          if (storedBackground) {
+            document.body.style.background = storedBackground;
+          } else {
+            document.body.style.backgroundColor = "#121212";
+          }
+          const taskbar = document.getElementById("taskbar");
+          if (taskbar) taskbar.style.backgroundColor = "#1f1f1f";
+        }
       }
 
       // Boot screen.
@@ -535,11 +763,14 @@
         `;
         setTimeout(() => {
           loadOS();
-          showPasswordModal();
+          // Show the login modal after OS loads (500ms delay)
+          if (localStorage.getItem("setupComplete")) {
+            setTimeout(showPasswordModal, 500);
+          }
         }, 2000);
       }
 
-      // Load OS elements.
+      // OS Loading.
       function loadOS() {
         document.body.innerHTML = `
           <div id="desktop"></div>
@@ -551,6 +782,7 @@
                 <span id="date"></span>
                 <span id="clock"></span>
               </div>
+              <button class="lock-button" onclick="showPasswordModal()">Lock</button>
               <button onclick="powerOff()" class="power-button">Power Down</button>
             </div>
           </div>
@@ -562,7 +794,6 @@
             <div id="app-list"></div>
           </div>
         `;
-        // Install extra apps.
         installJstoreIfNotInstalled();
         installSettingsIfNotInstalled();
         renderDesktop();
@@ -571,7 +802,6 @@
         setInterval(updateClock, 1000);
       }
 
-      // Load and save background.
       function loadBackground() {
         const background = localStorage.getItem("background");
         if (background) {
@@ -582,25 +812,6 @@
         localStorage.setItem("background", backgroundValue);
         loadBackground();
       }
-      // Prompt for changing background.
-      function changeBackgroundPrompt() {
-        const choice = prompt("Enter 'color' for background color or 'image' for background image:");
-        if (choice === "color") {
-          const color = prompt("Enter a background color (e.g., '#555', 'grey'):");
-          if (color) {
-            document.body.style.background = color;
-            saveBackground(color);
-          }
-        } else if (choice === "image") {
-          const imageUrl = prompt("Enter background image URL:");
-          if (imageUrl) {
-            const bg = `url(${imageUrl}) center center/cover no-repeat fixed`;
-            document.body.style.background = bg;
-            saveBackground(bg);
-          }
-        }
-      }
-      // Functions for background change.
       function changeBackground(r, g, b) {
         const color = `rgb(${r}, ${g}, ${b})`;
         document.body.style.background = color;
@@ -611,13 +822,6 @@
         document.body.style.background = bg;
         saveBackground(bg);
       }
-      function onlyDoOnce(fn) {
-        if (!localStorage.getItem(fn.name)) {
-          fn();
-          localStorage.setItem(fn.name, "executed");
-        }
-      }
-      onlyDoOnce(() => changeBackgroundimage("images/backgrounds/wallpaper7.jpg"));
 
       // Render desktop icons.
       function renderDesktop() {
@@ -708,8 +912,7 @@
       function makeDraggable(windowElement) {
         const header = windowElement.querySelector(".window-header");
         let isDragging = false;
-        let offsetX = 0,
-          offsetY = 0;
+        let offsetX = 0, offsetY = 0;
         header.addEventListener("mousedown", (e) => {
           isDragging = true;
           offsetX = e.clientX - windowElement.offsetLeft;
@@ -778,9 +981,7 @@
       function filterApps(query) {
         const appList = document.getElementById("app-list");
         appList.innerHTML = "";
-        let apps = installedApps.slice().sort((a, b) =>
-          a.name.localeCompare(b.name)
-        );
+        let apps = installedApps.slice().sort((a, b) => a.name.localeCompare(b.name));
         if (query) {
           apps = apps.filter((app) =>
             app.name.toLowerCase().includes(query.toLowerCase())
@@ -833,72 +1034,173 @@
         `;
       }
 
-      // Username and Password Modal.
-      function showPasswordModal() {
-        let modal = document.createElement("div");
-        modal.classList.add("password-modal");
-        if (localStorage.getItem("password")) {
-          let usernameField = localStorage.getItem("username")
-            ? `<p>Welcome, ${localStorage.getItem("username")}!</p>`
-            : `<input type="text" id="username-input" placeholder="Enter your username">`;
-          modal.innerHTML = `
-            <div class="password-modal-content">
-              <img src="images/icons/profile/profile.png" alt="Profile Icon">
-              ${usernameField}
-              <h3>Enter Password</h3>
-              <input type="password" id="entered-password" placeholder="Enter password">
-              <br>
-              <button onclick="checkPassword()">Enter</button>
-            </div>
-          `;
-        } else {
-          modal.innerHTML = `
-            <div class="password-modal-content">
-              <img src="images/icons/profile/profile.png" alt="Profile Icon">
-              <h3>Set up your account</h3>
-              <input type="text" id="username-input" placeholder="Enter your username">
-              <br>
-              <input type="password" id="new-password" placeholder="Enter new password">
-              <br>
-              <button onclick="setCredentials()">Set Credentials</button>
-            </div>
-          `;
+      // Multi-step Setup Screen.
+      function showSetupScreen() {
+        const container = document.createElement("div");
+        container.classList.add("setup-screen");
+        document.body.appendChild(container);
+        let currentStep = 1;
+        const data = { username: "", password: "", profilePic: "", wallpaper: "", osTheme: "", colorScheme: "" };
+        function renderStep() {
+          switch (currentStep) {
+            case 1:
+              container.innerHTML = `
+                <div class="setup-step">
+                  <h2>Let's get you setup</h2>
+                  <p>Please choose your username and password.</p>
+                  <input type="text" id="setup-username" placeholder="Username" />
+                  <div>
+                    <input type="password" id="setup-password" placeholder="Password" />
+                    <button class="toggle-password" onclick="toggleInputPassword('setup-password', this)">
+                      <img src="images/icons/setup/show.png" alt="Show" />
+                    </button>
+                  </div>
+                  <button id="setup-next">Next</button>
+                </div>
+              `;
+              document.getElementById("setup-next").addEventListener("click", () => {
+                const u = document.getElementById("setup-username").value.trim();
+                const p = document.getElementById("setup-password").value.trim();
+                if(u && p) {
+                  data.username = u;
+                  data.password = p;
+                  currentStep++;
+                  renderStep();
+                } else {
+                  alert("Username and password cannot be empty!");
+                }
+              });
+              break;
+            case 2:
+              container.innerHTML = `
+                <div class="setup-step">
+                  <h2>Choose a Profile Picture</h2>
+                  <p>This is optional. Upload one if you like:</p>
+                  <div class="file-input-wrapper">
+                    <span class="file-input-label">Choose File</span>
+                    <input type="file" id="profile-upload" accept="image/*" />
+                  </div>
+                  <img id="profile-preview" class="preview-img" src="images/icons/profile/profile.png" alt="Profile Preview">
+                  <br>
+                  <button id="setup-skip">Skip</button>
+                  <button id="setup-next">Next</button>
+                </div>
+              `;
+              document.getElementById("profile-upload").addEventListener("change", (e) => {
+                const file = e.target.files[0];
+                if(file) {
+                  const reader = new FileReader();
+                  reader.onload = evt => {
+                    document.getElementById("profile-preview").src = evt.target.result;
+                    data.profilePic = evt.target.result;
+                  };
+                  reader.readAsDataURL(file);
+                }
+              });
+              document.getElementById("setup-skip").addEventListener("click", () => {
+                data.profilePic = "images/icons/profile/profile.png";
+                currentStep++;
+                renderStep();
+              });
+              document.getElementById("setup-next").addEventListener("click", () => {
+                if(!data.profilePic) data.profilePic = "images/icons/profile/profile.png";
+                currentStep++;
+                renderStep();
+              });
+              break;
+            case 3:
+              container.innerHTML = `
+                <div class="setup-step">
+                  <h2>Choose your Default Wallpaper</h2>
+                  <p>Select a wallpaper for your desktop.</p>
+                  <select id="setup-wallpaper-select">
+                    ${(() => {
+                      let opts = "";
+                      for (let i = 1; i <= 41; i++) {
+                        opts += `<option value="images/backgrounds/wallpaper${i}.jpg">Wallpaper ${i}</option>`;
+                      }
+                      return opts;
+                    })()}
+                  </select>
+                  <br>
+                  <img id="wallpaper-preview" class="preview-img" src="images/backgrounds/wallpaper1.jpg" alt="Wallpaper Preview">
+                  <br>
+                  <button id="setup-next">Next</button>
+                </div>
+              `;
+              document.getElementById("setup-wallpaper-select").addEventListener("change", (e) => {
+                let sel = e.target.value;
+                document.getElementById("wallpaper-preview").src = sel;
+                data.wallpaper = sel;
+              });
+              document.getElementById("setup-next").addEventListener("click", () => {
+                if(!data.wallpaper) data.wallpaper = document.getElementById("setup-wallpaper-select").value;
+                currentStep++;
+                renderStep();
+              });
+              break;
+            case 4:
+              container.innerHTML = `
+                <div class="setup-step">
+                  <h2>Setup OS Theme & Color Scheme</h2>
+                  <p>Select your OS theme and color scheme.</p>
+                  <div style="margin-bottom:10px;">
+                    <label>OS Theme:</label>
+                    <select id="setup-ostheme">
+                      <option value="default">Default</option>
+                      <option value="windows10">Windows10</option>
+                    </select>
+                  </div>
+                  <div style="margin-bottom:10px;">
+                    <label>Color Scheme:</label>
+                    <select id="setup-colorscheme">
+                      <option value="dark">Dark</option>
+                      <option value="light">Light</option>
+                    </select>
+                  </div>
+                  <button id="setup-finish">Finish</button>
+                </div>
+              `;
+              const colorSchemeSelect = document.getElementById("setup-colorscheme");
+              // Immediately apply the chosen color scheme during setup.
+              colorSchemeSelect.addEventListener("change", function(){
+                toggleLightDark(this.value);
+              });
+              document.getElementById("setup-finish").addEventListener("click", () => {
+                data.osTheme = document.getElementById("setup-ostheme").value;
+                data.colorScheme = document.getElementById("setup-colorscheme").value;
+                // Apply selected light/dark mode immediately
+                toggleLightDark(data.colorScheme);
+                localStorage.setItem("username", data.username);
+                localStorage.setItem("password", data.password);
+                localStorage.setItem("profilePic", data.profilePic);
+                localStorage.setItem("background", data.wallpaper);
+                localStorage.setItem("osTheme", data.osTheme);
+                localStorage.setItem("colorScheme", data.colorScheme);
+                localStorage.setItem("setupComplete", "true");
+                // Reapply chosen wallpaper after finishing setup
+                changeBackgroundimage(data.wallpaper);
+                // Clear sessionStorage to force login on next reload.
+                sessionStorage.removeItem("loggedIn");
+                container.remove();
+                showBootScreen();
+              });
+              break;
+            default:
+              break;
+          }
         }
-        document.body.appendChild(modal);
+        renderStep();
       }
 
-      function checkPassword() {
-        const entered = document.getElementById("entered-password").value;
-        const stored = localStorage.getItem("password");
-        if (entered === stored) {
-          document.querySelector(".password-modal").remove();
-        } else {
-          alert("Incorrect password!");
-        }
-      }
-
-      function setCredentials() {
-        const username = document.getElementById("username-input").value;
-        const newPass = document.getElementById("new-password").value;
-        if (username && newPass) {
-          localStorage.setItem("username", username);
-          localStorage.setItem("password", newPass);
-          document.querySelector(".password-modal").remove();
-        } else {
-          alert("Username and password cannot be empty!");
-        }
-      }
-
-      // New function: change username.
-      function changeUsername(newUsername) {
-        localStorage.setItem("username", newUsername);
-      }
-
-      // On DOM load.
       document.addEventListener("DOMContentLoaded", () => {
         loadInstalledApps().then(() => {
-          showBootScreen();
           loadBackground();
+          if (!localStorage.getItem("setupComplete")) {
+            showSetupScreen();
+          } else {
+            showBootScreen();
+          }
         });
       });
     </script>
