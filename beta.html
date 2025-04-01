@@ -71,8 +71,9 @@
         height: 32px;
         margin-right: 10px;
       }
-      /* Set appropriate size for start menu icon in taskbar */
-      #start-button img, #gm-button img {
+      /* Set appropriate size for start menu and Game Mode icons */
+      #start-button img,
+      #gm-button img {
         width: 24px;
         height: 24px;
         vertical-align: middle;
@@ -168,7 +169,7 @@
         padding: 30px;
         background-color: #222;
         border-left: 1px solid #333;
-        overflow: visible; /* Fix dropdown clipping */
+        overflow: visible;
       }
       #settings-content h2 {
         margin-top: 0;
@@ -199,7 +200,6 @@
         margin-top: 10px;
         position: relative;
         z-index: 10;
-        /* Added to ensure it doesn't overflow its container */
         max-width: 100%;
         box-sizing: border-box;
       }
@@ -310,41 +310,31 @@
         width: 100%;
         background-color: #222;
         z-index: 15000;
-        /* Two rows: launcher and widgets */
+        padding: 5px 10px;
       }
       #gm-launcher-row {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: center;
+      }
+      #gm-left, #gm-right {
+        background-color: #444;
+        border: none;
+        color: #e0e0e0;
+        font-size: 24px;
         padding: 5px 10px;
-        border-bottom: 1px solid #444;
+        cursor: pointer;
+        margin: 0 10px;
+        border-radius: 4px;
+      }
+      #gm-left:hover, #gm-right:hover {
+        background-color: #555;
       }
       #gm-launcher {
         flex-grow: 1;
         text-align: center;
         cursor: pointer;
-      }
-      #gm-launcher img {
-        width: 32px;
-        height: 32px;
-        vertical-align: middle;
-      }
-      #gm-widgets-row {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 5px 10px;
-      }
-      .gm-widget {
-        margin: 0 5px;
-        padding: 5px 10px;
-        background-color: #333;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-      /* Clock widget style */
-      .gm-clock {
-        font-size: 14px;
+        font-size: 18px;
       }
       /* Responsive adjustments for phones */
       @media (max-width: 600px) {
@@ -807,19 +797,16 @@
       // Game Mode functions
       function toggleGameMode() {
         gameModeOn = !gameModeOn;
-        // Update the GM button icon.
         const gmIcon = document.getElementById("gm-icon");
         if (gameModeOn) {
           gmIcon.src = "images/icons/gm/on.png";
           showGameBar();
-          // Filter gmApps: exclude Settings and Jstore.
+          // Use installedApps from localStorage filtering out Settings and Jstore.
           gmApps = installedApps.filter(app => app.name !== "Settings" && app.name !== "Jstore");
           if (gmApps.length > 0) {
-            // Start with a random app.
             gmCurrentIndex = Math.floor(Math.random() * gmApps.length);
             updateGMLauncher();
           }
-          // Start polling for gamepad input.
           startGamepadPolling();
         } else {
           gmIcon.src = "images/icons/gm/off.png";
@@ -861,7 +848,6 @@
       function launchGMApp() {
         if (gmApps.length === 0) return;
         const app = gmApps[gmCurrentIndex];
-        // If the app has a URL, append ?controller=true (or &controller=true if needed).
         if (app.htmlUrl) {
           let url = app.htmlUrl;
           if (url.indexOf("?") === -1) {
@@ -871,12 +857,11 @@
           }
           openAppWindowWithUrl(app.appId, url);
         } else {
-          // If no URL, simply open the app window.
           openAppWindow(app.appId);
         }
       }
 
-      // Opens app window with a provided URL (used by GM launch with controller param)
+      // Opens app window with a provided URL.
       function openAppWindowWithUrl(appId, url) {
         const app = installedApps.find((app) => app.appId === appId);
         if (app) {
@@ -911,7 +896,7 @@
         }
       }
 
-      // Basic gamepad support: poll for left/right navigation.
+      // Basic gamepad support.
       function startGamepadPolling() {
         if (gamepadInterval) return;
         gamepadInterval = setInterval(() => {
@@ -919,14 +904,12 @@
           if (!gamepads) return;
           for (let gp of gamepads) {
             if (gp) {
-              // For example, assume button 14 is left and 15 is right.
               if (gp.buttons[14] && gp.buttons[14].pressed) {
                 cycleApp(-1);
               }
               if (gp.buttons[15] && gp.buttons[15].pressed) {
                 cycleApp(1);
               }
-              // Assume button 0 is A: launch the app.
               if (gp.buttons[0] && gp.buttons[0].pressed) {
                 launchGMApp();
               }
@@ -954,7 +937,6 @@
         `;
         setTimeout(() => {
           loadOS();
-          // Show the login modal after OS loads (500ms delay)
           if (localStorage.getItem("setupComplete")) {
             setTimeout(showPasswordModal, 500);
           }
@@ -964,23 +946,16 @@
       // OS Loading.
       function loadOS() {
         document.body.innerHTML = `
-          <!-- Game Bar (hidden by default) -->
           <div id="gamebar">
-            <div id="gm-launcher-row" style="display:flex; align-items:center; justify-content:space-between;">
+            <div id="gm-launcher-row">
               <button id="gm-left" onclick="cycleApp(-1)">&#9664;</button>
               <div id="gm-launcher" onclick="launchGMApp()" style="flex-grow:1; text-align:center; cursor:pointer;"></div>
               <button id="gm-right" onclick="cycleApp(1)">&#9654;</button>
-            </div>
-            <div id="gm-widgets-row" style="display:flex; align-items:center; justify-content:center;">
-              <div class="gm-widget gm-clock" id="gm-clock-widget">--:--:--</div>
-              <div class="gm-widget">...</div>
-              <div class="gm-widget">...</div>
             </div>
           </div>
           <div id="desktop"></div>
           <div id="taskbar" class="taskbar">
             <button id="start-button" onclick="toggleSearchMenu()" class="taskbar-button search-btn">❖</button>
-            <!-- Game Mode button added here -->
             <button id="gm-button" onclick="toggleGameMode()" class="taskbar-button">
               <img id="gm-icon" src="images/icons/gm/off.png" alt="Game Mode">
             </button>
@@ -1008,8 +983,6 @@
         updateTaskbar();
         restoreOSTheme();
         setInterval(updateClock, 1000);
-        // Also update GM clock widget every second.
-        setInterval(updateGMClock, 1000);
       }
 
       function loadBackground() {
@@ -1173,15 +1146,6 @@
         if (clock && date) {
           clock.innerText = now.toLocaleTimeString();
           date.innerText = now.toLocaleDateString();
-        }
-      }
-
-      // Update Game Mode clock widget.
-      function updateGMClock() {
-        const widget = document.getElementById("gm-clock-widget");
-        if (widget) {
-          const now = new Date();
-          widget.innerText = now.toLocaleTimeString();
         }
       }
 
@@ -1381,14 +1345,12 @@
                 </div>
               `;
               const colorSchemeSelect = document.getElementById("setup-colorscheme");
-              // Immediately apply the chosen color scheme during setup.
               colorSchemeSelect.addEventListener("change", function(){
                 toggleLightDark(this.value);
               });
               document.getElementById("setup-finish").addEventListener("click", () => {
                 data.osTheme = document.getElementById("setup-ostheme").value;
                 data.colorScheme = document.getElementById("setup-colorscheme").value;
-                // Apply selected light/dark mode immediately
                 toggleLightDark(data.colorScheme);
                 localStorage.setItem("username", data.username);
                 localStorage.setItem("password", data.password);
@@ -1397,9 +1359,7 @@
                 localStorage.setItem("osTheme", data.osTheme);
                 localStorage.setItem("colorScheme", data.colorScheme);
                 localStorage.setItem("setupComplete", "true");
-                // Reapply chosen wallpaper after finishing setup
                 changeBackgroundimage(data.wallpaper);
-                // Clear sessionStorage to force login on next reload.
                 sessionStorage.removeItem("loggedIn");
                 container.remove();
                 showBootScreen();
