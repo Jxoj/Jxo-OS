@@ -21,17 +21,22 @@
         align-items: center;
         padding: 0 10px;
       }
-      /* Adjust desktop icon scale */
+      /* Desktop & Taskbar Icons */
       .desktop-app img {
         width: 64px;
         height: 64px;
       }
-      /* Open apps icons on taskbar */
       #open-apps img {
         width: 32px;
         height: 32px;
       }
-      /* Start menu (search menu) styling modifications */
+      #start-button img,
+      #gm-button img {
+        width: 24px;
+        height: 24px;
+        vertical-align: middle;
+      }
+      /* Start Menu */
       #search-menu {
         background-color: #2a2a2a;
         max-height: 70vh;
@@ -55,7 +60,7 @@
         color: #e0e0e0;
         font-size: 16px;
       }
-      /* App list styling */
+      /* App List */
       #app-list {
         display: flex;
         flex-direction: column;
@@ -71,14 +76,7 @@
         height: 32px;
         margin-right: 10px;
       }
-      /* Start menu and GM button icons */
-      #start-button img,
-      #gm-button img {
-        width: 24px;
-        height: 24px;
-        vertical-align: middle;
-      }
-      /* Jstore content styling */
+      /* Jstore App */
       #jstore-container {
         padding: 20px;
       }
@@ -120,7 +118,7 @@
       .jstore-app-item button:hover {
         background-color: #555;
       }
-      /* Settings UI */
+      /* Settings App */
       #settings-app {
         display: flex;
         height: calc(100vh - 50px);
@@ -180,7 +178,7 @@
         margin-top: 20px;
         font-size: 20px;
       }
-      /* Personalization elements */
+      /* Personalization Elements */
       #bg-preview-container {
         border: 1px solid #444;
         padding: 10px;
@@ -203,7 +201,7 @@
         max-width: 100%;
         box-sizing: border-box;
       }
-      /* Setup Screen Styles */
+      /* Setup Screen */
       .setup-screen {
         position: fixed;
         top: 0;
@@ -247,7 +245,6 @@
       .setup-step button:hover {
         background-color: #555;
       }
-      /* Styled File Input for Profile Pic */
       .file-input-wrapper {
         position: relative;
         display: inline-block;
@@ -275,7 +272,6 @@
         margin: 10px auto;
         display: block;
       }
-      /* Toggle Password Button */
       .toggle-password {
         cursor: pointer;
         background: none;
@@ -288,7 +284,6 @@
         height: 16px;
         vertical-align: middle;
       }
-      /* Lock Button on Taskbar */
       .lock-button {
         padding: 5px 10px;
         background-color: #444;
@@ -314,7 +309,6 @@
         display: flex;
         align-items: center;
       }
-      /* Layout: Left arrow, App launcher, Right arrow, then clock/battery, then Widgets menu button */
       #gm-left, #gm-right {
         background-color: #444;
         border: none;
@@ -339,50 +333,39 @@
         height: 24px;
         margin-right: 5px;
       }
-      #gm-clock-battery {
-        margin: 0 10px;
-        font-size: 16px;
+      #gm-clock {
+        margin-left: 20px;
+        font-size: 18px;
       }
-      #gm-widgets-menu {
+      #gm-widgets-btn {
+        margin-left: 20px;
         background-color: #444;
         border: none;
         color: #e0e0e0;
         padding: 5px 10px;
         cursor: pointer;
         border-radius: 4px;
-        font-size: 16px;
       }
-      #gm-widgets-menu:hover {
-        background-color: #555;
-      }
-      /* Widgets container */
-      #widgets-container {
+      /* Widgets Menu */
+      #widgets-menu {
         position: fixed;
-        bottom: 50px;
-        right: 20px;
-        background-color: rgba(0,0,0,0.8);
+        top: 50px;
+        right: 10px;
+        background-color: #333;
+        border: 1px solid #444;
         padding: 10px;
-        border-radius: 4px;
-        z-index: 16000;
+        z-index: 20000;
         display: none;
       }
       .widget {
-        background-color: #333;
+        background-color: #222;
+        border: 1px solid #444;
         padding: 10px;
-        margin: 5px;
-        border-radius: 4px;
+        margin-bottom: 10px;
+        color: #e0e0e0;
         cursor: move;
       }
-      .widget iframe {
-        width: 300px;
-        height: 80px;
-        border: none;
-      }
-      .widget.clock-widget {
-        font-size: 24px;
-        text-align: center;
-      }
-      /* Responsive adjustments */
+      /* Responsive Adjustments */
       @media (max-width: 600px) {
         .desktop-app img {
           width: 48px;
@@ -403,21 +386,21 @@
   </head>
   <body>
     <script>
-      // Clear sessionStorage on load.
+      // Clear sessionStorage so login UI shows on every reload.
       document.addEventListener("DOMContentLoaded", () => {
         sessionStorage.removeItem("loggedIn");
       });
       
-      // Global variables.
+      // Global variables for installed and open apps.
       let installedApps = [];
       let openApps = [];
-      // Game Mode variables.
+      // Game Mode variables
       let gameModeOn = false;
       let gmApps = [];
       let gmCurrentIndex = 0;
       let gamepadInterval = null;
       
-      // Widgets
+      // Widgets Menu variable
       let widgetsMenuOpen = false;
       
       function loadInstalledApps() {
@@ -431,36 +414,35 @@
         });
       }
       
+      // Save and change OS theme
       function saveOSTheme(osName) {
         localStorage.setItem("osTheme", osName);
       }
-      
       function changeOS(osName) {
         saveOSTheme(osName);
         const stylesheet = document.querySelector('link[rel="stylesheet"]');
         const startBtn = document.getElementById("start-button");
-        if (!stylesheet || !startBtn) return;
+        if (!stylesheet) { console.error("Stylesheet link element not found."); return; }
+        if (!startBtn) { console.error("Start button with id 'start-button' not found."); return; }
         if (osName === "default") {
           stylesheet.href = "assets/css/default.css";
           startBtn.innerHTML = "❖";
         } else {
           stylesheet.href = "assets/css/" + osName + ".css";
-          startBtn.innerHTML = `<img src="images/icons/${osName}/start.png" alt="Start">`;
+          startBtn.innerHTML = `<img src="images/icons/${osName}/start.png" onerror="this.onerror=null; this.src='/images/icons/${osName}/start.jpg'" alt="Start">`;
         }
       }
-      
       function restoreOSTheme() {
         const savedOS = localStorage.getItem("osTheme");
-        if (savedOS) {
-          changeOS(savedOS);
-        }
+        if (savedOS) { changeOS(savedOS); }
       }
       
+      // Install Jstore and Settings if not already installed
       function installJstoreIfNotInstalled() {
-        const jstoreInstalled = installedApps.some(app => app.name === "Jstore");
+        const jstoreInstalled = installedApps.some((app) => app.name === "Jstore");
         if (!jstoreInstalled) {
           installApp("Jstore", "apps/icons/jstore.png", "");
-          const jstoreApp = installedApps.find(app => app.name === "Jstore");
+          const jstoreApp = installedApps.find((app) => app.name === "Jstore");
           if (jstoreApp) {
             jstoreApp.htmlContent = `
               <div id="jstore-container">
@@ -473,12 +455,11 @@
           }
         }
       }
-      
       function installSettingsIfNotInstalled() {
-        const settingsInstalled = installedApps.some(app => app.name === "Settings");
+        const settingsInstalled = installedApps.some((app) => app.name === "Settings");
         if (!settingsInstalled) {
           installApp("Settings", "apps/icons/settings.png", "");
-          const settingsApp = installedApps.find(app => app.name === "Settings");
+          const settingsApp = installedApps.find((app) => app.name === "Settings");
           if (settingsApp) {
             settingsApp.htmlContent = `
               <div id="settings-app">
@@ -503,59 +484,57 @@
         }
       }
       
+      // Fetch and render Jstore apps
       function loadJstoreApps() {
         fetch("https://jxoj.github.io/Jxo-OS/apps/apps.json")
-          .then(response => {
-            if (!response.ok) throw new Error("Network error");
+          .then((response) => {
+            if (!response.ok) { throw new Error("Network response was not ok"); }
             return response.json();
           })
-          .then(apps => {
+          .then((apps) => {
             const list = document.getElementById("jstore-app-list");
             if (!list) return;
             list.innerHTML = "";
-            apps.forEach(app => {
-              const isInstalled = installedApps.some(a => a.name === app.name);
+            apps.forEach((app) => {
+              const isInstalled = installedApps.some((a) => a.name === app.name);
               const button = document.createElement("button");
               button.dataset.icon = app.icon;
               button.dataset.url = app.url;
-              button.textContent = isInstalled ? "Uninstall" : "Install";
-              button.onclick = isInstalled 
-                ? () => uninstallJstoreApp(app.name, button)
-                : () => installJstoreApp(app.name, app.icon, app.url, button);
+              if (isInstalled) {
+                button.textContent = "Uninstall";
+                button.onclick = () => uninstallJstoreApp(app.name, button);
+              } else {
+                button.textContent = "Install";
+                button.onclick = () => installJstoreApp(app.name, app.icon, app.url, button);
+              }
               const appDiv = document.createElement("div");
               appDiv.classList.add("jstore-app-item");
-              appDiv.innerHTML = `<img src="${app.icon}" alt="${app.name} icon"><span style="flex-grow:1;">${app.name}</span>`;
+              appDiv.innerHTML = `
+                <img src="${app.icon}" alt="${app.name} icon">
+                <span style="flex-grow:1;">${app.name}</span>
+              `;
               appDiv.appendChild(button);
               list.appendChild(appDiv);
             });
           })
-          .catch(error => {
+          .catch((error) => {
             console.error("Failed to load Jstore apps:", error);
             const list = document.getElementById("jstore-app-list");
             if (list) list.innerHTML = "<p>Error loading apps.</p>";
           });
       }
       
+      // Install/Uninstall App
       function installJstoreApp(name, icon, url, button) {
         installApp(name, icon, url);
-        button.textContent = "Uninstall";
+        button.textContent = 'Uninstall';
         button.onclick = () => uninstallJstoreApp(name, button);
       }
-      
       function uninstallJstoreApp(name, button) {
         uninstallApp(name);
-        button.textContent = "Install";
+        button.textContent = 'Install';
         button.onclick = () => installJstoreApp(name, button.dataset.icon, button.dataset.url, button);
       }
-      
-      function filterJstoreApps(query) {
-        const apps = document.querySelectorAll(".jstore-app-item");
-        apps.forEach(app => {
-          const name = app.querySelector("span").textContent.toLowerCase();
-          app.style.display = name.includes(query.toLowerCase()) ? "flex" : "none";
-        });
-      }
-      
       function installApp(name, image, iframeUrl) {
         const newApp = {
           name: name,
@@ -567,54 +546,48 @@
         localStorage.setItem("installedApps", JSON.stringify(installedApps));
         renderDesktop();
       }
-      
       function uninstallApp(appName) {
-        installedApps = installedApps.filter(app => app.name.toLowerCase() !== appName.toLowerCase());
+        installedApps = installedApps.filter((app) => app.name.toLowerCase() !== appName.toLowerCase());
         localStorage.setItem("installedApps", JSON.stringify(installedApps));
         renderDesktop();
       }
       
+      // Settings App functions
       function initSettingsApp() {
         const searchInput = document.getElementById("settings-search");
         const optionsList = document.getElementById("settings-options");
         if (searchInput && optionsList) {
           searchInput.addEventListener("input", function () {
             const query = searchInput.value.toLowerCase();
-            Array.from(optionsList.getElementsByTagName("li")).forEach(li => {
+            Array.from(optionsList.getElementsByTagName("li")).forEach((li) => {
               li.style.display = li.textContent.toLowerCase().includes(query) ? "" : "none";
             });
           });
         }
         const sidebarItems = document.querySelectorAll("#settings-options li");
-        sidebarItems.forEach(item => {
+        sidebarItems.forEach((item) => {
           item.addEventListener("click", function () {
-            sidebarItems.forEach(i => i.classList.remove("active"));
+            sidebarItems.forEach((i) => i.classList.remove("active"));
             item.classList.add("active");
             const tab = item.getAttribute("data-tab");
-            if (tab === "personalization") {
-              loadPersonalizationTab();
-            } else if (tab === "account") {
-              loadAccountTab();
-            }
+            if (tab === "personalization") { loadPersonalizationTab(); }
+            else if (tab === "account") { loadAccountTab(); }
           });
         });
         loadPersonalizationTab();
       }
-      
       function loadPersonalizationTab() {
         const content = document.getElementById("settings-content");
         if (!content) return;
         const wallpapers = [];
-        for (let i = 1; i <= 41; i++) {
-          wallpapers.push("wallpaper" + i);
-        }
+        for (let i = 1; i <= 41; i++) { wallpapers.push("wallpaper" + i); }
         const osOptions = ["default", "windows10"];
         content.innerHTML = `
           <h2>Personalization</h2>
           <div style="margin-bottom:20px;">
             <h3>Change OS Theme</h3>
             <select id="os-dropdown">
-              ${osOptions.map(os => `<option value="${os}">${os}</option>`).join("")}
+              ${osOptions.map((os) => `<option value="${os}">${os}</option>`).join("")}
             </select>
           </div>
           <div style="margin-bottom:20px;">
@@ -623,7 +596,7 @@
               <img id="bg-preview" src="images/backgrounds/wallpaper1.jpg" alt="Background Preview" />
             </div>
             <select id="wallpaper-dropdown">
-              ${wallpapers.map(wp => `<option value="images/backgrounds/${wp}.jpg">${wp}.jpg</option>`).join("")}
+              ${wallpapers.map((wp) => `<option value="images/backgrounds/${wp}.jpg">${wp}.jpg</option>`).join("")}
             </select>
           </div>
           <div style="margin-bottom:20px;">
@@ -640,9 +613,7 @@
         `;
         const osDropdown = document.getElementById("os-dropdown");
         osDropdown.value = localStorage.getItem("osTheme") || "default";
-        osDropdown.addEventListener("change", function () {
-          changeOS(osDropdown.value);
-        });
+        osDropdown.addEventListener("change", function () { changeOS(osDropdown.value); });
         const wallpaperDropdown = document.getElementById("wallpaper-dropdown");
         const bgPreview = document.getElementById("bg-preview");
         if (wallpaperDropdown && bgPreview) {
@@ -664,12 +635,9 @@
         });
         const modeToggle = document.getElementById("mode-toggle");
         modeToggle.value = localStorage.getItem("mode") || "dark";
-        modeToggle.addEventListener("change", function () {
-          toggleLightDark(modeToggle.value);
-        });
+        modeToggle.addEventListener("change", function () { toggleLightDark(modeToggle.value); });
         toggleLightDark(modeToggle.value);
       }
-      
       function loadAccountTab() {
         const content = document.getElementById("settings-content");
         if (!content) return;
@@ -692,7 +660,6 @@
           </div>
         `;
       }
-      
       function toggleInputPassword(id, btn) {
         const input = document.getElementById(id);
         if (input.type === "password") {
@@ -703,18 +670,15 @@
           if (btn) btn.innerHTML = `<img src="images/icons/setup/show.png" alt="Show" />`;
         }
       }
-      
       function changePassword(newPassword) {
         localStorage.setItem("password", newPassword);
       }
-      
       function updateAccount(newUsername, newPassword) {
         localStorage.setItem("username", newUsername);
         changePassword(newPassword);
         const msg = document.getElementById("account-message");
         if (msg) msg.innerText = "Account updated successfully!";
       }
-      
       function showPasswordModal() {
         let modal = document.createElement("div");
         modal.classList.add("password-modal");
@@ -753,17 +717,12 @@
         }
         document.body.appendChild(modal);
       }
-      
       function checkPassword() {
         const entered = document.getElementById("entered-password").value;
         const stored = localStorage.getItem("password");
-        if (entered === stored) {
-          document.querySelector(".password-modal").remove();
-        } else {
-          alert("Incorrect password!");
-        }
+        if (entered === stored) { document.querySelector(".password-modal").remove(); }
+        else { alert("Incorrect password!"); }
       }
-      
       function setCredentials() {
         const username = document.getElementById("username-input").value;
         const newPass = document.getElementById("new-password").value;
@@ -771,32 +730,554 @@
           localStorage.setItem("username", username);
           localStorage.setItem("password", newPass);
           document.querySelector(".password-modal").remove();
-        } else {
-          alert("Username and password cannot be empty!");
-        }
+        } else { alert("Username and password cannot be empty!"); }
       }
-      
       function changeUsername(newUsername) {
         localStorage.setItem("username", newUsername);
       }
-      
       function toggleLightDark(mode) {
         localStorage.setItem("mode", mode);
         const storedBackground = localStorage.getItem("background");
         if (mode === "light") {
           document.body.style.color = "#000000";
-          if (storedBackground) {
-            document.body.style.background = storedBackground;
-          } else {
-            document.body.style.backgroundColor = "#f0f0f0";
-          }
+          if (storedBackground) { document.body.style.background = storedBackground; }
+          else { document.body.style.backgroundColor = "#f0f0f0"; }
           const taskbar = document.getElementById("taskbar");
           if (taskbar) taskbar.style.backgroundColor = "#e0e0e0";
         } else {
           document.body.style.color = "#e0e0e0";
-          if (storedBackground) {
-            document.body.style.background = storedBackground;
-          } else {
-            document.body.style.backgroundColor = "#121212";
+          if (storedBackground) { document.body.style.background = storedBackground; }
+          else { document.body.style.backgroundColor = "#121212"; }
+          const taskbar = document.getElementById("taskbar");
+          if (taskbar) taskbar.style.backgroundColor = "#1f1f1f";
+        }
+      }
+      
+      /* GAME MODE & WIDGETS */
+      // Set game mode explicitly
+      function setGameMode(state) {
+        if (state && !gameModeOn) {
+          gameModeOn = true;
+          document.getElementById("gm-icon").src = "images/icons/gm/on.png";
+          showGameBar();
+          gmApps = installedApps.filter(app => app.name !== "Settings" && app.name !== "Jstore");
+          if (gmApps.length > 0) {
+            gmCurrentIndex = Math.floor(Math.random() * gmApps.length);
+            updateGMLauncher();
           }
-          const task
+          startGamepadPolling();
+        } else if (!state && gameModeOn) {
+          gameModeOn = false;
+          document.getElementById("gm-icon").src = "images/icons/gm/off.png";
+          hideGameBar();
+          stopGamepadPolling();
+        }
+      }
+      // Toggle game mode manually (used by the taskbar button)
+      function toggleGameMode() {
+        setGameMode(!gameModeOn);
+      }
+      function showGameBar() {
+        const gamebar = document.getElementById("gamebar");
+        if (gamebar) { gamebar.style.display = "flex"; }
+      }
+      function hideGameBar() {
+        const gamebar = document.getElementById("gamebar");
+        if (gamebar) { gamebar.style.display = "none"; }
+      }
+      function updateGMLauncher() {
+        const launcher = document.getElementById("gm-launcher");
+        if (gmApps.length === 0) { launcher.innerHTML = "No apps available"; return; }
+        const app = gmApps[gmCurrentIndex];
+        launcher.innerHTML = `<img src="${app.image}" alt="${app.name} icon">${app.name}`;
+      }
+      function cycleApp(direction) {
+        if (gmApps.length === 0) return;
+        gmCurrentIndex = (gmCurrentIndex + direction + gmApps.length) % gmApps.length;
+        updateGMLauncher();
+      }
+      function launchGMApp() {
+        if (gmApps.length === 0) return;
+        const app = gmApps[gmCurrentIndex];
+        if (app.htmlUrl) {
+          let url = app.htmlUrl;
+          url += (url.indexOf("?") === -1) ? "?controller=true" : "&controller=true";
+          openAppWindowWithUrl(app.appId, url);
+        } else { openAppWindow(app.appId); }
+      }
+      function openAppWindowWithUrl(appId, url) {
+        const app = installedApps.find((app) => app.appId === appId);
+        if (app) {
+          if (document.getElementById(appId)) return;
+          const appWindow = document.createElement("div");
+          appWindow.classList.add("app-window");
+          appWindow.id = appId;
+          appWindow.innerHTML = `
+            <div class="window-header">
+              <span class="window-title">${app.name}</span>
+              <div>
+                <button class="window-btn" onclick="closeWindow(&quot;${appId}&quot;)">
+                  <img src="images/icons/x.png" alt="Close" />
+                </button>
+                <button class="window-btn" onclick="toggleFullscreen(&quot;${appId}&quot;)">
+                  <img src="images/icons/fullscreen.png" alt="Fullscreen" />
+                </button>
+              </div>
+            </div>
+            <div class="window-content">
+              <iframe src="${url}" width="100%" height="100%" style="border:none;"></iframe>
+            </div>
+            <div class="resize-handle"></div>
+          `;
+          document.body.appendChild(appWindow);
+          makeDraggable(appWindow);
+          makeResizable(appWindow);
+          if (!openApps.includes(appId)) {
+            openApps.push(appId);
+            updateTaskbar();
+          }
+        }
+      }
+      // Basic gamepad polling for navigation in game mode.
+      function startGamepadPolling() {
+        if (gamepadInterval) return;
+        gamepadInterval = setInterval(() => {
+          const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+          if (!gamepads) return;
+          for (let gp of gamepads) {
+            if (gp) {
+              if (gp.buttons[14] && gp.buttons[14].pressed) { cycleApp(-1); }
+              if (gp.buttons[15] && gp.buttons[15].pressed) { cycleApp(1); }
+              if (gp.buttons[0] && gp.buttons[0].pressed) { launchGMApp(); }
+            }
+          }
+        }, 100);
+      }
+      function stopGamepadPolling() {
+        if (gamepadInterval) { clearInterval(gamepadInterval); gamepadInterval = null; }
+      }
+      // Listen for gamepad connection/disconnection events.
+      window.addEventListener("gamepadconnected", (e) => { setGameMode(true); });
+      window.addEventListener("gamepaddisconnected", (e) => { setGameMode(false); });
+      
+      /* WIDGETS MENU */
+      function toggleWidgetsMenu() {
+        const wm = document.getElementById("widgets-menu");
+        if (wm.style.display === "none" || wm.style.display === "") {
+          wm.style.display = "block";
+        } else {
+          wm.style.display = "none";
+        }
+      }
+      // Create draggable widgets inside the widgets menu.
+      function initWidgetsMenu() {
+        if (!document.getElementById("widgets-menu")) {
+          const menu = document.createElement("div");
+          menu.id = "widgets-menu";
+          menu.innerHTML = `
+            <div class="widget" id="widget-spotify">Spotify Player (Placeholder)</div>
+            <div class="widget" id="widget-clock">Clock Widget</div>
+          `;
+          document.body.appendChild(menu);
+          makeDraggable(menu);
+          // Update clock widget every second.
+          setInterval(() => {
+            const widgetClock = document.getElementById("widget-clock");
+            if (widgetClock) {
+              widgetClock.innerText = new Date().toLocaleTimeString();
+            }
+          }, 1000);
+        }
+      }
+      
+      // Boot screen and OS Loading
+      function showBootScreen() {
+        document.body.innerHTML = `
+          <div id="boot-screen" class="boot-screen">
+            <div class="boot-content">
+              <span class="boot-title" style="font-size:4em;">Jx</span>
+              <div class="loading-circle"></div>
+            </div>
+          </div>
+        `;
+        setTimeout(() => {
+          loadOS();
+          if (localStorage.getItem("setupComplete")) { setTimeout(showPasswordModal, 500); }
+        }, 2000);
+      }
+      function loadOS() {
+        document.body.innerHTML = `
+          <div id="gamebar">
+            <button id="gm-left" onclick="cycleApp(-1)">&#9664;</button>
+            <div id="gm-launcher" onclick="launchGMApp()"></div>
+            <button id="gm-right" onclick="cycleApp(1)">&#9654;</button>
+            <div id="gm-clock"></div>
+            <button id="gm-widgets-btn" onclick="toggleWidgetsMenu()">Widgets</button>
+          </div>
+          <div id="desktop"></div>
+          <div id="taskbar" class="taskbar">
+            <button id="start-button" onclick="toggleSearchMenu()" class="taskbar-button search-btn">❖</button>
+            <button id="gm-button" onclick="toggleGameMode()" class="taskbar-button">
+              <img id="gm-icon" src="images/icons/gm/off.png" alt="Game Mode">
+            </button>
+            <div id="open-apps"></div>
+            <div id="taskbar-right">
+              <div id="clock-container">
+                <span id="date"></span>
+                <span id="clock"></span>
+              </div>
+              <button class="lock-button" onclick="showPasswordModal()">Lock</button>
+              <button onclick="powerOff()" class="power-button">Power Down</button>
+            </div>
+          </div>
+          <div id="search-menu" class="search-menu" style="display:none;">
+            <span class="close-btn" onclick="toggleSearchMenu()">
+              <img src="images/icons/x.png" alt="Close" />
+            </span>
+            <input type="text" placeholder="Search apps..." oninput="filterApps(this.value)" />
+            <div id="app-list"></div>
+          </div>
+        `;
+        installJstoreIfNotInstalled();
+        installSettingsIfNotInstalled();
+        renderDesktop();
+        updateTaskbar();
+        restoreOSTheme();
+        setInterval(updateClock, 1000);
+        // Initialize widgets menu (hidden by default)
+        initWidgetsMenu();
+        // Update game bar clock and battery (simulate battery percentage here)
+        setInterval(() => {
+          const gmClock = document.getElementById("gm-clock");
+          if (gmClock) {
+            // For demonstration, battery percentage is simulated with a random value.
+            const battery = Math.floor(Math.random() * 21) + 80; // between 80% and 100%
+            gmClock.innerText = new Date().toLocaleTimeString() + " | " + battery + "%";
+          }
+        }, 1000);
+      }
+      
+      function loadBackground() {
+        const background = localStorage.getItem("background");
+        if (background) { document.body.style.background = background; }
+      }
+      function saveBackground(backgroundValue) {
+        localStorage.setItem("background", backgroundValue);
+        loadBackground();
+      }
+      function changeBackground(r, g, b) {
+        const color = `rgb(${r}, ${g}, ${b})`;
+        document.body.style.background = color;
+        saveBackground(color);
+      }
+      function changeBackgroundimage(url) {
+        const bg = `url(${url}) center center/cover no-repeat fixed`;
+        document.body.style.background = bg;
+        saveBackground(bg);
+      }
+      
+      // Render desktop icons.
+      function renderDesktop() {
+        const desktop = document.getElementById("desktop");
+        if (!desktop) return;
+        desktop.innerHTML = "";
+        installedApps.forEach((app) => {
+          const appShortcut = document.createElement("div");
+          appShortcut.classList.add("desktop-app");
+          appShortcut.innerHTML = `<img src="${app.image}" alt="${app.name} icon"><span>${app.name}</span>`;
+          appShortcut.onclick = () => openAppWindow(app.appId);
+          desktop.appendChild(appShortcut);
+        });
+      }
+      // Open and close app windows.
+      function openAppWindow(appId) {
+        const app = installedApps.find((app) => app.appId === appId);
+        if (app) {
+          if (document.getElementById(appId)) return;
+          const appWindow = document.createElement("div");
+          appWindow.classList.add("app-window");
+          appWindow.id = appId;
+          appWindow.innerHTML = `
+            <div class="window-header">
+              <span class="window-title">${app.name}</span>
+              <div>
+                <button class="window-btn" onclick="closeWindow(&quot;${appId}&quot;)">
+                  <img src="images/icons/x.png" alt="Close" />
+                </button>
+                <button class="window-btn" onclick="toggleFullscreen(&quot;${appId}&quot;)">
+                  <img src="images/icons/fullscreen.png" alt="Fullscreen" />
+                </button>
+              </div>
+            </div>
+            <div class="window-content">
+              ${app.htmlContent ? app.htmlContent : `<iframe src="${app.htmlUrl}" width="100%" height="100%" style="border:none;"></iframe>`}
+            </div>
+            <div class="resize-handle"></div>
+          `;
+          document.body.appendChild(appWindow);
+          makeDraggable(appWindow);
+          makeResizable(appWindow);
+          if (!openApps.includes(appId)) {
+            openApps.push(appId);
+            updateTaskbar();
+          }
+          if (appId === "jstore") { setTimeout(loadJstoreApps, 100); }
+          if (appId === "settings") { setTimeout(initSettingsApp, 100); }
+        }
+      }
+      function closeWindow(appId) {
+        const appWindow = document.getElementById(appId);
+        if (appWindow) {
+          appWindow.remove();
+          openApps = openApps.filter((id) => id !== appId);
+          updateTaskbar();
+        }
+      }
+      function toggleFullscreen(appId) {
+        const appWindow = document.getElementById(appId);
+        if (appWindow) {
+          if (appWindow.style.position === "fixed") {
+            appWindow.style.position = "absolute";
+            appWindow.style.width = "600px";
+            appWindow.style.height = "400px";
+            appWindow.style.zIndex = "";
+          } else {
+            appWindow.style.position = "fixed";
+            appWindow.style.top = "0";
+            appWindow.style.left = "0";
+            appWindow.style.width = "100vw";
+            appWindow.style.height = "100vh";
+            appWindow.style.zIndex = "10000";
+          }
+        }
+      }
+      function makeDraggable(windowElement) {
+        const header = windowElement.querySelector(".window-header") || windowElement;
+        let isDragging = false;
+        let offsetX = 0, offsetY = 0;
+        header.addEventListener("mousedown", (e) => {
+          isDragging = true;
+          offsetX = e.clientX - windowElement.offsetLeft;
+          offsetY = e.clientY - windowElement.offsetTop;
+        });
+        windowElement.addEventListener("mousemove", (e) => {
+          if (isDragging) { windowElement.style.left = `${e.clientX - offsetX}px`; windowElement.style.top = `${e.clientY - offsetY}px`; }
+        });
+        windowElement.addEventListener("mouseup", () => { isDragging = false; });
+      }
+      function makeResizable(windowElement) {
+        const resizeHandle = windowElement.querySelector(".resize-handle");
+        let isResizing = false;
+        let lastX, lastY;
+        resizeHandle.addEventListener("mousedown", (e) => {
+          isResizing = true;
+          lastX = e.clientX;
+          lastY = e.clientY;
+          e.preventDefault();
+        });
+        window.addEventListener("mousemove", (e) => {
+          if (isResizing) {
+            const dx = e.clientX - lastX;
+            const dy = e.clientY - lastY;
+            windowElement.style.width = windowElement.offsetWidth + dx + "px";
+            windowElement.style.height = windowElement.offsetHeight + dy + "px";
+            lastX = e.clientX;
+            lastY = e.clientY;
+          }
+        });
+        window.addEventListener("mouseup", () => { isResizing = false; });
+      }
+      function updateClock() {
+        const now = new Date();
+        const clock = document.getElementById("clock");
+        const date = document.getElementById("date");
+        if (clock && date) {
+          clock.innerText = now.toLocaleTimeString();
+          date.innerText = now.toLocaleDateString();
+        }
+      }
+      function toggleSearchMenu() {
+        const menu = document.getElementById("search-menu");
+        if (menu.style.display === "none" || menu.style.display === "") {
+          filterApps("");
+          menu.style.display = "block";
+        } else { menu.style.display = "none"; }
+      }
+      function filterApps(query) {
+        const appList = document.getElementById("app-list");
+        appList.innerHTML = "";
+        let apps = installedApps.slice().sort((a, b) => a.name.localeCompare(b.name));
+        if (query) { apps = apps.filter((app) => app.name.toLowerCase().includes(query.toLowerCase())); }
+        apps.forEach((app) => {
+          const appItem = document.createElement("div");
+          appItem.classList.add("app-item");
+          appItem.innerHTML = `<img src="${app.image}" alt="${app.name} icon"><span>${app.name}</span>`;
+          appItem.onclick = () => openAppWindow(app.appId);
+          appList.appendChild(appItem);
+        });
+      }
+      function updateTaskbar() {
+        const openContainer = document.getElementById("open-apps");
+        openContainer.innerHTML = "";
+        openApps.forEach((appId) => {
+          const app = installedApps.find((app) => app.appId === appId);
+          if (app) {
+            const icon = document.createElement("img");
+            icon.src = app.image;
+            icon.alt = app.name;
+            icon.title = app.name;
+            icon.style.width = "32px";
+            icon.style.height = "32px";
+            icon.style.cursor = "pointer";
+            icon.onclick = () => bringToFront(appId);
+            openContainer.appendChild(icon);
+          }
+        });
+      }
+      function bringToFront(appId) {
+        const appWindow = document.getElementById(appId);
+        if (appWindow) { document.body.appendChild(appWindow); }
+      }
+      function powerOff() {
+        document.body.innerHTML = `
+          <div class="shutdown-screen">
+            <h2>Shutting down...</h2>
+            <p>Goodbye!</p>
+            <button onclick="location.reload()">Reboot</button>
+          </div>
+        `;
+      }
+      function showSetupScreen() {
+        const container = document.createElement("div");
+        container.classList.add("setup-screen");
+        document.body.appendChild(container);
+        let currentStep = 1;
+        const data = { username: "", password: "", profilePic: "", wallpaper: "", osTheme: "", colorScheme: "" };
+        function renderStep() {
+          switch (currentStep) {
+            case 1:
+              container.innerHTML = `
+                <div class="setup-step">
+                  <h2>Let's get you setup</h2>
+                  <p>Please choose your username and password.</p>
+                  <input type="text" id="setup-username" placeholder="Username" />
+                  <div>
+                    <input type="password" id="setup-password" placeholder="Password" />
+                    <button class="toggle-password" onclick="toggleInputPassword('setup-password', this)">
+                      <img src="images/icons/setup/show.png" alt="Show" />
+                    </button>
+                  </div>
+                  <button id="setup-next">Next</button>
+                </div>
+              `;
+              document.getElementById("setup-next").addEventListener("click", () => {
+                const u = document.getElementById("setup-username").value.trim();
+                const p = document.getElementById("setup-password").value.trim();
+                if(u && p) { data.username = u; data.password = p; currentStep++; renderStep(); }
+                else { alert("Username and password cannot be empty!"); }
+              });
+              break;
+            case 2:
+              container.innerHTML = `
+                <div class="setup-step">
+                  <h2>Choose a Profile Picture</h2>
+                  <p>This is optional. Upload one if you like:</p>
+                  <div class="file-input-wrapper">
+                    <span class="file-input-label">Choose File</span>
+                    <input type="file" id="profile-upload" accept="image/*" />
+                  </div>
+                  <img id="profile-preview" class="preview-img" src="images/icons/profile/profile.png" alt="Profile Preview">
+                  <br>
+                  <button id="setup-skip">Skip</button>
+                  <button id="setup-next">Next</button>
+                </div>
+              `;
+              document.getElementById("profile-upload").addEventListener("change", (e) => {
+                const file = e.target.files[0];
+                if(file) {
+                  const reader = new FileReader();
+                  reader.onload = evt => {
+                    document.getElementById("profile-preview").src = evt.target.result;
+                    data.profilePic = evt.target.result;
+                  };
+                  reader.readAsDataURL(file);
+                }
+              });
+              document.getElementById("setup-skip").addEventListener("click", () => { data.profilePic = "images/icons/profile/profile.png"; currentStep++; renderStep(); });
+              document.getElementById("setup-next").addEventListener("click", () => { if(!data.profilePic) data.profilePic = "images/icons/profile/profile.png"; currentStep++; renderStep(); });
+              break;
+            case 3:
+              container.innerHTML = `
+                <div class="setup-step">
+                  <h2>Choose your Default Wallpaper</h2>
+                  <p>Select a wallpaper for your desktop.</p>
+                  <select id="setup-wallpaper-select">
+                    ${(() => { let opts = ""; for (let i = 1; i <= 41; i++) { opts += `<option value="images/backgrounds/wallpaper${i}.jpg">Wallpaper ${i}</option>`; } return opts; })()}
+                  </select>
+                  <br>
+                  <img id="wallpaper-preview" class="preview-img" src="images/backgrounds/wallpaper1.jpg" alt="Wallpaper Preview">
+                  <br>
+                  <button id="setup-next">Next</button>
+                </div>
+              `;
+              document.getElementById("setup-wallpaper-select").addEventListener("change", (e) => { let sel = e.target.value; document.getElementById("wallpaper-preview").src = sel; data.wallpaper = sel; });
+              document.getElementById("setup-next").addEventListener("click", () => { if(!data.wallpaper) data.wallpaper = document.getElementById("setup-wallpaper-select").value; currentStep++; renderStep(); });
+              break;
+            case 4:
+              container.innerHTML = `
+                <div class="setup-step">
+                  <h2>Setup OS Theme & Color Scheme</h2>
+                  <p>Select your OS theme and color scheme.</p>
+                  <div style="margin-bottom:10px;">
+                    <label>OS Theme:</label>
+                    <select id="setup-ostheme">
+                      <option value="default">Default</option>
+                      <option value="windows10">Windows10</option>
+                    </select>
+                  </div>
+                  <div style="margin-bottom:10px;">
+                    <label>Color Scheme:</label>
+                    <select id="setup-colorscheme">
+                      <option value="dark">Dark</option>
+                      <option value="light">Light</option>
+                    </select>
+                  </div>
+                  <button id="setup-finish">Finish</button>
+                </div>
+              `;
+              const colorSchemeSelect = document.getElementById("setup-colorscheme");
+              colorSchemeSelect.addEventListener("change", function(){ toggleLightDark(this.value); });
+              document.getElementById("setup-finish").addEventListener("click", () => {
+                data.osTheme = document.getElementById("setup-ostheme").value;
+                data.colorScheme = document.getElementById("setup-colorscheme").value;
+                toggleLightDark(data.colorScheme);
+                localStorage.setItem("username", data.username);
+                localStorage.setItem("password", data.password);
+                localStorage.setItem("profilePic", data.profilePic);
+                localStorage.setItem("background", data.wallpaper);
+                localStorage.setItem("osTheme", data.osTheme);
+                localStorage.setItem("colorScheme", data.colorScheme);
+                localStorage.setItem("setupComplete", "true");
+                changeBackgroundimage(data.wallpaper);
+                sessionStorage.removeItem("loggedIn");
+                container.remove();
+                showBootScreen();
+              });
+              break;
+            default:
+              break;
+          }
+        }
+        renderStep();
+      }
+      
+      document.addEventListener("DOMContentLoaded", () => {
+        loadInstalledApps().then(() => {
+          loadBackground();
+          if (!localStorage.getItem("setupComplete")) { showSetupScreen(); }
+          else { showBootScreen(); }
+        });
+      });
+    </script>
+  </body>
+</html>
