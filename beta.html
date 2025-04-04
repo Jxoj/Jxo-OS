@@ -308,8 +308,13 @@
         background-color: #222;
         z-index: 15000;
         padding: 5px 10px;
-        display: flex;
         align-items: center;
+        /* Ensure icons in game bar are 32px */
+      }
+      #gamebar img {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
       }
       #gm-left, #gm-right {
         background-color: #444;
@@ -331,8 +336,8 @@
         align-items: center;
       }
       #gm-launcher img {
-        width: 24px;
-        height: 24px;
+        width: 32px;
+        height: 32px;
         margin-right: 5px;
       }
       #gm-clock {
@@ -425,7 +430,7 @@
     <div id="setupContainer"></div>
     <div id="bootScreen" class="hidden"></div>
     <div id="desktop" class="hidden"></div>
-    
+
     <!-- TASKBAR -->
     <div id="taskbar" class="hidden">
       <button id="start-button" class="taskbar-button" onclick="toggleSearchMenu()">❖</button>
@@ -440,7 +445,7 @@
         </div>
         <!-- System Menu Button -->
         <button id="systemMenuBtn" class="taskbar-button">
-          <img src="images/icons/wifi.png" alt="WiFi">
+          <img src="images/icons/wifi.png" alt="WiFi" style="width:32px;height:32px;">
           <div id="batteryContainer">
             <div id="batteryLevel" style="width: 0%;"></div>
           </div>
@@ -450,19 +455,19 @@
         <button onclick="powerOff()" class="power-button">Power Down</button>
       </div>
     </div>
-    
+
     <!-- SYSTEM MENU -->
     <div id="systemMenu">
       <div class="menuItem">
-        <img src="images/icons/minimenu/jfi.png" alt="Jfi">
+        <img src="images/icons/minimenu/jfi.png" alt="Jfi" style="width:32px;height:32px;">
         <span>Jfi</span>
       </div>
       <div class="menuItem">
-        <img src="images/icons/minimenu/connect.png" alt="Connect">
+        <img src="images/icons/minimenu/connect.png" alt="Connect" style="width:32px;height:32px;">
         <span>Connect</span>
       </div>
       <div class="menuItem">
-        <img src="images/icons/minimenu/brightness.png" alt="Brightness">
+        <img src="images/icons/minimenu/brightness.png" alt="Brightness" style="width:32px;height:32px;">
         <input type="range" id="brightnessSlider" min="0" max="100" value="50">
       </div>
       <div class="batteryInfo">
@@ -472,16 +477,16 @@
         <span id="batteryPercentBottom">--%</span>
       </div>
     </div>
-    
+
     <!-- GAME BAR (Hidden by Default) -->
-    <div id="gamebar" class="hidden">
+    <div id="gamebar" style="display: none;">
       <button id="gm-left" onclick="cycleApp(-1)">&#9664;</button>
       <div id="gm-launcher" onclick="launchGMApp()"></div>
       <button id="gm-right" onclick="cycleApp(1)">&#9654;</button>
       <div id="gm-clock"></div>
       <button id="gm-widgets-btn" onclick="toggleWidgetsMenu()">Widgets</button>
     </div>
-    
+
     <!-- SEARCH MENU -->
     <div id="search-menu" class="search-menu" style="display:none;">
       <span class="close-btn" onclick="toggleSearchMenu()">
@@ -490,11 +495,24 @@
       <input type="text" placeholder="Search apps..." oninput="filterApps(this.value)" />
       <div id="app-list"></div>
     </div>
-    
+
     <script>
+      // Define updateClock before loadOS uses it.
+      function updateClock() {
+        const now = new Date();
+        const clock = document.getElementById("clock");
+        const date = document.getElementById("date");
+        if (clock && date) {
+          clock.innerText = now.toLocaleTimeString();
+          date.innerText = now.toLocaleDateString();
+        }
+      }
+
       // Always show the login modal on boot.
-      document.addEventListener("DOMContentLoaded", () => { sessionStorage.removeItem("loggedIn"); });
-      
+      document.addEventListener("DOMContentLoaded", () => {
+        sessionStorage.removeItem("loggedIn");
+      });
+
       /* -------------------------
          Global Variables & Setup
       ------------------------- */
@@ -504,7 +522,7 @@
       let gmApps = [];
       let gmCurrentIndex = 0;
       let gamepadInterval = null;
-      
+
       /* -------------------------
          Installed Apps Loading
       ------------------------- */
@@ -518,7 +536,7 @@
           resolve();
         });
       }
-      
+
       /* -------------------------
          OS Theme Functions
       ------------------------- */
@@ -541,7 +559,7 @@
         const savedOS = localStorage.getItem("osTheme");
         if (savedOS) { changeOS(savedOS); }
       }
-      
+
       /* -------------------------
          App Installation Functions
       ------------------------- */
@@ -750,14 +768,32 @@
         `;
       }
 
-      /* -------------------------
-         Password Modal
-      ------------------------- */
+      function toggleInputPassword(id, btn) {
+        const input = document.getElementById(id);
+        if (input.type === "password") {
+          input.type = "text";
+          btn.innerHTML = `<img src="images/icons/setup/hide.png" alt="Hide">`;
+        } else {
+          input.type = "password";
+          btn.innerHTML = `<img src="images/icons/setup/show.png" alt="Show">`;
+        }
+      }
+
+      function changePassword(newPassword) {
+        localStorage.setItem("password", newPassword);
+      }
+
+      function updateAccount(newUsername, newPassword) {
+        localStorage.setItem("username", newUsername);
+        changePassword(newPassword);
+        const msg = document.getElementById("account-message");
+        if (msg) msg.innerText = "Account updated successfully!";
+      }
+
       function showPasswordModal() {
         let modal = document.createElement("div");
         modal.classList.add("password-modal");
         let profilePic = localStorage.getItem("profilePic") || "images/icons/profile/profile.png";
-        // Always show login modal if password exists.
         if (localStorage.getItem("password")) {
           let usernameField = localStorage.getItem("username")
             ? `<p>Welcome, ${localStorage.getItem("username")}!</p>`
@@ -815,23 +851,11 @@
         }
       }
 
-      function toggleInputPassword(id, btn) {
-        const input = document.getElementById(id);
-        if (input.type === "password") {
-          input.type = "text";
-          btn.innerHTML = `<img src="images/icons/setup/hide.png" alt="Hide">`;
-        } else {
-          input.type = "password";
-          btn.innerHTML = `<img src="images/icons/setup/show.png" alt="Show">`;
-        }
-      }
-
       /* -------------------------
          Game Bar & Controller Functions
       ------------------------- */
       function toggleGameBar() {
         const gb = document.getElementById("gamebar");
-        // Only toggle gamebar on click – no auto-activation.
         if (gb.style.display === "none" || gb.style.display === "") {
           gb.style.display = "flex";
           document.getElementById("gm-icon").src = "images/icons/gm/on.png";
@@ -931,7 +955,6 @@
           gamepadInterval = null;
         }
       }
-      // Removed automatic game mode triggering from gamepad load.
 
       /* -------------------------
          System Menu & Battery Functions
@@ -945,7 +968,6 @@
       }
 
       function updateSystemBattery() {
-        // Update battery for both taskbar and system menu
         const batteryLevel = document.getElementById("batteryLevel");
         const batteryPercentElem = document.getElementById("batteryPercent");
         const batteryLevelSys = document.getElementById("batteryLevelSys");
@@ -1036,7 +1058,7 @@
       }
       function loadOS() {
         document.body.innerHTML = `
-          <div id="gamebar" class="hidden">
+          <div id="gamebar" style="display: none;">
             <button id="gm-left" onclick="cycleApp(-1)">&#9664;</button>
             <div id="gm-launcher" onclick="launchGMApp()"></div>
             <button id="gm-right" onclick="cycleApp(1)">&#9654;</button>
@@ -1056,7 +1078,7 @@
                 <span id="clock"></span>
               </div>
               <button id="systemMenuBtn" class="taskbar-button">
-                <img src="images/icons/wifi.png" alt="WiFi">
+                <img src="images/icons/wifi.png" alt="WiFi" style="width:32px;height:32px;">
                 <div id="batteryContainer">
                   <div id="batteryLevel" style="width: 0%;"></div>
                 </div>
@@ -1088,7 +1110,9 @@
 
       function loadBackground() {
         const background = localStorage.getItem("background");
-        if (background) { document.body.style.background = background; }
+        if (background) {
+          document.body.style.background = background;
+        }
       }
       function saveBackground(backgroundValue) {
         localStorage.setItem("background", backgroundValue);
@@ -1112,7 +1136,7 @@
         const desktop = document.getElementById("desktop");
         if (!desktop) return;
         desktop.innerHTML = "";
-        installedApps.forEach((app) => {
+        installedApps.forEach(app => {
           const appShortcut = document.createElement("div");
           appShortcut.classList.add("desktop-app");
           appShortcut.innerHTML = `<img src="${app.image}" alt="${app.name} icon"><span>${app.name}</span>`;
@@ -1121,7 +1145,7 @@
         });
       }
       function openAppWindow(appId) {
-        const app = installedApps.find((app) => app.appId === appId);
+        const app = installedApps.find(app => app.appId === appId);
         if (app) {
           if (document.getElementById(appId)) return;
           const appWindow = document.createElement("div");
@@ -1131,10 +1155,10 @@
             <div class="window-header">
               <span class="window-title">${app.name}</span>
               <div>
-                <button class="window-btn" onclick="closeWindow(&quot;${appId}&quot;)">
+                <button class="window-btn" onclick="closeWindow('${appId}')">
                   <img src="images/icons/x.png" alt="Close" />
                 </button>
-                <button class="window-btn" onclick="toggleFullscreen(&quot;${appId}&quot;)">
+                <button class="window-btn" onclick="toggleFullscreen('${appId}')">
                   <img src="images/icons/fullscreen.png" alt="Fullscreen" />
                 </button>
               </div>
@@ -1151,15 +1175,19 @@
             openApps.push(appId);
             updateTaskbar();
           }
-          if (appId === "jstore") { setTimeout(loadJstoreApps, 100); }
-          if (appId === "settings") { setTimeout(initSettingsApp, 100); }
+          if (appId === "jstore") {
+            setTimeout(loadJstoreApps, 100);
+          }
+          if (appId === "settings") {
+            setTimeout(initSettingsApp, 100);
+          }
         }
       }
       function closeWindow(appId) {
         const appWindow = document.getElementById(appId);
         if (appWindow) {
           appWindow.remove();
-          openApps = openApps.filter((id) => id !== appId);
+          openApps = openApps.filter(id => id !== appId);
           updateTaskbar();
         }
       }
@@ -1229,9 +1257,9 @@
         `;
       }
 
-      // -------------------------
-      // Setup Screen (Simplified)
-      // -------------------------
+      /* -------------------------
+         Setup Screen (Simplified)
+      ------------------------- */
       function showSetupScreen() {
         const container = document.createElement("div");
         container.classList.add("setup-screen");
