@@ -272,6 +272,7 @@
         margin: 10px auto;
         display: block;
       }
+      /* Toggle Password Button */
       .toggle-password {
         cursor: pointer;
         background: none;
@@ -284,6 +285,7 @@
         height: 16px;
         vertical-align: middle;
       }
+      /* Lock Button on Taskbar */
       .lock-button {
         padding: 5px 10px;
         background-color: #444;
@@ -382,7 +384,7 @@
         background-color: limegreen;
         transition: width 0.3s ease;
       }
-      /* System menu battery rectangle */
+      /* System Menu Battery Rectangle */
       #batteryContainerSys {
         width: 40px;
         height: 18px;
@@ -449,7 +451,7 @@
       </div>
     </div>
     
-    <!-- System Menu -->
+    <!-- SYSTEM MENU -->
     <div id="systemMenu">
       <div class="menuItem">
         <img src="images/icons/minimenu/jfi.png" alt="Jfi">
@@ -636,7 +638,7 @@
         localStorage.setItem("installedApps", JSON.stringify(installedApps));
         renderDesktop();
       }
-      
+
       /* -------------------------
          Settings App Functions
       ------------------------- */
@@ -747,7 +749,7 @@
           </div>
         `;
       }
-      
+
       /* -------------------------
          Password Modal
       ------------------------- */
@@ -755,7 +757,7 @@
         let modal = document.createElement("div");
         modal.classList.add("password-modal");
         let profilePic = localStorage.getItem("profilePic") || "images/icons/profile/profile.png";
-        // Always show login modal (if password exists, prompt for it)
+        // Always show login modal if password exists.
         if (localStorage.getItem("password")) {
           let usernameField = localStorage.getItem("username")
             ? `<p>Welcome, ${localStorage.getItem("username")}!</p>`
@@ -790,12 +792,17 @@
         }
         document.body.appendChild(modal);
       }
+
       function checkPassword() {
         const entered = document.getElementById("entered-password").value;
         const stored = localStorage.getItem("password");
-        if (entered === stored) { document.querySelector(".password-modal").remove(); }
-        else { alert("Incorrect password!"); }
+        if (entered === stored) {
+          document.querySelector(".password-modal").remove();
+        } else {
+          alert("Incorrect password!");
+        }
       }
+
       function setCredentials() {
         const username = document.getElementById("username-input").value;
         const newPass = document.getElementById("new-password").value;
@@ -803,25 +810,36 @@
           localStorage.setItem("username", username);
           localStorage.setItem("password", newPass);
           document.querySelector(".password-modal").remove();
-        } else { alert("Username and password cannot be empty!"); }
+        } else {
+          alert("Username and password cannot be empty!");
+        }
       }
+
       function toggleInputPassword(id, btn) {
         const input = document.getElementById(id);
-        if (input.type === "password") { input.type = "text"; btn.innerHTML = `<img src="images/icons/setup/hide.png" alt="Hide">`; }
-        else { input.type = "password"; btn.innerHTML = `<img src="images/icons/setup/show.png" alt="Show">`; }
+        if (input.type === "password") {
+          input.type = "text";
+          btn.innerHTML = `<img src="images/icons/setup/hide.png" alt="Hide">`;
+        } else {
+          input.type = "password";
+          btn.innerHTML = `<img src="images/icons/setup/show.png" alt="Show">`;
+        }
       }
-      
+
       /* -------------------------
          Game Bar & Controller Functions
       ------------------------- */
       function toggleGameBar() {
         const gb = document.getElementById("gamebar");
-        // Do not auto-trigger game mode from gamepad load – only toggle by click.
+        // Only toggle gamebar on click – no auto-activation.
         if (gb.style.display === "none" || gb.style.display === "") {
           gb.style.display = "flex";
           document.getElementById("gm-icon").src = "images/icons/gm/on.png";
           gmApps = installedApps.filter(app => app.name !== "Settings" && app.name !== "Jstore");
-          if (gmApps.length > 0) { gmCurrentIndex = Math.floor(Math.random() * gmApps.length); updateGMLauncher(); }
+          if (gmApps.length > 0) {
+            gmCurrentIndex = Math.floor(Math.random() * gmApps.length);
+            updateGMLauncher();
+          }
           startGamepadPolling();
         } else {
           gb.style.display = "none";
@@ -829,17 +847,23 @@
           stopGamepadPolling();
         }
       }
+
       function updateGMLauncher() {
         const launcher = document.getElementById("gm-launcher");
-        if (gmApps.length === 0) { launcher.innerHTML = "No apps available"; return; }
+        if (gmApps.length === 0) {
+          launcher.innerHTML = "No apps available";
+          return;
+        }
         const app = gmApps[gmCurrentIndex];
         launcher.innerHTML = `<img src="${app.image}" alt="${app.name} icon">${app.name}`;
       }
+
       function cycleApp(direction) {
         if (gmApps.length === 0) return;
         gmCurrentIndex = (gmCurrentIndex + direction + gmApps.length) % gmApps.length;
         updateGMLauncher();
       }
+
       function launchGMApp() {
         if (gmApps.length === 0) return;
         const app = gmApps[gmCurrentIndex];
@@ -847,8 +871,11 @@
           let url = app.htmlUrl;
           url += (url.indexOf("?") === -1) ? "?controller=true" : "&controller=true";
           openAppWindowWithUrl(app.appId, url);
-        } else { openAppWindow(app.appId); }
+        } else {
+          openAppWindow(app.appId);
+        }
       }
+
       function openAppWindowWithUrl(appId, url) {
         const app = installedApps.find(app => app.appId === appId);
         if (app && !document.getElementById(appId)) {
@@ -879,6 +906,7 @@
           updateTaskbar();
         }
       }
+
       function startGamepadPolling() {
         if (gamepadInterval) return;
         gamepadInterval = setInterval(() => {
@@ -896,11 +924,15 @@
           }
         }, 100);
       }
+
       function stopGamepadPolling() {
-        if (gamepadInterval) { clearInterval(gamepadInterval); gamepadInterval = null; }
+        if (gamepadInterval) {
+          clearInterval(gamepadInterval);
+          gamepadInterval = null;
+        }
       }
-      // Removed automatic game mode triggering on load.
-      
+      // Removed automatic game mode triggering from gamepad load.
+
       /* -------------------------
          System Menu & Battery Functions
       ------------------------- */
@@ -911,8 +943,9 @@
           sysMenu.style.display = (sysMenu.style.display === "none" || sysMenu.style.display === "") ? "block" : "none";
         });
       }
+
       function updateSystemBattery() {
-        // Update battery for taskbar and system menu rectangles.
+        // Update battery for both taskbar and system menu
         const batteryLevel = document.getElementById("batteryLevel");
         const batteryPercentElem = document.getElementById("batteryPercent");
         const batteryLevelSys = document.getElementById("batteryLevelSys");
@@ -943,7 +976,7 @@
       }
       updateSystemBattery();
       setInterval(updateSystemBattery, 60000);
-      
+
       /* -------------------------
          Game Bar Widgets (Clock & Battery)
       ------------------------- */
@@ -962,7 +995,7 @@
         }
       }
       setInterval(updateGameBarWidgets, 1000);
-      
+
       /* -------------------------
          Widgets Menu (Placeholder)
       ------------------------- */
@@ -986,7 +1019,7 @@
           }, 1000);
         }
       }
-      
+
       /* -------------------------
          Boot Screen & OS Loading
       ------------------------- */
@@ -1052,7 +1085,7 @@
         initWidgetsMenu();
         attachSystemMenuListener();
       }
-      
+
       function loadBackground() {
         const background = localStorage.getItem("background");
         if (background) { document.body.style.background = background; }
@@ -1071,7 +1104,7 @@
         document.body.style.background = bg;
         saveBackground(bg);
       }
-      
+
       /* -------------------------
          Desktop, App Windows, Taskbar Functions
       ------------------------- */
@@ -1079,29 +1112,29 @@
         const desktop = document.getElementById("desktop");
         if (!desktop) return;
         desktop.innerHTML = "";
-        installedApps.forEach(app => {
-          const shortcut = document.createElement("div");
-          shortcut.classList.add("desktop-app");
-          shortcut.innerHTML = `<img src="${app.image}" alt="${app.name} icon"><span>${app.name}</span>`;
-          shortcut.onclick = () => openAppWindow(app.appId);
-          desktop.appendChild(shortcut);
+        installedApps.forEach((app) => {
+          const appShortcut = document.createElement("div");
+          appShortcut.classList.add("desktop-app");
+          appShortcut.innerHTML = `<img src="${app.image}" alt="${app.name} icon"><span>${app.name}</span>`;
+          appShortcut.onclick = () => openAppWindow(app.appId);
+          desktop.appendChild(appShortcut);
         });
       }
       function openAppWindow(appId) {
-        const app = installedApps.find(app => app.appId === appId);
+        const app = installedApps.find((app) => app.appId === appId);
         if (app) {
           if (document.getElementById(appId)) return;
-          const win = document.createElement("div");
-          win.classList.add("app-window");
-          win.id = appId;
-          win.innerHTML = `
+          const appWindow = document.createElement("div");
+          appWindow.classList.add("app-window");
+          appWindow.id = appId;
+          appWindow.innerHTML = `
             <div class="window-header">
               <span class="window-title">${app.name}</span>
               <div>
-                <button class="window-btn" onclick="closeWindow('${appId}')">
+                <button class="window-btn" onclick="closeWindow(&quot;${appId}&quot;)">
                   <img src="images/icons/x.png" alt="Close" />
                 </button>
-                <button class="window-btn" onclick="toggleFullscreen('${appId}')">
+                <button class="window-btn" onclick="toggleFullscreen(&quot;${appId}&quot;)">
                   <img src="images/icons/fullscreen.png" alt="Fullscreen" />
                 </button>
               </div>
@@ -1111,34 +1144,40 @@
             </div>
             <div class="resize-handle"></div>
           `;
-          document.body.appendChild(win);
-          makeDraggable(win);
-          makeResizable(win);
-          openApps.push(appId);
-          updateTaskbar();
+          document.body.appendChild(appWindow);
+          makeDraggable(appWindow);
+          makeResizable(appWindow);
+          if (!openApps.includes(appId)) {
+            openApps.push(appId);
+            updateTaskbar();
+          }
           if (appId === "jstore") { setTimeout(loadJstoreApps, 100); }
           if (appId === "settings") { setTimeout(initSettingsApp, 100); }
         }
       }
       function closeWindow(appId) {
-        const win = document.getElementById(appId);
-        if (win) { win.remove(); openApps = openApps.filter(id => id !== appId); updateTaskbar(); }
+        const appWindow = document.getElementById(appId);
+        if (appWindow) {
+          appWindow.remove();
+          openApps = openApps.filter((id) => id !== appId);
+          updateTaskbar();
+        }
       }
       function toggleFullscreen(appId) {
-        const win = document.getElementById(appId);
-        if (win) {
-          if (win.style.position === "fixed") {
-            win.style.position = "absolute";
-            win.style.width = "600px";
-            win.style.height = "400px";
-            win.style.zIndex = "";
+        const appWindow = document.getElementById(appId);
+        if (appWindow) {
+          if (appWindow.style.position === "fixed") {
+            appWindow.style.position = "absolute";
+            appWindow.style.width = "600px";
+            appWindow.style.height = "400px";
+            appWindow.style.zIndex = "";
           } else {
-            win.style.position = "fixed";
-            win.style.top = "0";
-            win.style.left = "0";
-            win.style.width = "100vw";
-            win.style.height = "100vh";
-            win.style.zIndex = "10000";
+            appWindow.style.position = "fixed";
+            appWindow.style.top = "0";
+            appWindow.style.left = "0";
+            appWindow.style.width = "100vw";
+            appWindow.style.height = "100vh";
+            appWindow.style.zIndex = "10000";
           }
         }
       }
@@ -1175,8 +1214,10 @@
         });
       }
       function bringToFront(appId) {
-        const win = document.getElementById(appId);
-        if (win) { document.body.appendChild(win); }
+        const appWindow = document.getElementById(appId);
+        if (appWindow) {
+          document.body.appendChild(appWindow);
+        }
       }
       function powerOff() {
         document.body.innerHTML = `
@@ -1187,10 +1228,10 @@
           </div>
         `;
       }
-      
-      /* -------------------------
-         Setup Screen (Simplified)
-      ------------------------- */
+
+      // -------------------------
+      // Setup Screen (Simplified)
+      // -------------------------
       function showSetupScreen() {
         const container = document.createElement("div");
         container.classList.add("setup-screen");
@@ -1314,12 +1355,15 @@
         }
         renderStep();
       }
-      
+
       document.addEventListener("DOMContentLoaded", () => {
         loadInstalledApps().then(() => {
           loadBackground();
-          if (!localStorage.getItem("setupComplete")) { showSetupScreen(); }
-          else { showBootScreen(); }
+          if (!localStorage.getItem("setupComplete")) {
+            showSetupScreen();
+          } else {
+            showBootScreen();
+          }
         });
       });
     </script>
