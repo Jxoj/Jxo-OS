@@ -14,7 +14,7 @@
         font-family: Arial, sans-serif;
         margin: 0;
       }
-      /* TASKBAR styling – remains outside the brightness-controlled container */
+      /* TASKBAR remains unaffected by brightness changes */
       .taskbar {
         background-color: #1f1f1f;
         border-top: 1px solid #333;
@@ -22,7 +22,7 @@
         align-items: center;
         padding: 0 10px;
       }
-      /* OS Container: brightness applied only here */
+      /* OS Container – brightness filter applies here */
       #osContainer {
         filter: brightness(100%);
       }
@@ -501,7 +501,7 @@
       </div>
     </div>
 
-    <!-- Setup, Boot, and Desktop Containers inside osContainer -->
+    <!-- OS Container (brightness controlled) -->
     <div id="osContainer">
       <div id="gamebar" style="display: none;">
         <button id="gm-left" onclick="cycleApp(-1)">&#9664;</button>
@@ -522,7 +522,7 @@
         </div>
         <div class="menuItem">
           <img src="images/icons/minimenu/brightness.png" alt="Brightness">
-          <input type="range" id="brightnessSlider" min="0" max="100" value="50">
+          <input type="range" id="brightnessSlider" min="0" max="100" value="100">
         </div>
         <div class="batteryInfo">
           <div id="batteryContainerSys">
@@ -541,8 +541,8 @@
       </div>
     </div>
 
-    <!-- TASKBAR (remains outside osContainer so brightness filter does not affect it) -->
-    <div id="taskbar" class="hidden">
+    <!-- TASKBAR (outside osContainer so brightness filter does not affect it) -->
+    <div id="taskbar">
       <button id="start-button" class="taskbar-button" onclick="toggleSearchMenu()">❖</button>
       <button id="gm-button" class="taskbar-button" onclick="toggleGameBar()">
         <img id="gm-icon" src="images/icons/gm/off.png" alt="Game Mode">
@@ -566,7 +566,7 @@
     </div>
 
     <script>
-      // Define updateClock before loadOS uses it.
+      // updateClock is defined before loadOS uses it.
       function updateClock() {
         const now = new Date();
         const clock = document.getElementById("clock");
@@ -1030,14 +1030,16 @@
       ------------------------- */
       function attachSystemMenuListener() {
         const sysBtn = document.getElementById("systemMenuBtn");
-        if (sysBtn) {
+        const miniMenu = document.getElementById("miniMenu");
+        if (sysBtn && miniMenu) {
           sysBtn.addEventListener("click", () => {
-            const miniMenu = document.getElementById("miniMenu");
-            const rect = sysBtn.getBoundingClientRect();
-            if (miniMenu) {
+            if (miniMenu.style.display === "block") {
+              miniMenu.style.display = "none";
+            } else {
+              const rect = sysBtn.getBoundingClientRect();
               miniMenu.style.left = rect.left + "px";
               miniMenu.style.bottom = (window.innerHeight - rect.top + 5) + "px";
-              miniMenu.style.display = (miniMenu.style.display === "none" || miniMenu.style.display === "") ? "block" : "none";
+              miniMenu.style.display = "block";
             }
           });
         }
@@ -1053,7 +1055,7 @@
         }
       }
 
-      // Update brightness on the OS container (leaving taskbar unchanged)
+      // Update brightness on the OS container only
       function updateBrightness() {
         const brightnessSlider = document.getElementById("brightnessSlider");
         if (brightnessSlider) {
@@ -1193,7 +1195,7 @@
               </div>
               <div class="menuItem">
                 <img src="images/icons/minimenu/brightness.png" alt="Brightness">
-                <input type="range" id="brightnessSlider" min="0" max="100" value="50">
+                <input type="range" id="brightnessSlider" min="0" max="100" value="100">
               </div>
               <div class="batteryInfo">
                 <div id="batteryContainerSys">
@@ -1232,6 +1234,13 @@
               <button class="lock-button" onclick="showPasswordModal()">Lock</button>
               <button onclick="powerOff()" class="power-button">Power Down</button>
             </div>
+          </div>
+          <div id="search-menu" class="search-menu" style="display:none;">
+            <span class="close-btn" onclick="toggleSearchMenu()">
+              <img src="images/icons/x.png" alt="Close">
+            </span>
+            <input type="text" placeholder="Search apps..." oninput="filterApps(this.value)">
+            <div id="app-list"></div>
           </div>
         `;
         installJstoreIfNotInstalled();
