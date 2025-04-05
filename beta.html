@@ -391,13 +391,11 @@
       /* MINI MENU */
       #miniMenu {
         display: none;
-        position: fixed;
-        top: 50px;
-        right: 10px;
+        position: absolute;
         background-color: #333;
         border: 1px solid #444;
         padding: 10px;
-        z-index: 2000;
+        z-index: 21000;
       }
       #miniMenu .menuItem {
         display: flex;
@@ -983,6 +981,11 @@
         const sysBtn = document.getElementById("systemMenuBtn");
         sysBtn.addEventListener("click", () => {
           const miniMenu = document.getElementById("miniMenu");
+          // Position the mini menu next to the systemMenuBtn button
+          const rect = sysBtn.getBoundingClientRect();
+          miniMenu.style.position = "absolute";
+          miniMenu.style.top = rect.bottom + "px";
+          miniMenu.style.left = rect.left + "px";
           miniMenu.style.display = (miniMenu.style.display === "none" || miniMenu.style.display === "") ? "block" : "none";
         });
       }
@@ -1073,7 +1076,7 @@
             <div id="gm-clock"></div>
             <button id="gm-widgets-btn" onclick="toggleWidgetsMenu()">Widgets</button>
           </div>
-          <!-- Include Mini Menu in OS layout -->
+          <!-- Mini Menu is included here so it is in the DOM -->
           <div id="miniMenu">
             <div class="menuItem">
               <img src="images/icons/minimenu/jfi.png" alt="Jfi">
