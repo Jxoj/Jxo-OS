@@ -485,6 +485,17 @@
     </style>
   </head>
   <body>
+    <!-- Jfi Connection Modal (always in DOM) -->
+    <div id="jfiModal" class="modal">
+      <div class="modal-content">
+        <span id="closeJfiModal" class="close">&times;</span>
+        <h2>Connect to Jfi</h2>
+        <input type="text" id="jfiWsUrl" placeholder="ws://yourserver:port">
+        <button id="connectJfiBtn">Connect</button>
+        <p id="jfiStatus"></p>
+      </div>
+    </div>
+
     <!-- Setup, Boot, and Desktop Containers -->
     <div id="setupContainer"></div>
     <div id="bootScreen" class="hidden"></div>
@@ -517,7 +528,6 @@
 
     <!-- MINI MENU -->
     <div id="miniMenu">
-      <!-- Jfi Menu Item (clicking it opens the Jfi connection modal) -->
       <div class="menuItem" id="jfiButton">
         <img src="images/icons/minimenu/jfi.png" alt="Jfi">
         <span>Jfi</span>
@@ -554,17 +564,6 @@
       </span>
       <input type="text" placeholder="Search apps..." oninput="filterApps(this.value)">
       <div id="app-list"></div>
-    </div>
-
-    <!-- Jfi Connection Modal -->
-    <div id="jfiModal" class="modal">
-      <div class="modal-content">
-        <span id="closeJfiModal" class="close">&times;</span>
-        <h2>Connect to Jfi</h2>
-        <input type="text" id="jfiWsUrl" placeholder="ws://yourserver:port">
-        <button id="connectJfiBtn">Connect</button>
-        <p id="jfiStatus"></p>
-      </div>
     </div>
 
     <script>
@@ -1034,7 +1033,7 @@
         const sysBtn = document.getElementById("systemMenuBtn");
         sysBtn.addEventListener("click", () => {
           const miniMenu = document.getElementById("miniMenu");
-          // Position mini menu above the taskbar button
+          // Position the mini menu above the taskbar button
           const rect = sysBtn.getBoundingClientRect();
           miniMenu.style.left = rect.left + "px";
           miniMenu.style.bottom = (window.innerHeight - rect.top + 5) + "px";
@@ -1045,6 +1044,15 @@
         jfiBtn.addEventListener("click", () => {
           document.getElementById("jfiModal").style.display = "block";
         });
+        // Attach brightness slider listener to update brightness
+        const brightnessSlider = document.getElementById("brightnessSlider");
+        brightnessSlider.addEventListener("input", updateBrightness);
+      }
+
+      // Update OS brightness based on slider value
+      function updateBrightness() {
+        const val = document.getElementById("brightnessSlider").value;
+        document.body.style.filter = "brightness(" + val + "%)";
       }
 
       function updateBatteryInfo() {
