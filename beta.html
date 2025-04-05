@@ -388,13 +388,10 @@
         background-color: limegreen;
         transition: width 0.3s ease;
       }
-      /* MINI MENU */
+      /* MINI MENU positioned above the taskbar */
       #miniMenu {
         display: none;
-        position: absolute;
-        background-color: #333;
-        border: 1px solid #444;
-        padding: 10px;
+        position: fixed;
         z-index: 21000;
       }
       #miniMenu .menuItem {
@@ -981,11 +978,11 @@
         const sysBtn = document.getElementById("systemMenuBtn");
         sysBtn.addEventListener("click", () => {
           const miniMenu = document.getElementById("miniMenu");
-          // Position the mini menu next to the systemMenuBtn button
+          // Position the mini menu above the taskbar relative to the button
           const rect = sysBtn.getBoundingClientRect();
-          miniMenu.style.position = "absolute";
-          miniMenu.style.top = rect.bottom + "px";
+          // Use fixed positioning: set left to the button's left and bottom to (window.innerHeight - rect.top + 5)
           miniMenu.style.left = rect.left + "px";
+          miniMenu.style.bottom = (window.innerHeight - rect.top + 5) + "px";
           miniMenu.style.display = (miniMenu.style.display === "none" || miniMenu.style.display === "") ? "block" : "none";
         });
       }
@@ -1076,7 +1073,7 @@
             <div id="gm-clock"></div>
             <button id="gm-widgets-btn" onclick="toggleWidgetsMenu()">Widgets</button>
           </div>
-          <!-- Mini Menu is included here so it is in the DOM -->
+          <!-- Mini Menu included in the layout -->
           <div id="miniMenu">
             <div class="menuItem">
               <img src="images/icons/minimenu/jfi.png" alt="Jfi">
