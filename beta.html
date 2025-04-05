@@ -14,12 +14,17 @@
         font-family: Arial, sans-serif;
         margin: 0;
       }
+      /* TASKBAR styling – remains outside the brightness-controlled container */
       .taskbar {
         background-color: #1f1f1f;
         border-top: 1px solid #333;
         display: flex;
         align-items: center;
         padding: 0 10px;
+      }
+      /* OS Container: brightness applied only here */
+      #osContainer {
+        filter: brightness(100%);
       }
       /* Desktop & Taskbar Icons */
       .desktop-app img {
@@ -496,12 +501,47 @@
       </div>
     </div>
 
-    <!-- Setup, Boot, and Desktop Containers -->
-    <div id="setupContainer"></div>
-    <div id="bootScreen" class="hidden"></div>
-    <div id="desktop" class="hidden"></div>
+    <!-- Setup, Boot, and Desktop Containers inside osContainer -->
+    <div id="osContainer">
+      <div id="gamebar" style="display: none;">
+        <button id="gm-left" onclick="cycleApp(-1)">&#9664;</button>
+        <div id="gm-launcher" onclick="launchGMApp()"></div>
+        <button id="gm-right" onclick="cycleApp(1)">&#9654;</button>
+        <div id="gm-clock"></div>
+        <button id="gm-widgets-btn" onclick="toggleWidgetsMenu()">Widgets</button>
+      </div>
+      <!-- Mini Menu -->
+      <div id="miniMenu">
+        <div class="menuItem" id="jfiButton">
+          <img src="images/icons/minimenu/jfi.png" alt="Jfi">
+          <span>Jfi</span>
+        </div>
+        <div class="menuItem">
+          <img src="images/icons/minimenu/connect.png" alt="Connect">
+          <span>Connect</span>
+        </div>
+        <div class="menuItem">
+          <img src="images/icons/minimenu/brightness.png" alt="Brightness">
+          <input type="range" id="brightnessSlider" min="0" max="100" value="50">
+        </div>
+        <div class="batteryInfo">
+          <div id="batteryContainerSys">
+            <div id="batteryLevelSys" style="width: 0%;"></div>
+          </div>
+          <span id="batteryPercentBottom">--%</span>
+        </div>
+      </div>
+      <div id="desktop"></div>
+      <div id="search-menu" class="search-menu" style="display:none;">
+        <span class="close-btn" onclick="toggleSearchMenu()">
+          <img src="images/icons/x.png" alt="Close">
+        </span>
+        <input type="text" placeholder="Search apps..." oninput="filterApps(this.value)">
+        <div id="app-list"></div>
+      </div>
+    </div>
 
-    <!-- TASKBAR -->
+    <!-- TASKBAR (remains outside osContainer so brightness filter does not affect it) -->
     <div id="taskbar" class="hidden">
       <button id="start-button" class="taskbar-button" onclick="toggleSearchMenu()">❖</button>
       <button id="gm-button" class="taskbar-button" onclick="toggleGameBar()">
@@ -513,7 +553,6 @@
           <span id="date"></span>
           <span id="clock"></span>
         </div>
-        <!-- System Menu Button (Mini Menu Toggle) -->
         <button id="systemMenuBtn" class="taskbar-button">
           <img src="images/icons/wifi.png" alt="WiFi" style="width:32px;height:32px;">
           <div id="batteryContainer">
@@ -524,46 +563,6 @@
         <button class="lock-button" onclick="showPasswordModal()">Lock</button>
         <button onclick="powerOff()" class="power-button">Power Down</button>
       </div>
-    </div>
-
-    <!-- MINI MENU -->
-    <div id="miniMenu">
-      <div class="menuItem" id="jfiButton">
-        <img src="images/icons/minimenu/jfi.png" alt="Jfi">
-        <span>Jfi</span>
-      </div>
-      <div class="menuItem">
-        <img src="images/icons/minimenu/connect.png" alt="Connect">
-        <span>Connect</span>
-      </div>
-      <div class="menuItem">
-        <img src="images/icons/minimenu/brightness.png" alt="Brightness">
-        <input type="range" id="brightnessSlider" min="0" max="100" value="50">
-      </div>
-      <div class="batteryInfo">
-        <div id="batteryContainerSys">
-          <div id="batteryLevelSys" style="width: 0%;"></div>
-        </div>
-        <span id="batteryPercentBottom">--%</span>
-      </div>
-    </div>
-
-    <!-- GAME BAR (Hidden by Default) -->
-    <div id="gamebar" style="display: none;">
-      <button id="gm-left" onclick="cycleApp(-1)">&#9664;</button>
-      <div id="gm-launcher" onclick="launchGMApp()"></div>
-      <button id="gm-right" onclick="cycleApp(1)">&#9654;</button>
-      <div id="gm-clock"></div>
-      <button id="gm-widgets-btn" onclick="toggleWidgetsMenu()">Widgets</button>
-    </div>
-
-    <!-- SEARCH MENU -->
-    <div id="search-menu" class="search-menu" style="display:none;">
-      <span class="close-btn" onclick="toggleSearchMenu()">
-        <img src="images/icons/x.png" alt="Close">
-      </span>
-      <input type="text" placeholder="Search apps..." oninput="filterApps(this.value)">
-      <div id="app-list"></div>
     </div>
 
     <script>
@@ -1035,9 +1034,11 @@
           sysBtn.addEventListener("click", () => {
             const miniMenu = document.getElementById("miniMenu");
             const rect = sysBtn.getBoundingClientRect();
-            miniMenu.style.left = rect.left + "px";
-            miniMenu.style.bottom = (window.innerHeight - rect.top + 5) + "px";
-            miniMenu.style.display = (miniMenu.style.display === "none" || miniMenu.style.display === "") ? "block" : "none";
+            if (miniMenu) {
+              miniMenu.style.left = rect.left + "px";
+              miniMenu.style.bottom = (window.innerHeight - rect.top + 5) + "px";
+              miniMenu.style.display = (miniMenu.style.display === "none" || miniMenu.style.display === "") ? "block" : "none";
+            }
           });
         }
         const jfiBtn = document.getElementById("jfiButton");
@@ -1052,12 +1053,15 @@
         }
       }
 
+      // Update brightness on the OS container (leaving taskbar unchanged)
       function updateBrightness() {
         const brightnessSlider = document.getElementById("brightnessSlider");
         if (brightnessSlider) {
           const val = brightnessSlider.value;
-          // Adjust the brightness filter on the entire document (this will not hide the taskbar)
-          document.body.style.filter = "brightness(" + val + "%)";
+          const osContainer = document.getElementById("osContainer");
+          if (osContainer) {
+            osContainer.style.filter = "brightness(" + val + "%)";
+          }
         }
       }
 
@@ -1169,38 +1173,47 @@
       }
       function loadOS() {
         document.body.innerHTML = `
-          <div id="gamebar" style="display: none;">
-            <button id="gm-left" onclick="cycleApp(-1)">&#9664;</button>
-            <div id="gm-launcher" onclick="launchGMApp()"></div>
-            <button id="gm-right" onclick="cycleApp(1)">&#9654;</button>
-            <div id="gm-clock"></div>
-            <button id="gm-widgets-btn" onclick="toggleWidgetsMenu()">Widgets</button>
-          </div>
-          <!-- Mini Menu included in layout -->
-          <div id="miniMenu">
-            <div class="menuItem" id="jfiButton">
-              <img src="images/icons/minimenu/jfi.png" alt="Jfi">
-              <span>Jfi</span>
+          <div id="osContainer">
+            <div id="gamebar" style="display: none;">
+              <button id="gm-left" onclick="cycleApp(-1)">&#9664;</button>
+              <div id="gm-launcher" onclick="launchGMApp()"></div>
+              <button id="gm-right" onclick="cycleApp(1)">&#9654;</button>
+              <div id="gm-clock"></div>
+              <button id="gm-widgets-btn" onclick="toggleWidgetsMenu()">Widgets</button>
             </div>
-            <div class="menuItem">
-              <img src="images/icons/minimenu/connect.png" alt="Connect">
-              <span>Connect</span>
-            </div>
-            <div class="menuItem">
-              <img src="images/icons/minimenu/brightness.png" alt="Brightness">
-              <input type="range" id="brightnessSlider" min="0" max="100" value="50">
-            </div>
-            <div class="batteryInfo">
-              <div id="batteryContainerSys">
-                <div id="batteryLevelSys" style="width: 0%;"></div>
+            <!-- Mini Menu included in layout -->
+            <div id="miniMenu">
+              <div class="menuItem" id="jfiButton">
+                <img src="images/icons/minimenu/jfi.png" alt="Jfi">
+                <span>Jfi</span>
               </div>
-              <span id="batteryPercentBottom">--%</span>
+              <div class="menuItem">
+                <img src="images/icons/minimenu/connect.png" alt="Connect">
+                <span>Connect</span>
+              </div>
+              <div class="menuItem">
+                <img src="images/icons/minimenu/brightness.png" alt="Brightness">
+                <input type="range" id="brightnessSlider" min="0" max="100" value="50">
+              </div>
+              <div class="batteryInfo">
+                <div id="batteryContainerSys">
+                  <div id="batteryLevelSys" style="width: 0%;"></div>
+                </div>
+                <span id="batteryPercentBottom">--%</span>
+              </div>
+            </div>
+            <div id="desktop"></div>
+            <div id="search-menu" class="search-menu" style="display:none;">
+              <span class="close-btn" onclick="toggleSearchMenu()">
+                <img src="images/icons/x.png" alt="Close">
+              </span>
+              <input type="text" placeholder="Search apps..." oninput="filterApps(this.value)">
+              <div id="app-list"></div>
             </div>
           </div>
-          <div id="desktop"></div>
           <div id="taskbar" class="taskbar">
-            <button id="start-button" onclick="toggleSearchMenu()" class="taskbar-button search-btn">❖</button>
-            <button id="gm-button" onclick="toggleGameBar()" class="taskbar-button">
+            <button id="start-button" class="taskbar-button" onclick="toggleSearchMenu()">❖</button>
+            <button id="gm-button" class="taskbar-button" onclick="toggleGameBar()">
               <img id="gm-icon" src="images/icons/gm/off.png" alt="Game Mode">
             </button>
             <div id="open-apps"></div>
@@ -1219,13 +1232,6 @@
               <button class="lock-button" onclick="showPasswordModal()">Lock</button>
               <button onclick="powerOff()" class="power-button">Power Down</button>
             </div>
-          </div>
-          <div id="search-menu" class="search-menu" style="display:none;">
-            <span class="close-btn" onclick="toggleSearchMenu()">
-              <img src="images/icons/x.png" alt="Close">
-            </span>
-            <input type="text" placeholder="Search apps..." oninput="filterApps(this.value)">
-            <div id="app-list"></div>
           </div>
         `;
         installJstoreIfNotInstalled();
