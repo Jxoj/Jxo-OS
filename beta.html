@@ -1031,28 +1031,34 @@
       ------------------------- */
       function attachSystemMenuListener() {
         const sysBtn = document.getElementById("systemMenuBtn");
-        sysBtn.addEventListener("click", () => {
-          const miniMenu = document.getElementById("miniMenu");
-          // Position the mini menu above the taskbar button
-          const rect = sysBtn.getBoundingClientRect();
-          miniMenu.style.left = rect.left + "px";
-          miniMenu.style.bottom = (window.innerHeight - rect.top + 5) + "px";
-          miniMenu.style.display = (miniMenu.style.display === "none" || miniMenu.style.display === "") ? "block" : "none";
-        });
-        // Attach click listener to the Jfi button in mini menu to open the Jfi modal
+        if (sysBtn) {
+          sysBtn.addEventListener("click", () => {
+            const miniMenu = document.getElementById("miniMenu");
+            const rect = sysBtn.getBoundingClientRect();
+            miniMenu.style.left = rect.left + "px";
+            miniMenu.style.bottom = (window.innerHeight - rect.top + 5) + "px";
+            miniMenu.style.display = (miniMenu.style.display === "none" || miniMenu.style.display === "") ? "block" : "none";
+          });
+        }
         const jfiBtn = document.getElementById("jfiButton");
-        jfiBtn.addEventListener("click", () => {
-          document.getElementById("jfiModal").style.display = "block";
-        });
-        // Attach brightness slider listener to update brightness
+        if (jfiBtn) {
+          jfiBtn.addEventListener("click", () => {
+            document.getElementById("jfiModal").style.display = "block";
+          });
+        }
         const brightnessSlider = document.getElementById("brightnessSlider");
-        brightnessSlider.addEventListener("input", updateBrightness);
+        if (brightnessSlider) {
+          brightnessSlider.addEventListener("input", updateBrightness);
+        }
       }
 
-      // Update OS brightness based on slider value
       function updateBrightness() {
-        const val = document.getElementById("brightnessSlider").value;
-        document.body.style.filter = "brightness(" + val + "%)";
+        const brightnessSlider = document.getElementById("brightnessSlider");
+        if (brightnessSlider) {
+          const val = brightnessSlider.value;
+          // Adjust the brightness filter on the entire document (this will not hide the taskbar)
+          document.body.style.filter = "brightness(" + val + "%)";
+        }
       }
 
       function updateBatteryInfo() {
@@ -1060,12 +1066,10 @@
           navigator.getBattery().then(battery => {
             let level = battery.level;
             let levelText = Math.round(level * 100) + "%";
-            // Taskbar
             const batteryLevel = document.getElementById("batteryLevel");
             const batteryPercentElem = document.getElementById("batteryPercent");
             if (batteryLevel) batteryLevel.style.width = (level * 100) + "%";
             if (batteryPercentElem) batteryPercentElem.textContent = levelText;
-            // Mini Menu
             const batteryLevelSys = document.getElementById("batteryLevelSys");
             const batteryPercentBottomElem = document.getElementById("batteryPercentBottom");
             if (batteryLevelSys) batteryLevelSys.style.width = (level * 100) + "%";
