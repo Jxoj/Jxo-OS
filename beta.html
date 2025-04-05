@@ -455,8 +455,8 @@
       </div>
     </div>
 
-    <!-- SYSTEM MENU -->
-    <div id="systemMenu">
+    <!-- MINI MENU (formerly system menu) -->
+    <div id="miniMenu">
       <div class="menuItem">
         <img src="images/icons/minimenu/jfi.png" alt="Jfi" style="width:32px;height:32px;">
         <span>Jfi</span>
@@ -956,42 +956,57 @@
       }
 
       /* -------------------------
-         System Menu & Battery Functions
+         Mini Menu & Battery Functions
       ------------------------- */
+      // Attach listener to the mini menu button (systemMenuBtn)
       function attachSystemMenuListener() {
         const sysBtn = document.getElementById("systemMenuBtn");
         sysBtn.addEventListener("click", () => {
-          const sysMenu = document.getElementById("systemMenu");
-          sysMenu.style.display = (sysMenu.style.display === "none" || sysMenu.style.display === "") ? "block" : "none";
+          const miniMenu = document.getElementById("miniMenu");
+          miniMenu.style.display = (miniMenu.style.display === "none" || miniMenu.style.display === "") ? "block" : "none";
         });
       }
 
-      // Single function updating battery info for taskbar, system menu, and game bar.
+      // Update battery info for taskbar, mini menu, and game bar.
       function updateBatteryInfo() {
         if (navigator.getBattery) {
           navigator.getBattery().then(battery => {
             let level = battery.level;
             let levelText = Math.round(level * 100) + "%";
-            // Taskbar battery update
+            // Taskbar
             const batteryLevel = document.getElementById("batteryLevel");
             const batteryPercentElem = document.getElementById("batteryPercent");
             if (batteryLevel) batteryLevel.style.width = (level * 100) + "%";
             if (batteryPercentElem) batteryPercentElem.textContent = levelText;
-            // System menu battery update
+            // Mini Menu
             const batteryLevelSys = document.getElementById("batteryLevelSys");
             const batteryPercentBottomElem = document.getElementById("batteryPercentBottom");
             if (batteryLevelSys) batteryLevelSys.style.width = (level * 100) + "%";
             if (batteryPercentBottomElem) batteryPercentBottomElem.textContent = levelText;
-            // Game bar battery update (appended to gm-clock)
-            const gmClock = document.getElementById("gm-clock");
-            if (gmClock) {
-              let timeStr = new Date().toLocaleTimeString();
-              gmClock.innerText = timeStr + " | " + levelText;
-            }
+            // Game Bar update is handled in updateGameBarWidgets()
           });
         }
       }
       setInterval(updateBatteryInfo, 1000);
+
+      /* -------------------------
+         Game Bar Widgets (Clock & Battery)
+      ------------------------- */
+      function updateGameBarWidgets() {
+        const gmClock = document.getElementById("gm-clock");
+        if (gmClock) {
+          let timeStr = new Date().toLocaleTimeString();
+          if (navigator.getBattery) {
+            navigator.getBattery().then(battery => {
+              let level = Math.round(battery.level * 100) + "%";
+              gmClock.innerText = timeStr + " | " + level;
+            });
+          } else {
+            gmClock.innerText = timeStr + " | N/A";
+          }
+        }
+      }
+      setInterval(updateGameBarWidgets, 1000);
 
       /* -------------------------
          Widgets Menu (Placeholder)
