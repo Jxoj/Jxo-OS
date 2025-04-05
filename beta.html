@@ -388,16 +388,37 @@
         background-color: limegreen;
         transition: width 0.3s ease;
       }
-      /* System Menu Battery Rectangle */
+      /* MINI MENU */
+      #miniMenu {
+        display: none;
+        position: fixed;
+        top: 50px;
+        right: 10px;
+        background-color: #333;
+        border: 1px solid #444;
+        padding: 10px;
+        z-index: 2000;
+      }
+      #miniMenu .menuItem {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      #miniMenu .menuItem img {
+        width: 32px;
+        height: 32px;
+        margin-right: 5px;
+      }
+      #miniMenu .batteryInfo {
+        display: flex;
+        align-items: center;
+      }
       #batteryContainerSys {
         width: 40px;
         height: 18px;
         border: 2px solid #fff;
         border-radius: 4px;
-        position: relative;
         background-color: #000;
-        display: inline-block;
-        vertical-align: middle;
         margin-right: 5px;
       }
       #batteryLevelSys {
@@ -442,7 +463,7 @@
           <span id="date"></span>
           <span id="clock"></span>
         </div>
-        <!-- System Menu Button -->
+        <!-- System Menu Button (Mini Menu Toggle) -->
         <button id="systemMenuBtn" class="taskbar-button">
           <img src="images/icons/wifi.png" alt="WiFi" style="width:32px;height:32px;">
           <div id="batteryContainer">
@@ -455,18 +476,18 @@
       </div>
     </div>
 
-    <!-- MINI MENU (formerly system menu) -->
+    <!-- MINI MENU -->
     <div id="miniMenu">
       <div class="menuItem">
-        <img src="images/icons/minimenu/jfi.png" alt="Jfi" style="width:32px;height:32px;">
+        <img src="images/icons/minimenu/jfi.png" alt="Jfi">
         <span>Jfi</span>
       </div>
       <div class="menuItem">
-        <img src="images/icons/minimenu/connect.png" alt="Connect" style="width:32px;height:32px;">
+        <img src="images/icons/minimenu/connect.png" alt="Connect">
         <span>Connect</span>
       </div>
       <div class="menuItem">
-        <img src="images/icons/minimenu/brightness.png" alt="Brightness" style="width:32px;height:32px;">
+        <img src="images/icons/minimenu/brightness.png" alt="Brightness">
         <input type="range" id="brightnessSlider" min="0" max="100" value="50">
       </div>
       <div class="batteryInfo">
@@ -489,9 +510,9 @@
     <!-- SEARCH MENU -->
     <div id="search-menu" class="search-menu" style="display:none;">
       <span class="close-btn" onclick="toggleSearchMenu()">
-        <img src="images/icons/x.png" alt="Close" />
+        <img src="images/icons/x.png" alt="Close">
       </span>
-      <input type="text" placeholder="Search apps..." oninput="filterApps(this.value)" />
+      <input type="text" placeholder="Search apps..." oninput="filterApps(this.value)">
       <div id="app-list"></div>
     </div>
 
@@ -588,14 +609,14 @@
             settingsApp.htmlContent = `
               <div id="settings-app">
                 <div id="settings-sidebar">
-                  <input type="text" id="settings-search" placeholder="Search settings..." />
+                  <input type="text" id="settings-search" placeholder="Search settings...">
                   <ul id="settings-options">
                     <li data-tab="personalization">
-                      <img src="https://jxoj.github.io/Jxo-OS/images/icons/settings/sidebar/personalization.webp" alt="Personalization" />
+                      <img src="https://jxoj.github.io/Jxo-OS/images/icons/settings/sidebar/personalization.webp" alt="Personalization">
                       <span>Personalization</span>
                     </li>
                     <li data-tab="account">
-                      <img src="https://jxoj.github.io/Jxo-OS/images/icons/settings/sidebar/account.webp" alt="Account" />
+                      <img src="https://jxoj.github.io/Jxo-OS/images/icons/settings/sidebar/account.webp" alt="Account">
                       <span>Account</span>
                     </li>
                   </ul>
@@ -699,7 +720,7 @@
           <div style="margin-bottom:20px;">
             <h3>Change Background Image</h3>
             <div id="bg-preview-container">
-              <img id="bg-preview" src="images/backgrounds/wallpaper1.jpg" alt="Background Preview" />
+              <img id="bg-preview" src="images/backgrounds/wallpaper1.jpg" alt="Background Preview">
             </div>
             <select id="wallpaper-dropdown">
               ${wallpapers.map(wp => `<option value="images/backgrounds/${wp}.jpg">${wp}.jpg</option>`).join("")}
@@ -707,7 +728,7 @@
           </div>
           <div style="margin-bottom:20px;">
             <h3>Change Background Color</h3>
-            <input type="color" id="bg-color-picker" />
+            <input type="color" id="bg-color-picker">
           </div>
           <div style="margin-bottom:20px;">
             <h3>Toggle Light/Dark Mode</h3>
@@ -752,7 +773,7 @@
           <div style="background:#333; padding:20px; border-radius:8px; max-width:400px;">
             <div style="margin-bottom:10px;">
               <label style="display:block; margin-bottom:5px;">New Username:</label>
-              <input type="text" id="new-username" placeholder="Enter new username" />
+              <input type="text" id="new-username" placeholder="Enter new username">
             </div>
             <div style="margin-bottom:10px;">
               <label style="display:block; margin-bottom:5px;">New Password:</label>
@@ -761,7 +782,7 @@
                 <img src="images/icons/setup/show.png" alt="Show">
               </button>
             </div>
-            <button onclick="updateAccount(document.getElementById('new-username').value,document.getElementById('new-password').value)" style="padding:10px 20px; background:#555; border:none; border-radius:4px; cursor:pointer; color:#e0e0e0;">Update Account</button>
+            <button onclick="updateAccount(document.getElementById('new-username').value, document.getElementById('new-password').value)" style="padding:10px 20px; background:#555; border:none; border-radius:4px; cursor:pointer; color:#e0e0e0;">Update Account</button>
             <div id="account-message" style="margin-top:10px;"></div>
           </div>
         `;
@@ -910,10 +931,10 @@
               <span class="window-title">${app.name}</span>
               <div>
                 <button class="window-btn" onclick="closeWindow('${appId}')">
-                  <img src="images/icons/x.png" alt="Close" />
+                  <img src="images/icons/x.png" alt="Close">
                 </button>
                 <button class="window-btn" onclick="toggleFullscreen('${appId}')">
-                  <img src="images/icons/fullscreen.png" alt="Fullscreen" />
+                  <img src="images/icons/fullscreen.png" alt="Fullscreen">
                 </button>
               </div>
             </div>
@@ -958,7 +979,6 @@
       /* -------------------------
          Mini Menu & Battery Functions
       ------------------------- */
-      // Attach listener to the mini menu button (systemMenuBtn)
       function attachSystemMenuListener() {
         const sysBtn = document.getElementById("systemMenuBtn");
         sysBtn.addEventListener("click", () => {
@@ -967,7 +987,6 @@
         });
       }
 
-      // Update battery info for taskbar, mini menu, and game bar.
       function updateBatteryInfo() {
         if (navigator.getBattery) {
           navigator.getBattery().then(battery => {
@@ -983,7 +1002,6 @@
             const batteryPercentBottomElem = document.getElementById("batteryPercentBottom");
             if (batteryLevelSys) batteryLevelSys.style.width = (level * 100) + "%";
             if (batteryPercentBottomElem) batteryPercentBottomElem.textContent = levelText;
-            // Game Bar update is handled in updateGameBarWidgets()
           });
         }
       }
@@ -1055,6 +1073,27 @@
             <div id="gm-clock"></div>
             <button id="gm-widgets-btn" onclick="toggleWidgetsMenu()">Widgets</button>
           </div>
+          <!-- Include Mini Menu in OS layout -->
+          <div id="miniMenu">
+            <div class="menuItem">
+              <img src="images/icons/minimenu/jfi.png" alt="Jfi">
+              <span>Jfi</span>
+            </div>
+            <div class="menuItem">
+              <img src="images/icons/minimenu/connect.png" alt="Connect">
+              <span>Connect</span>
+            </div>
+            <div class="menuItem">
+              <img src="images/icons/minimenu/brightness.png" alt="Brightness">
+              <input type="range" id="brightnessSlider" min="0" max="100" value="50">
+            </div>
+            <div class="batteryInfo">
+              <div id="batteryContainerSys">
+                <div id="batteryLevelSys" style="width: 0%;"></div>
+              </div>
+              <span id="batteryPercentBottom">--%</span>
+            </div>
+          </div>
           <div id="desktop"></div>
           <div id="taskbar" class="taskbar">
             <button id="start-button" onclick="toggleSearchMenu()" class="taskbar-button search-btn">❖</button>
@@ -1080,9 +1119,9 @@
           </div>
           <div id="search-menu" class="search-menu" style="display:none;">
             <span class="close-btn" onclick="toggleSearchMenu()">
-              <img src="images/icons/x.png" alt="Close" />
+              <img src="images/icons/x.png" alt="Close">
             </span>
-            <input type="text" placeholder="Search apps..." oninput="filterApps(this.value)" />
+            <input type="text" placeholder="Search apps..." oninput="filterApps(this.value)">
             <div id="app-list"></div>
           </div>
         `;
@@ -1143,10 +1182,10 @@
               <span class="window-title">${app.name}</span>
               <div>
                 <button class="window-btn" onclick="closeWindow('${appId}')">
-                  <img src="images/icons/x.png" alt="Close" />
+                  <img src="images/icons/x.png" alt="Close">
                 </button>
                 <button class="window-btn" onclick="toggleFullscreen('${appId}')">
-                  <img src="images/icons/fullscreen.png" alt="Fullscreen" />
+                  <img src="images/icons/fullscreen.png" alt="Fullscreen">
                 </button>
               </div>
             </div>
@@ -1256,11 +1295,11 @@
                 <div class="setup-step">
                   <h2>Let's get you setup</h2>
                   <p>Please choose your username and password.</p>
-                  <input type="text" id="setup-username" placeholder="Username" />
+                  <input type="text" id="setup-username" placeholder="Username">
                   <div>
-                    <input type="password" id="setup-password" placeholder="Password" />
+                    <input type="password" id="setup-password" placeholder="Password">
                     <button class="toggle-password" onclick="toggleInputPassword('setup-password', this)">
-                      <img src="images/icons/setup/show.png" alt="Show" />
+                      <img src="images/icons/setup/show.png" alt="Show">
                     </button>
                   </div>
                   <button id="setup-next">Next</button>
@@ -1280,7 +1319,7 @@
                   <p>This is optional. Upload one if you like:</p>
                   <div class="file-input-wrapper">
                     <span class="file-input-label">Choose File</span>
-                    <input type="file" id="profile-upload" accept="image/*" />
+                    <input type="file" id="profile-upload" accept="image/*">
                   </div>
                   <img id="profile-preview" class="preview-img" src="images/icons/profile/profile.png" alt="Profile Preview">
                   <br>
