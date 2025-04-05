@@ -309,7 +309,6 @@
         z-index: 15000;
         padding: 5px 10px;
         align-items: center;
-        /* Ensure icons in game bar are 32px */
       }
       #gamebar img {
         width: 32px;
@@ -967,56 +966,32 @@
         });
       }
 
-      function updateSystemBattery() {
-        const batteryLevel = document.getElementById("batteryLevel");
-        const batteryPercentElem = document.getElementById("batteryPercent");
-        const batteryLevelSys = document.getElementById("batteryLevelSys");
-        const batteryPercentBottomElem = document.getElementById("batteryPercentBottom");
+      // Single function updating battery info for taskbar, system menu, and game bar.
+      function updateBatteryInfo() {
         if (navigator.getBattery) {
           navigator.getBattery().then(battery => {
             let level = battery.level;
-            batteryLevel.style.width = (level * 100) + "%";
-            batteryLevelSys.style.width = (level * 100) + "%";
-            if (level <= 0.2) {
-              batteryLevel.style.backgroundColor = "red";
-              batteryLevelSys.style.backgroundColor = "red";
-            } else if (level <= 0.5) {
-              batteryLevel.style.backgroundColor = "orange";
-              batteryLevelSys.style.backgroundColor = "orange";
-            } else {
-              batteryLevel.style.backgroundColor = "limegreen";
-              batteryLevelSys.style.backgroundColor = "limegreen";
-            }
             let levelText = Math.round(level * 100) + "%";
-            batteryPercentElem.textContent = levelText;
-            batteryPercentBottomElem.textContent = levelText;
+            // Taskbar battery update
+            const batteryLevel = document.getElementById("batteryLevel");
+            const batteryPercentElem = document.getElementById("batteryPercent");
+            if (batteryLevel) batteryLevel.style.width = (level * 100) + "%";
+            if (batteryPercentElem) batteryPercentElem.textContent = levelText;
+            // System menu battery update
+            const batteryLevelSys = document.getElementById("batteryLevelSys");
+            const batteryPercentBottomElem = document.getElementById("batteryPercentBottom");
+            if (batteryLevelSys) batteryLevelSys.style.width = (level * 100) + "%";
+            if (batteryPercentBottomElem) batteryPercentBottomElem.textContent = levelText;
+            // Game bar battery update (appended to gm-clock)
+            const gmClock = document.getElementById("gm-clock");
+            if (gmClock) {
+              let timeStr = new Date().toLocaleTimeString();
+              gmClock.innerText = timeStr + " | " + levelText;
+            }
           });
-        } else {
-          batteryPercentElem.textContent = "N/A";
-          batteryPercentBottomElem.textContent = "N/A";
         }
       }
-      updateSystemBattery();
-      setInterval(updateSystemBattery, 60000);
-
-      /* -------------------------
-         Game Bar Widgets (Clock & Battery)
-      ------------------------- */
-      function updateGameBarWidgets() {
-        const gmClock = document.getElementById("gm-clock");
-        if (gmClock) {
-          let timeStr = new Date().toLocaleTimeString();
-          if (navigator.getBattery) {
-            navigator.getBattery().then(battery => {
-              let level = Math.round(battery.level * 100) + "%";
-              gmClock.innerText = timeStr + " | " + level;
-            });
-          } else {
-            gmClock.innerText = timeStr + " | N/A";
-          }
-        }
-      }
-      setInterval(updateGameBarWidgets, 1000);
+      setInterval(updateBatteryInfo, 1000);
 
       /* -------------------------
          Widgets Menu (Placeholder)
@@ -1102,17 +1077,14 @@
         updateTaskbar();
         restoreOSTheme();
         setInterval(updateClock, 1000);
-        setInterval(updateSystemBattery, 60000);
-        setInterval(updateGameBarWidgets, 1000);
+        setInterval(updateBatteryInfo, 1000);
         initWidgetsMenu();
         attachSystemMenuListener();
       }
 
       function loadBackground() {
         const background = localStorage.getItem("background");
-        if (background) {
-          document.body.style.background = background;
-        }
+        if (background) { document.body.style.background = background; }
       }
       function saveBackground(backgroundValue) {
         localStorage.setItem("background", backgroundValue);
@@ -1175,12 +1147,8 @@
             openApps.push(appId);
             updateTaskbar();
           }
-          if (appId === "jstore") {
-            setTimeout(loadJstoreApps, 100);
-          }
-          if (appId === "settings") {
-            setTimeout(initSettingsApp, 100);
-          }
+          if (appId === "jstore") { setTimeout(loadJstoreApps, 100); }
+          if (appId === "settings") { setTimeout(initSettingsApp, 100); }
         }
       }
       function closeWindow(appId) {
