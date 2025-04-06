@@ -2,54 +2,64 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>JxoOS Dev API Documentation</title>
-  <link rel="stylesheet" href="/dev/static/styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JxoOS Developer Docs</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #1e1e1e;
+      color: #f0f0f0;
+      padding: 20px;
+    }
+    h1, h2, h3 {
+      color: #00ccff;
+    }
+    code, pre {
+      background-color: #2d2d2d;
+      color: #00ff99;
+      padding: 5px;
+      border-radius: 4px;
+    }
+    .section {
+      margin-bottom: 40px;
+    }
+  </style>
 </head>
 <body>
-  <h1>JxoOS Developer API Documentation</h1>
-  
-  <h2>Endpoints</h2>
-  <ul>
-    <li>
-      <strong>POST /dev/package/app</strong>
-      <p>Uploads a zipped folder of your app structure and returns a packaged .jxo file.</p>
-      <p>Form Field: <code>folderZip</code> – a ZIP file containing your app folder with the required structure and a <code>config.jxo</code> file.</p>
-    </li>
-    <li>
-      <strong>POST /dev/package/os</strong>
-      <p>Uploads a zipped folder of your OS structure and returns a packaged .jxiso file.</p>
-      <p>Form Field: <code>folderZip</code> – a ZIP file containing your OS folder with the required structure and an <code>os.jxo</code> file.</p>
-    </li>
-  </ul>
-  
-  <h2>Folder Structures</h2>
-  <h3>.jxo App Package</h3>
-  <pre>
+  <h1>JxoOS Developer Documentation</h1>
+
+  <div class="section">
+    <h2>📦 Creating a .jxo App Package</h2>
+    <p>To create a <strong>.jxo</strong> file (JxoOS app package), follow this folder structure:</p>
+    <pre>
 Example/
 ├── assets/
 │   └── app/
 │       ├── index.html
 │       ├── styles.css
 │       └── main.js
-├── images/
-│   ├── main.png
-│   └── example.png
-└── config.jxo
-  </pre>
-  
-  <p><strong>config.jxo</strong> sample content:</p>
-  <pre>
+│   └── images/
+│       ├── main.png
+│       └── other.png
+├── config.jxo
+    </pre>
+    <h3>config.jxo Format</h3>
+    <pre>
 App_name: Example
 App_image_path: assets/images/main.png
 App_main: assets/app/index.html
-App_css(s): assets/app/styles.css,assets/app/morecss.css
-App_js(s): assets/app/main.js,assets/app/morejs.js
-Other_files: assets/app/main.json,assets/app/main.txt
+App_css(s): assets/app/styles.css
+App_js(s): assets/app/main.js
+Other_files: assets/app/data.json
 Dev_only: true
-  </pre>
-  
-  <h3>.jxiso OS Package</h3>
-  <pre>
+    </pre>
+    <p><strong>Note:</strong> Multiple CSS and JS files can be separated by commas.</p>
+  </div>
+
+  <div class="section">
+    <h2>💻 Creating a .jxiso OS Package</h2>
+    <p>To create a <strong>.jxiso</strong> file (JxoOS operating system package), use this structure:</p>
+    <pre>
 ExampleOS/
 ├── assets/
 │   ├── css/
@@ -60,21 +70,30 @@ ExampleOS/
 ├── taskbar.png
 ├── icon.png
 └── os.jxo
-  </pre>
-  
-  <p><strong>os.jxo</strong> sample content:</p>
-  <pre>
+    </pre>
+    <h3>os.jxo Format</h3>
+    <pre>
 OS_name: Example
 OS_icon_path: icon.png
 Is_default: true
 Kiosk_mode: false
-  </pre>
-  
-  <h2>Accessing OS Functions</h2>
-  <p>Even if another OS is loaded (overlaid), you can still call its functions using:</p>
-  <pre>
-jxoos.myFunction(arg1, arg2);
-  </pre>
-  
+    </pre>
+    <p><strong>Kiosk_mode:</strong> Prevents switching OS via Developer Mode when set to true.</p>
+  </div>
+
+  <div class="section">
+    <h2>📁 Packaging Your Files</h2>
+    <p>Use the packaging tool at:</p>
+    <code>https://jxoj.github.io/Jxo-OS/dev</code>
+  </div>
+
+  <div class="section">
+    <h2>🛠️ Developer Mode Info</h2>
+    <ul>
+      <li>Access Dev Mode by powering down the OS and clicking the <strong>Developer Mode</strong> button.</li>
+      <li>Dev Mode enables uploading <strong>.jxo</strong> and <strong>.jxiso</strong> packages directly into the OS.</li>
+      <li>Apps marked <code>Dev_only: true</code> will only appear in Developer Mode.</li>
+    </ul>
+  </div>
 </body>
 </html>
