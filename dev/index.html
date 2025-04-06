@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JxoOS Developer Packaging</title>
+  <!-- Include JSZip and FileSaver from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #e0e0e0;
+      padding: 20px;
+    }
+    h1, h2 {
+      color: #f0f0f0;
+    }
+    .packager {
+      margin-bottom: 40px;
+    }
+    input[type="file"] {
+      margin: 10px 0;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #444;
+      border: none;
+      border-radius: 4px;
+      color: #e0e0e0;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #555;
+    }
+    .output {
+      margin-top: 10px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <h1>JxoOS Developer Packaging</h1>
+  <p>Select a folder with the proper structure and package it as a .jxo (app) or .jxiso (OS) file.</p>
+
+  <div class="packager">
+    <h2>Package App (.jxo)</h2>
+    <!-- Using the "webkitdirectory" attribute to allow folder selection -->
+    <input type="file" id="appFolderInput" webkitdirectory directory multiple>
+    <br>
+    <button id="packageAppBtn">Create .jxo file</button>
+    <div id="appOutput" class="output"></div>
+  </div>
+
+  <div class="packager">
+    <h2>Package OS (.jxiso)</h2>
+    <input type="file" id="osFolderInput" webkitdirectory directory multiple>
+    <br>
+    <button id="packageOsBtn">Create .jxiso file</button>
+    <div id="osOutput" class="output"></div>
+  </div>
+
+  <script>
+    // Function to package selected folder files into a custom archive
+    function packageFiles(inputElement, extension, outputElement) {
+      const files = inputElement.files;
+      if (files.length === 0) {
+        alert("No files selected. Please select a folder.");
+        return;
+      }
+      
+      const zip = new JSZip();
+      
+      // Iterate over files and preserve folder structure using file.webkitRelativePath
+      Array.from(files).forEach(file => {
+        // file.webkitRelativePath holds the folder structure relative to the selected folder
+        zip.file(file.webkitRelativePath, file);
+      });
+      
+      // Generate the archive as a blob then trigger a download with the proper extension
+      zip.generateAsync({ type: "blob" }).then(function(content) {
+        // Create a filename with the custom extension
+        const fileName = "package" + extension;
+        saveAs(content, fileName);
+        outputElement.textContent = "Packaging complete. Your file is named: " + fileName;
+      }).catch(err => {
+        outputElement.textContent = "Error: " + err.message;
+      });
+    }
+    
+    document.getElementById("packageAppBtn").addEventListener("click", function() {
+      const input = document.getElementById("appFolderInput");
+      const output = document.getElementById("appOutput");
+      packageFiles(input, ".jxo", output);
+    });
+    
+    document.getElementById("packageOsBtn").addEventListener("click", function() {
+      const input = document.getElementById("osFolderInput");
+      const output = document.getElementById("osOutput");
+      packageFiles(input, ".jxiso", output);
+    });
+  </script>
+</body>
+</html>
