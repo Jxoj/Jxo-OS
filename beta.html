@@ -323,6 +323,7 @@
     </style>
   </head>
   <body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <!-- Jfi Connection Modal -->
     <div id="jfiModal" class="modal">
       <div class="modal-content">
@@ -343,6 +344,11 @@
         <div id="gm-clock"></div>
         <button id="gm-widgets-btn" onclick="toggleWidgetsMenu()">Widgets</button>
       </div>
+      <div id="developerMenu" style="display: none;">
+        <h2>Developer Mode</h2>
+        <label for="jxoUpload">Upload .jxo File:</label>
+        <input type="file" id="jxoUpload" accept=".jxo">
+      </div>  
       <!-- Mini Menu -->
       <div id="miniMenu">
         <div class="menuItem" id="jfiButton">
@@ -538,6 +544,25 @@
         button.textContent = "Uninstall";
         button.onclick = () => uninstallJstoreApp(name, button);
       }
+      function installAppFromZip(zip) {
+  // Example: Extract and read the app's manifest or configuration file
+  zip.file('config.json').async('string')
+    .then(function(data) {
+      const config = JSON.parse(data);
+      // Use the config data to set up the app within your OS
+      registerApp(config, zip);
+    })
+    .catch(function(err) {
+      console.error("Error reading config file:", err);
+    });
+}
+
+function registerApp(config, zip) {
+  // Implement app registration logic, e.g., adding to app list, creating shortcuts
+  console.log("App registered:", config.name);
+  // Additional code to integrate the app into your OS environment
+}
+
       function uninstallJstoreApp(name, button) {
         uninstallApp(name);
         button.textContent = "Install";
@@ -554,6 +579,21 @@
         localStorage.setItem("installedApps", JSON.stringify(installedApps));
         renderDesktop();
       }
+      function loadJXOFile(file) {
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    JSZip.loadAsync(event.target.result)
+      .then(function(zip) {
+        // Process the zip contents
+        installAppFromZip(zip);
+      })
+      .catch(function(err) {
+        console.error("Error reading .jxo file:", err);
+      });
+  };
+  reader.readAsArrayBuffer(file);
+}
+
 
       /* Settings App Functions */
       function initSettingsApp() {
@@ -643,6 +683,13 @@
         modeToggle.addEventListener("change", () => toggleLightDark(modeToggle.value));
         toggleLightDark(modeToggle.value);
       }
+      document.getElementById('jxoUpload').addEventListener('change', function(event) {
+  const file = event.target.files[0];
+  if (file) {
+    loadJXOFile(file);
+  }
+});
+
       function loadAccountTab() {
         const content = document.getElementById("settings-content");
         if (!content) return;
@@ -1895,6 +1942,22 @@
           }
         }
       }
+
+      // Function to get query parameters
+function getQueryParam(param) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(param);
+}
+function enableDeveloperMode() {
+  document.getElementById('developerMenu').style.display = 'block';
+}
+// Check for developer mode
+const isDeveloperMode = getQueryParam('mode') === 'developer';
+if (isDeveloperMode) {
+  enableDeveloperMode();
+}
+
+
 
       /* Game Bar Functions */
       function toggleGameBar() {
