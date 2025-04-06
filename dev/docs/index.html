@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JxoOS Dev API Documentation</title>
+  <link rel="stylesheet" href="/dev/static/styles.css">
+</head>
+<body>
+  <h1>JxoOS Developer API Documentation</h1>
+  
+  <h2>Endpoints</h2>
+  <ul>
+    <li>
+      <strong>POST /dev/package/app</strong>
+      <p>Uploads a zipped folder of your app structure and returns a packaged .jxo file.</p>
+      <p>Form Field: <code>folderZip</code> – a ZIP file containing your app folder with the required structure and a <code>config.jxo</code> file.</p>
+    </li>
+    <li>
+      <strong>POST /dev/package/os</strong>
+      <p>Uploads a zipped folder of your OS structure and returns a packaged .jxiso file.</p>
+      <p>Form Field: <code>folderZip</code> – a ZIP file containing your OS folder with the required structure and an <code>os.jxo</code> file.</p>
+    </li>
+  </ul>
+  
+  <h2>Folder Structures</h2>
+  <h3>.jxo App Package</h3>
+  <pre>
+Example/
+├── assets/
+│   └── app/
+│       ├── index.html
+│       ├── styles.css
+│       └── main.js
+├── images/
+│   ├── main.png
+│   └── example.png
+└── config.jxo
+  </pre>
+  
+  <p><strong>config.jxo</strong> sample content:</p>
+  <pre>
+App_name: Example
+App_image_path: assets/images/main.png
+App_main: assets/app/index.html
+App_css(s): assets/app/styles.css,assets/app/morecss.css
+App_js(s): assets/app/main.js,assets/app/morejs.js
+Other_files: assets/app/main.json,assets/app/main.txt
+Dev_only: true
+  </pre>
+  
+  <h3>.jxiso OS Package</h3>
+  <pre>
+ExampleOS/
+├── assets/
+│   ├── css/
+│   ├── js/
+│   └── html/
+│       ├── main.html
+│       └── boot.html
+├── taskbar.png
+├── icon.png
+└── os.jxo
+  </pre>
+  
+  <p><strong>os.jxo</strong> sample content:</p>
+  <pre>
+OS_name: Example
+OS_icon_path: icon.png
+Is_default: true
+Kiosk_mode: false
+  </pre>
+  
+  <h2>Accessing OS Functions</h2>
+  <p>Even if another OS is loaded (overlaid), you can still call its functions using:</p>
+  <pre>
+jxoos.myFunction(arg1, arg2);
+  </pre>
+  
+</body>
+</html>
