@@ -1,2 +1,2 @@
 # Jxo-OS
-A web-OS to meet all your needs.
+A simple web-os for using apps and services
