@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -90,100 +89,118 @@
 <body>
   <div id="header">
     <div id="header-top">
-      <img id="logo" src="assets/images/logo.png" alt="HyperFox Logo" />
+      <img id="logo" src="https://jxoj.github.io/Jxo-OS/apps/hyperfox/assets/images/logo.png" alt="HyperFox Logo" />
       <div id="controls">
         <button id="back">◀</button>
         <button id="forward">▶</button>
         <button id="refresh">⟳</button>
         <button id="home">🏠</button>
-        <button id="toggleProxy">Proxy: ON</button>
+        <button id="toggleProxy">Proxy</button>
         <input type="text" id="urlInput" placeholder="Enter URL" />
         <button id="go">Go</button>
       </div>
     </div>
     <div id="header-bottom">
-      <span id="proxyMessage">⚠️Some sites will not load properly⚠️</span>
+      <span id="proxyMessage"></span>
     </div>
   </div>
   
-  <iframe id="iframeContainer" src="assets/home/index.html"></iframe>
+  <iframe id="iframeContainer" src="https://jxoj.github.io/Jxo-OS/apps/hyperfox/assets/home/index.html"></iframe>
   
   <script>
-    // Utility to read query params
+    // Utility: read ?key=value
     function getQueryParam(name) {
       return new URLSearchParams(window.location.search).get(name);
     }
 
-    // Kiosk parameters
-    const isKiosk = getQueryParam("kiosk") === "true";
-    const kioskUrl = getQueryParam("url");
+    // Read kiosk + proxy flags and target URL
+    const isKiosk   = getQueryParam("kiosk")  === "true";
+    const kioskUrl  = getQueryParam("url");
+    const proxyInit = getQueryParam("proxy")  === "true";
 
     // DOM refs
-    const iframe = document.getElementById('iframeContainer');
-    const urlInput = document.getElementById('urlInput');
-    const backButton = document.getElementById('back');
-    const forwardButton = document.getElementById('forward');
-    const refreshButton = document.getElementById('refresh');
-    const homeButton = document.getElementById('home');
-    const goButton = document.getElementById('go');
+    const header            = document.getElementById('header');
+    const iframe            = document.getElementById('iframeContainer');
+    const urlInput          = document.getElementById('urlInput');
+    const backButton        = document.getElementById('back');
+    const forwardButton     = document.getElementById('forward');
+    const refreshButton     = document.getElementById('refresh');
+    const homeButton        = document.getElementById('home');
+    const goButton          = document.getElementById('go');
     const toggleProxyButton = document.getElementById('toggleProxy');
-    const proxyMessage = document.getElementById('proxyMessage');
-    const header = document.getElementById('header');
+    const proxyMessage      = document.getElementById('proxyMessage');
 
-    // History stacks
+    // History + proxy state
     let historyStack = [];
     let forwardStack = [];
-    let proxyOn = false;
+    let proxyOn      = proxyInit;
 
-    // On kiosk: hide UI and expand iframe
+    // Initialize proxy button text
+    function updateProxyUI() {
+      if (proxyOn) {
+        toggleProxyButton.textContent = 'Proxy: ON';
+        proxyMessage.textContent = '⚠️ Some sites may not load properly or at all.';
+      } else {
+        toggleProxyButton.textContent = 'Proxy: OFF';
+        proxyMessage.textContent = 'Only sites allowing iframes will show.';
+      }
+    }
+    updateProxyUI();
+
+    // If kiosk mode, hide header and go full‑screen
     if (isKiosk && kioskUrl) {
-      header.style.display = 'none';
-      iframe.style.height = '100vh';
+      header.style.display    = 'none';
+      iframe.style.height     = '100vh';
       navigate(kioskUrl);
     }
 
-    // Listen for postMessages from iframe (proxy navigation)
-    window.addEventListener('message', function(event) {
-      if (event.data && event.data.type === 'navigate' && event.data.url) {
-        navigate(event.data.url);
+    // Listen for clicks inside proxy‑loaded pages
+    window.addEventListener('message', e => {
+      if (e.data?.type === 'navigate' && e.data.url) {
+        navigate(e.data.url);
       }
     });
 
-    // Navigation function
-    function navigate(url, pushHistory = true) {
-      if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('assets/')) {
+    // Core navigation function
+    function navigate(rawUrl, pushHistory = true) {
+      let url = rawUrl;
+      if (!url.match(/^https?:\/\//) && !url.startsWith('assets/')) {
         url = 'https://' + url;
       }
+
       if (proxyOn) {
         fetch('https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url))
           .then(r => r.text())
-          .then(htmlText => {
-            let base = new URL(url).origin;
-            htmlText = htmlText.replace(/(src|href)=["']\/(?!\/)/g,
-              (m,p1) => `${p1}="https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(base)}/`);
+          .then(html => {
+            const base = new URL(url).origin;
+            html = html.replace(/(src|href)=["']\/(?!\/)/g,
+              (m,p1) => `${p1}="https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(base)}/`
+            );
             const inject = `<script>
-document.addEventListener('click',function(e){
-  let t=e.target;
-  while(t&&t!==document){
-    if(t.tagName==='A'&&t.href){
-      e.preventDefault();
-      parent.postMessage({type:'navigate',url:t.href},'*');
-      break;
+  document.addEventListener('click', e => {
+    let t = e.target;
+    while (t && t !== document) {
+      if (t.tagName==='A' && t.href) {
+        e.preventDefault();
+        parent.postMessage({type:'navigate',url:t.href},'*');
+        break;
+      }
+      t = t.parentElement;
     }
-    t=t.parentElement;
-  }
-});
+  });
 <\/script>`;
-            htmlText = htmlText.includes('</head>')
-              ? htmlText.replace('</head>', inject + '</head>')
-              : htmlText.includes('</body>')
-                ? htmlText.replace('</body>', inject + '</body>')
-                : inject + htmlText;
-            const blob = new Blob([htmlText],{type:'text/html'});
-            iframe.src = URL.createObjectURL(blob);
+            html = html.includes('</head>')
+              ? html.replace('</head>', inject + '</head>')
+              : html.includes('</body>')
+                ? html.replace('</body>', inject + '</body>')
+                : inject + html;
+
+            const blobUrl = URL.createObjectURL(new Blob([html], {type:'text/html'}));
+            iframe.src = blobUrl;
             urlInput.value = url;
             if (pushHistory) { historyStack.push(url); forwardStack = []; }
-          }).catch(()=> alert('Failed to load via proxy'));
+          })
+          .catch(() => alert('Failed to load via proxy.'));
       } else {
         iframe.src = url;
         urlInput.value = url;
@@ -191,12 +208,10 @@ document.addEventListener('click',function(e){
       }
     }
 
-    // Button handlers
-    goButton.addEventListener('click', () => navigate(urlInput.value));
-    urlInput.addEventListener('keypress', e => {
-      if (e.key === 'Enter') navigate(urlInput.value);
-    });
-    backButton.addEventListener('click', () => {
+    // UI event handlers
+    goButton.addEventListener('click',  () => navigate(urlInput.value));
+    urlInput .addEventListener('keypress', e => { if (e.key==='Enter') navigate(urlInput.value); });
+    backButton .addEventListener('click', () => {
       if (historyStack.length) {
         forwardStack.push(urlInput.value);
         navigate(historyStack.pop(), false);
@@ -209,13 +224,10 @@ document.addEventListener('click',function(e){
       }
     });
     refreshButton.addEventListener('click', () => navigate(urlInput.value, false));
-    homeButton.addEventListener('click', () => navigate('assets/home/index.html'));
+    homeButton.addEventListener('click',    () => navigate('https://jxoj.github.io/Jxo-OS/apps/hyperfox/assets/home/index.html'));
     toggleProxyButton.addEventListener('click', () => {
       proxyOn = !proxyOn;
-      toggleProxyButton.textContent = proxyOn ? 'Proxy: ON' : 'Proxy: OFF';
-      proxyMessage.textContent = proxyOn
-        ? '⚠️Some sites will not load properly. Or they will not load at all⚠️'
-        : 'Only sites that allow iframing will show.';
+      updateProxyUI();
       navigate(urlInput.value, false);
     });
   </script>
