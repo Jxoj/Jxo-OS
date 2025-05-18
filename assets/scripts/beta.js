@@ -1,4 +1,4 @@
-/* assets/js/main.js */
+
 
 // Clear sessionStorage so login UI shows on every reload.
 document.addEventListener("DOMContentLoaded", () => {
