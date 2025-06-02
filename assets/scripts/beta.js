@@ -813,7 +813,7 @@ function toggleDevMode() {
 }
 function initDevModeListener() {
   window.addEventListener("keydown", (e) => {
-    if (e.ctrlKey && e.key.toLowerCase() === "d" && localStorage.getItem("devMode") === "true") {
+    if (e.ctrlKey && e.key.toLowerCase() === "y" && localStorage.getItem("devMode") === "true") {
       e.preventDefault();
       openPackageImporter();
     }
