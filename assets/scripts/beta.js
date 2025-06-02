@@ -163,18 +163,25 @@ document.addEventListener("DOMContentLoaded", () => {
 function initSettingsApp() {
   const search = document.getElementById("settings-search");
   const options = document.getElementById("settings-options");
-  if (search && options) {
-    search.addEventListener("input", () => {
-      const q = search.value.toLowerCase();
-      options.querySelectorAll("li").forEach(li => {
-        li.style.display = li.textContent.toLowerCase().includes(q) ? "" : "none";
-      });
-    });
+  const items = document.querySelectorAll("#settings-options li");
+
+  // If not ready, retry shortly
+  if (!search || !options || items.length === 0) {
+    setTimeout(initSettingsApp, 100);
+    return;
   }
 
-  const items = document.querySelectorAll("#settings-options li");
+  // Add search filter
+  search.addEventListener("input", () => {
+    const q = search.value.toLowerCase();
+    options.querySelectorAll("li").forEach(li => {
+      li.style.display = li.textContent.toLowerCase().includes(q) ? "" : "none";
+    });
+  });
+
+  // Add tab switcher
   items.forEach(item => {
-    item.addEventListener("click", () => {
+    item.onclick = () => {
       items.forEach(i => i.classList.remove("active"));
       item.classList.add("active");
       switch (item.dataset.tab) {
@@ -188,12 +195,13 @@ function initSettingsApp() {
           loadAboutSystemTab();
           break;
       }
-    });
+    };
   });
 
-  // Default to Personalization tab:
+  // Load default tab
   loadPersonalizationTab();
 }
+
   
   // Personalization tab UI.
   function loadPersonalizationTab() {
