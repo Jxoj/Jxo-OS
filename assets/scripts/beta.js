@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span>Account</span>
               </li>
               <li data-tab="about">
-                <img src="https://jxoj.github.io/Jxo-OS/images/icons/settings/sidebar/about.webp" alt="About System">
+                <img src="https://jxoj.github.io/Jxo-OS/images/icons/settings/sidebar/about.png" alt="About System">
                 <span>About System</span>
               </li>
             </ul>
