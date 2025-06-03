@@ -377,7 +377,7 @@ function initSettingsApp() {
           color: white;
           text-align: center;
           /* Ensure a known base font-size so 1em = height of the text before scaling */
-          font-size: 16px;
+          font-size: 24px;
         ">
           <span class="boot-title" style="
             display: inline-block;
