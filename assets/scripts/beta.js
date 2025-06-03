@@ -361,49 +361,26 @@ function initSettingsApp() {
     if (bg) document.body.style.background = bg;
   }
   
-// Show boot screen then OS.
-  function showBootScreen() {
-    document.body.innerHTML = `
-      <div class="boot-screen" style="
-        width: 100vw;
-        height: 100vh;
-        background: blue;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      ">
-        <div class="boot-content" style="
-          transform: scale(2);
-          color: white;
-          text-align: center;
-          /* Ensure a known base font-size so 1em = height of the text before scaling */
-          font-size: 24px;
-        ">
-          <span class="boot-title" style="
-            display: inline-block;
-            line-height: 1; /* tighten line-height so text height ≈ font-size */
-          ">Jx</span>
-          <div class="loading-circle" style="
-            margin-top: 20px;
-            /* 1em here equals 16px, then transform: scale(2) makes it 32px */
-            width: 1em;
-            height: 1em;
-            border: 0.25em solid white;
-            border-top: 0.25em solid transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-          "></div>
-        </div>
-      </div>
+function showBootScreen() {
+  document.body.innerHTML = `
+  <div class="boot-screen" style="width:100vw;height:100vh;background:blue;display:flex;justify-content:center;align-items:center;">
+    <div class="boot-content" style="color:white;font-size:32px;font-family:sans-serif;text-align:center;">
+      <span class="boot-title">Jx</span><span class="loading-o" style="display:inline-block;animation:spin 1s linear infinite;">o</span>
+    </div>
+  </div>
+  <style>
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .loading-o {
+      display: inline-block;
+      transform-origin: center;
+    }
+  </style>
+`;
+}
 
-      <style>
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      </style>
-    `;
-  }
   
   // Render desktop icons.
   function renderDesktop() {
