@@ -361,58 +361,48 @@ function initSettingsApp() {
     if (bg) document.body.style.background = bg;
   }
   
-  // Show boot screen then OS.
+// Show boot screen then OS.
   function showBootScreen() {
     document.body.innerHTML = `
-  <div class="boot-screen" style="width:100vw;height:100vh;background:blue;display:flex;justify-content:center;align-items:center;">
-    <div class="boot-content" style="transform:scale(2);color:white;text-align:center;">
-      <span class="boot-title">Jx</span>
-      <div class="loading-circle" style="margin-top:20px;border:4px solid white;border-top:4px solid transparent;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;"></div>
-    </div>
-  </div>
-  <style>
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-  </style>
-`;
-
-    setTimeout(() => {
-      loadOS();
-      if (localStorage.getItem("setupComplete")) setTimeout(showPasswordModal, 500);
-    }, 2000);
-  }
-  
-  // Render the main OS UI.
-  function loadOS() {
-    document.body.innerHTML = `
-      <div id="desktop"></div>
-      <div id="taskbar" class="taskbar">
-        <button id="start-button" onclick="toggleSearchMenu()" class="taskbar-button">❖</button>
-        <div id="open-apps"></div>
-        <div id="taskbar-right">
-          <div id="clock-container"><span id="date"></span> <span id="clock"></span></div>
-          <button class="lock-button" onclick="showPasswordModal()">Lock</button>
-          <button class="power-button" onclick="powerOff()">Power Down</button>
+      <div class="boot-screen" style="
+        width: 100vw;
+        height: 100vh;
+        background: blue;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      ">
+        <div class="boot-content" style="
+          transform: scale(2);
+          color: white;
+          text-align: center;
+          /* Ensure a known base font-size so 1em = height of the text before scaling */
+          font-size: 16px;
+        ">
+          <span class="boot-title" style="
+            display: inline-block;
+            line-height: 1; /* tighten line-height so text height ≈ font-size */
+          ">Jx</span>
+          <div class="loading-circle" style="
+            margin-top: 20px;
+            /* 1em here equals 16px, then transform: scale(2) makes it 32px */
+            width: 1em;
+            height: 1em;
+            border: 0.25em solid white;
+            border-top: 0.25em solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+          "></div>
         </div>
       </div>
-      <div id="search-menu" class="search-menu" style="display:none;">
-        <span class="close-btn" onclick="toggleSearchMenu()">✕</span>
-        <input type="text" placeholder="Search apps..." oninput="filterApps(this.value)">
-        <div id="app-list"></div>
-      </div>
+
+      <style>
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
     `;
-    loadInstalledApps().then(() => {
-      installJstoreIfNotInstalled();
-      installSettingsIfNotInstalled();
-      renderDesktop();
-      updateTaskbar();
-      restoreOSTheme();
-      loadBackground();
-      initDevModeListener();
-      setInterval(updateClock, 1000);
-    });
   }
   
   // Render desktop icons.
