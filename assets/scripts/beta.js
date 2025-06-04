@@ -365,7 +365,7 @@ function showBootScreen() {
   document.body.innerHTML = `
   <div class="boot-screen" style="width:100vw; height:100vh; background:blue; display:flex; justify-content:center; align-items:center;">
     <div class="boot-content" style="text-align:center;">
-      <span style="font-size:32px; font-family:sans-serif; color:white;">Jx</span>
+      <span class="boot-title" style="font-size:32px; font-family:sans-serif; color:white;">Jx</span>
       <div style="
         display:inline-block;
         vertical-align:middle;
@@ -387,7 +387,11 @@ function showBootScreen() {
     }
   </style>
 `;
-}
+    setTimeout(() => {
+      loadOS();
+      if (localStorage.getItem("setupComplete")) setTimeout(showPasswordModal, 500);
+    }, 2000);
+  }
 
 
 
