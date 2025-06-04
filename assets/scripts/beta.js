@@ -748,9 +748,20 @@ window.jxoos = new Proxy({}, {
       return () => undefined;
     }
   }
-});function loadAboutSystemTab() {
+});// Modified loadAboutSystemTab function to detect channel from URL, fetch the appropriate entry from version.json,
+// and add a Switch Channel button that toggles between beta and stable pages.
+
+function loadAboutSystemTab() {
   const container = document.getElementById("settings-content");
   if (!container) return;
+
+  // Determine current channel based on URL
+  const isBetaChannel = window.location.href.includes("beta");
+  const currentChannel = isBetaChannel ? "beta" : "stable";
+  const otherChannel = isBetaChannel ? "stable" : "beta";
+  const otherChannelUrl = isBetaChannel
+    ? "https://jxoj.github.io/Jxo-OS"
+    : "https://jxoj.github.io/Jxo-OS/beta.html";
 
   container.innerHTML = `
     <h2>About System</h2>
@@ -760,9 +771,12 @@ window.jxoos = new Proxy({}, {
     <button id="toggle-devmode-btn" style="padding: 10px 20px; background: #1e40af; color: #dbeafe; border: none; border-radius: 4px; cursor: pointer;">
       ${localStorage.getItem("devMode") === "true" ? "Disable Dev Mode" : "Enable Dev Mode"}
     </button>
+    <button id="switch-channel-btn" style="padding: 10px 20px; margin-left: 10px; background: #047857; color: #d1fae5; border: none; border-radius: 4px; cursor: pointer;">
+      Switch to ${otherChannel.charAt(0).toUpperCase() + otherChannel.slice(1)} Channel
+    </button>
   `;
 
-  // Fetch version.json and display
+  // Fetch version.json and display the entry matching currentChannel
   fetch("https://jxoj.github.io/Jxo-OS/assets/version.json")
     .then(res => {
       if (!res.ok) throw new Error("Network error");
@@ -770,11 +784,30 @@ window.jxoos = new Proxy({}, {
     })
     .then(data => {
       const infoDiv = document.getElementById("about-details");
+      let entry = null;
+
+      // If version.json is an array, find the object with matching Channel;
+      // otherwise, if it's a single object, check its Channel.
+      if (Array.isArray(data)) {
+        entry = data.find(item => item.Channel.toLowerCase() === currentChannel);
+      } else if (data.Channel && data.Channel.toLowerCase() === currentChannel) {
+        entry = data;
+      }
+
+      if (!entry) {
+        // Fallback: if no matching entry, show error message
+        infoDiv.innerHTML = `
+          <p style="color: #f87171;"><strong>Error:</strong> No version info found for channel "${currentChannel}".</p>
+        `;
+        return;
+      }
+
+      // Display the selected entry
       infoDiv.innerHTML = `
-        <p><strong>Name:</strong> ${data.Name}</p>
-        <p><strong>Channel:</strong> ${data.Channel}</p>
-        <p><strong>Ver:</strong> ${data.Ver}</p>
-        <p><strong>Log:</strong> ${data.Log}</p>
+        <p><strong>Name:</strong> ${entry.Name}</p>
+        <p><strong>Channel:</strong> ${entry.Channel}</p>
+        <p><strong>Ver:</strong> ${entry.Ver}</p>
+        <p><strong>Log:</strong> ${entry.Log}</p>
       `;
     })
     .catch(err => {
@@ -787,6 +820,12 @@ window.jxoos = new Proxy({}, {
   const devBtn = document.getElementById("toggle-devmode-btn");
   devBtn.addEventListener("click", () => {
     toggleDevMode();
+  });
+
+  // Wire up the Switch Channel button
+  const switchBtn = document.getElementById("switch-channel-btn");
+  switchBtn.addEventListener("click", () => {
+    window.location.href = otherChannelUrl;
   });
 }
 function toggleDevMode() {
