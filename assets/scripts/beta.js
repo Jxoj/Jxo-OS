@@ -835,7 +835,7 @@ function openPackageImporter() {
       </p>
     </div>
   `;
-
+showBootScreen
   document.body.appendChild(modal);
 
   // Close button
@@ -901,3 +901,32 @@ function openPackageImporter() {
     });
   });
 }
+  function loadOS() {
+    document.body.innerHTML = `
+      <div id="desktop"></div>
+      <div id="taskbar" class="taskbar">
+        <button id="start-button" onclick="toggleSearchMenu()" class="taskbar-button">❖</button>
+        <div id="open-apps"></div>
+        <div id="taskbar-right">
+          <div id="clock-container"><span id="date"></span> <span id="clock"></span></div>
+          <button class="lock-button" onclick="showPasswordModal()">Lock</button>
+          <button class="power-button" onclick="powerOff()">Power Down</button>
+        </div>
+      </div>
+      <div id="search-menu" class="search-menu" style="display:none;">
+        <span class="close-btn" onclick="toggleSearchMenu()">✕</span>
+        <input type="text" placeholder="Search apps..." oninput="filterApps(this.value)">
+        <div id="app-list"></div>
+      </div>
+    `;
+    loadInstalledApps().then(() => {
+      installJstoreIfNotInstalled();
+      installSettingsIfNotInstalled();
+      renderDesktop();
+      updateTaskbar();
+      restoreOSTheme();
+      loadBackground();
+      initDevModeListener();
+      setInterval(updateClock, 1000);
+    });
+  }
