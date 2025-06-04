@@ -365,7 +365,8 @@ function showBootScreen() {
   document.body.innerHTML = `
   <div class="boot-screen" style="width:100vw;height:100vh;background:blue;display:flex;justify-content:center;align-items:center;">
     <div class="boot-content" style="color:white;font-size:32px;font-family:sans-serif;text-align:center;">
-      <span class="boot-title">Jx</span><span class="loading-o" style="display:inline-block;animation:spin 1s linear infinite;">o</span>
+      <span class="boot-title">Jx</span>
+      <div class="loading-circle" style="display:inline-block;vertical-align:middle;margin-left:5px;border:2px solid white;border-top:2px solid transparent;border-radius:50%;width:0.6em;height:0.6em;animation:spin 1s linear infinite;"></div>
     </div>
   </div>
   <style>
@@ -373,13 +374,10 @@ function showBootScreen() {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    .loading-o {
-      display: inline-block;
-      transform-origin: center;
-    }
   </style>
 `;
 }
+
 
   
   // Render desktop icons.
