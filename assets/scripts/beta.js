@@ -366,7 +366,17 @@ function showBootScreen() {
   <div class="boot-screen" style="width:100vw;height:100vh;background:blue;display:flex;justify-content:center;align-items:center;">
     <div class="boot-content" style="color:white;font-size:32px;font-family:sans-serif;text-align:center;">
       <span class="boot-title">Jx</span>
-      <div class="loading-circle" style="display:inline-block;vertical-align:middle;margin-left:5px;border:2px solid white;border-top:2px solid transparent;border-radius:50%;width:0.6em;height:0.6em;animation:spin 1s linear infinite;"></div>
+      <span class="loading-circle" style="
+        display:inline-block;
+        vertical-align:middle;
+        margin-left:5px;
+        width:0.6em;
+        height:0.6em;
+        border:2px solid white;
+        border-top:2px solid transparent;
+        border-radius:50%;
+        animation:spin 1s linear infinite;
+      "></span>
     </div>
   </div>
   <style>
@@ -377,6 +387,7 @@ function showBootScreen() {
   </style>
 `;
 }
+
 
 
   
