@@ -363,12 +363,15 @@ function initSettingsApp() {
   
 function showBootScreen() {
   document.body.innerHTML = `
-  <div class="boot-screen" style="width:100vw;height:100vh;background:blue;display:flex;justify-content:center;align-items:center;">
-    <div class="boot-content" style="color:white;font-size:32px;font-family:sans-serif;text-align:center;display:flex;align-items:center;gap:6px;">
-      <span class="boot-title">Jx</span>
-      <div class="loading-circle" style="
-        width:8px;
-        height:8px;
+  <div class="boot-screen" style="width:100vw; height:100vh; background:blue; display:flex; justify-content:center; align-items:center;">
+    <div class="boot-content" style="text-align:center;">
+      <span style="font-size:32px; font-family:sans-serif; color:white;">Jx</span>
+      <div style="
+        display:inline-block;
+        vertical-align:middle;
+        margin-left:4px;
+        width:0.6em;
+        height:0.6em;
         border:2px solid white;
         border-top:2px solid transparent;
         border-radius:50%;
@@ -376,14 +379,16 @@ function showBootScreen() {
       "></div>
     </div>
   </div>
+
   <style>
     @keyframes spin {
-      0% { transform: rotate(0deg); }
+      0%   { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
   </style>
 `;
 }
+
 
 
 
