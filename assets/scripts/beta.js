@@ -369,8 +369,7 @@ function showBootScreen() {
       <div style="
         display:inline-block;
         vertical-align:middle;
-        margin-left:0.01em;
-        /* One literal space before this div in HTML provides exactly a spacebar-width gap */
+        margin-left:-0.1em;
         position:relative;
         top:-0.1em;
         width:0.6em;
