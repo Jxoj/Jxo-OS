@@ -369,7 +369,7 @@ function showBootScreen() {
       <div style="
         display:inline-block;
         vertical-align:middle;
-        margin-left:4px;
+        margin-left:8px;
         position:relative;
         top:-0.1em;
         width:0.6em;
