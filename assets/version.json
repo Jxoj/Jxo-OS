@@ -1,6 +1,14 @@
-{
-  "Name": "Jxo OS",
-  "Channel": "Beta",
-  "Ver": "7.0.1",
-  "Log": "Working on dev support."
-}
+[
+  {
+    "Name": "Jxo OS",
+    "Channel": "stable",
+    "Ver": "8.3.2",
+    "Log": "New about system tab in settings and dev support."
+  },
+  {
+    "Name": "Jxo OS Beta",
+    "Channel": "beta",
+    "Ver": "8.3.3-beta",
+    "Log": "Nothing currently same as stable planning on adding A.I. features."
+  }
+]
