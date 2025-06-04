@@ -372,8 +372,8 @@ function showBootScreen() {
         margin-left:-0.1em;
         position:relative;
         top:-0.1em;
-        width:0.6em;
-        height:0.6em;
+        width:0.7em;
+        height:0.7em;
         border:2px solid white;
         border-top:2px solid transparent;
         border-radius:50%;
