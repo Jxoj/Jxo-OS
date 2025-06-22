@@ -974,3 +974,32 @@ showBootScreen
       setInterval(updateClock, 1000);
     });
   }
+  // Open API bridge for iframe -> host
+window.addEventListener("message", async (event) => {
+  const { id, type, fn, args = [] } = event.data || {};
+  if (type !== "jxo-api-call") return;
+
+  const result = {
+    id,
+    type: "jxo-api-response",
+    fn,
+    success: false,
+    result: null,
+    error: null
+  };
+
+  try {
+    const targetFn = window[fn];
+    if (typeof targetFn === "function") {
+      const ret = await targetFn(...args);
+      result.success = true;
+      result.result = ret;
+    } else {
+      throw new Error(`Function "${fn}" not found`);
+    }
+  } catch (e) {
+    result.error = e.message;
+  }
+
+  event.source?.postMessage(result, "*");
+});
