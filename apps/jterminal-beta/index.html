@@ -26,6 +26,38 @@
       outline: none; font-family: inherit;
       font-size: inherit;
     }
+
+    #editor {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #000;
+      color: #fff;
+      z-index: 999;
+      flex-direction: column;
+      padding: 10px;
+    }
+
+    #editor textarea {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      resize: none;
+      background: #000;
+      color: #fff;
+      border: none;
+      outline: none;
+      font-family: monospace;
+      font-size: 14px;
+    }
+
+    #editor-bar {
+      border-top: 1px solid #555;
+      padding: 5px;
+      text-align: center;
+      font-size: 13px;
+      background: #111;
+    }
   </style>
 </head>
 <body>
@@ -37,8 +69,12 @@
     </div>
   </div>
 
+  <div id="editor">
+    <textarea id="editor-area"></textarea>
+    <div id="editor-bar">^S Save | ^X Exit</div>
+  </div>
+
   <script>
-    // Virtual filesystem
     const FS = {
       type: 'dir',
       children: {
@@ -46,10 +82,13 @@
       }
     };
     let cwd = ['home'];
+    let currentFile = null;
 
     const outputEl = document.getElementById('output');
     const cmdlineEl = document.getElementById('cmdline');
     const promptEl = document.getElementById('prompt');
+    const editorEl = document.getElementById('editor');
+    const editorArea = document.getElementById('editor-area');
 
     function print(text = '') {
       const line = document.createElement('div');
@@ -136,14 +175,10 @@ clear       - Clear screen`);
           if (!dirNode.children[name]) {
             dirNode.children[name] = { type: 'file', content: '' };
           }
-          const existing = dirNode.children[name].content;
-          const newContent = prompt(`Editing ${name}:`, existing);
-          if (newContent !== null) {
-            dirNode.children[name].content = newContent;
-            print(`Saved ${name}`);
-          } else {
-            print(`Cancelled ${name}`);
-          }
+          currentFile = { node: dirNode.children[name], name };
+          editorArea.value = currentFile.node.content;
+          editorEl.style.display = 'flex';
+          editorArea.focus();
           break;
 
         case 'cd': {
@@ -195,7 +230,21 @@ clear       - Clear screen`);
       }
     });
 
-    // initial message
+    editorArea.addEventListener('keydown', e => {
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        if (currentFile) {
+          currentFile.node.content = editorArea.value;
+          print(`Saved ${currentFile.name}`);
+        }
+      } else if (e.ctrlKey && e.key === 'x') {
+        e.preventDefault();
+        editorEl.style.display = 'none';
+        currentFile = null;
+        cmdlineEl.focus();
+      }
+    });
+
     print('Jtermnial v1.0 — type \'help\'');
   </script>
 </body>
