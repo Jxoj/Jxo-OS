@@ -4,68 +4,57 @@
   <meta charset="UTF-8">
   <title>Jtermnial</title>
   <style>
-    /* Basic reset */
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; width: 100%; background: #fff; color: #000; font-family: monospace; }
+    html, body {
+      height: 100%; width: 100%;
+      background: #000; color: #fff;
+      font-family: monospace;
+    }
     #terminal {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      padding: 10px;
-      overflow: hidden;
+      display: flex; flex-direction: column;
+      height: 100%; padding: 10px;
     }
     #output {
-      flex: 1;
-      overflow-y: auto;
+      flex: 1; overflow-y: auto;
       white-space: pre-wrap;
     }
-    #input-line {
-      display: flex;
-    }
-    #prompt {
-      flex-shrink: 0;
-    }
+    #input-line { display: flex; }
+    #prompt { flex-shrink: 0; }
     #cmdline {
-      background: transparent;
-      border: none;
-      color: inherit;
-      flex: 1;
-      outline: none;
-      font-family: inherit;
+      background: transparent; border: none;
+      color: inherit; flex: 1;
+      outline: none; font-family: inherit;
       font-size: inherit;
     }
-    a { color: #000; text-decoration: underline; }
   </style>
 </head>
 <body>
   <div id="terminal">
     <div id="output"></div>
     <div id="input-line">
-      <span id="prompt">juser@jtermnial:~$ </span>
+      <span id="prompt">juser@jtermnial:~/home$ </span>
       <input type="text" id="cmdline" autofocus autocomplete="off" />
     </div>
   </div>
 
   <script>
-    // Virtual filesystem root
+    // Virtual filesystem
     const FS = {
       type: 'dir',
       children: {
-        home: {
-          type: 'dir',
-          children: {}
-        }
+        home: { type: 'dir', children: {} }
       }
     };
-
     let cwd = ['home'];
 
     const outputEl = document.getElementById('output');
     const cmdlineEl = document.getElementById('cmdline');
     const promptEl = document.getElementById('prompt');
 
-    function print(text='') {
-      outputEl.innerHTML += text.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '\n';
+    function print(text = '') {
+      const line = document.createElement('div');
+      line.textContent = text;
+      outputEl.appendChild(line);
       outputEl.scrollTop = outputEl.scrollHeight;
     }
 
@@ -91,8 +80,8 @@
       return parts;
     }
 
-    function pathString(pathArr) {
-      return '/' + pathArr.join('/');
+    function pathString(arr) {
+      return '/' + arr.join('/');
     }
 
     function listDir(pathArr) {
@@ -102,78 +91,90 @@
         : null;
     }
 
-    function runCommand(input) {
+    async function runCommand(input) {
       if (!input.trim()) return;
-      print(`<span style="color:#333;">${promptEl.textContent}${input}</span>`);
+      print(promptEl.textContent + input);
       const [cmd, ...args] = input.trim().split(/\s+/);
+
       switch (cmd) {
         case 'help':
-          print(`Available commands:
-  help        - Show this help message
-  wget URL    - Simulate downloading a file
-  nano FILE   - Simulate editing/creating a file
-  cd [PATH]   - Change directory
-  mkdir NAME  - Create a new directory
-  ls [PATH]   - List directory contents
-  clear       - Clear the terminal screen`);
+          print(`help        - Show this message
+wget URL    - Download text from URL into file
+nano FILE   - Open editor to edit/create a file
+cd [PATH]   - Change directory
+mkdir NAME  - Create a directory
+ls [PATH]   - List directory
+clear       - Clear screen`);
           break;
 
         case 'wget':
           if (!args[0]) {
             print('wget: missing URL');
-          } else {
+            break;
+          }
+          try {
             const url = args[0];
-            const file = url.split('/').pop() || 'download';
-            print(`--2025-06-22  Downloading: ${url}`);
-            print(`Saving to: ${file}`);
-            // create empty file in cwd
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(res.statusText);
+            const text = await res.text();
+            const fname = url.split('/').pop() || 'index.txt';
             const dir = getNode(cwd);
-            dir.children[file] = { type: 'file', content: '' };
+            dir.children[fname] = { type: 'file', content: text };
+            print(`Downloaded ${url} → ${fname}`);
+          } catch (e) {
+            print(`wget: error fetching ${args[0]}: ${e.message}`);
           }
           break;
 
         case 'nano':
           if (!args[0]) {
             print('nano: missing file operand');
+            break;
+          }
+          const name = args[0];
+          const dirNode = getNode(cwd);
+          if (!dirNode.children[name]) {
+            dirNode.children[name] = { type: 'file', content: '' };
+          }
+          const existing = dirNode.children[name].content;
+          const newContent = prompt(`Editing ${name}:`, existing);
+          if (newContent !== null) {
+            dirNode.children[name].content = newContent;
+            print(`Saved ${name}`);
           } else {
-            const file = args[0];
-            const dir = getNode(cwd);
-            if (!(file in dir.children)) {
-              dir.children[file] = { type: 'file', content: '' };
-            }
-            print(`Opened ${file} for editing (simulation)`);
+            print(`Cancelled ${name}`);
           }
           break;
 
-        case 'cd':
+        case 'cd': {
           const target = args[0] ? resolvePath(args[0]) : ['home'];
           if (getNode(target)?.type === 'dir') {
             cwd = target;
             promptEl.textContent = `juser@jtermnial:${pathString(cwd)}$ `;
           } else {
-            print(`cd: no such file or directory: ${args[0]}`);
+            print(`cd: no such directory: ${args[0]}`);
           }
           break;
+        }
 
         case 'mkdir':
           if (!args[0]) {
             print('mkdir: missing operand');
+            break;
+          }
+          const dd = getNode(cwd);
+          if (dd.children[args[0]]) {
+            print(`mkdir: cannot create directory '${args[0]}': Exists`);
           } else {
-            const name = args[0];
-            const dir = getNode(cwd);
-            if (dir.children[name]) {
-              print(`mkdir: cannot create directory ‘${name}’: File exists`);
-            } else {
-              dir.children[name] = { type: 'dir', children: {} };
-            }
+            dd.children[args[0]] = { type: 'dir', children: {} };
           }
           break;
 
         case 'ls': {
-          const targetPath = args[0] ? resolvePath(args[0]) : cwd;
-          const list = listDir(targetPath);
+          const target = args[0] ? resolvePath(args[0]) : cwd;
+          const list = listDir(target);
           if (list) print(list.join('  '));
-          else print(`ls: cannot access '${args[0] || '.'}': No such directory`);
+          else print(`ls: cannot access '${args[0]||'.'}': No such directory`);
           break;
         }
 
@@ -188,14 +189,14 @@
 
     cmdlineEl.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
-        const val = cmdlineEl.value;
-        runCommand(val);
+        const cmd = cmdlineEl.value;
+        runCommand(cmd);
         cmdlineEl.value = '';
       }
     });
 
-    // Initial banner
-    print('Type \'help\' for commands.');
+    // initial message
+    print('Jtermnial v1.0 — type \'help\'');
   </script>
 </body>
 </html>
