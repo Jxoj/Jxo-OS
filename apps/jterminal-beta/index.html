@@ -3,60 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <title>Jtermnial</title>
+  <script src="https://jxoj.github.io/Jxo-OS/assets/scripts/api.js"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body {
-      height: 100%; width: 100%;
-      background: #000; color: #fff;
-      font-family: monospace;
-    }
-    #terminal {
-      display: flex; flex-direction: column;
-      height: 100%; padding: 10px;
-    }
-    #output {
-      flex: 1; overflow-y: auto;
-      white-space: pre-wrap;
-    }
-    #input-line { display: flex; }
-    #prompt { flex-shrink: 0; }
+    * { margin:0; padding:0; box-sizing:border-box }
+    html,body { width:100%; height:100%; background:#000; color:#fff; font-family:monospace }
+    #terminal { display:flex; flex-direction:column; height:100%; padding:10px }
+    #output { flex:1; overflow-y:auto; white-space:pre-wrap }
+    #input-line { display:flex }
+    #prompt { flex-shrink:0 }
     #cmdline {
-      background: transparent; border: none;
-      color: inherit; flex: 1;
-      outline: none; font-family: inherit;
-      font-size: inherit;
+      flex:1; background:transparent; border:none; color:inherit;
+      outline:none; font:inherit
     }
-
     #editor {
-      display: none;
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: #000;
-      color: #fff;
-      z-index: 999;
-      flex-direction: column;
-      padding: 10px;
+      display:none; position:absolute; top:0; left:0; right:0; bottom:0;
+      background:#000; color:#fff; z-index:999; flex-direction:column; padding:10px
     }
-
     #editor textarea {
-      flex: 1;
-      width: 100%;
-      height: 100%;
-      resize: none;
-      background: #000;
-      color: #fff;
-      border: none;
-      outline: none;
-      font-family: monospace;
-      font-size: 14px;
+      flex:1; width:100%; height:100%; resize:none; background:#000;
+      color:#fff; border:none; outline:none; font:monospace 14px
     }
-
     #editor-bar {
-      border-top: 1px solid #555;
-      padding: 5px;
-      text-align: center;
-      font-size: 13px;
-      background: #111;
+      border-top:1px solid #555; padding:5px; text-align:center;
+      font-size:13px; background:#111
     }
   </style>
 </head>
@@ -64,8 +33,8 @@
   <div id="terminal">
     <div id="output"></div>
     <div id="input-line">
-      <span id="prompt">juser@jtermnial:~/home$ </span>
-      <input type="text" id="cmdline" autofocus autocomplete="off" />
+      <span id="prompt">juser@jtermnial:/home$ </span>
+      <input id="cmdline" autocomplete="off" autofocus />
     </div>
   </div>
 
@@ -75,177 +44,195 @@
   </div>
 
   <script>
-    const FS = {
-      type: 'dir',
-      children: {
-        home: { type: 'dir', children: {} }
-      }
-    };
-    let cwd = ['home'];
-    let currentFile = null;
+  // ——— Utilities ——————————————————————————————————————————————————
 
-    const outputEl = document.getElementById('output');
-    const cmdlineEl = document.getElementById('cmdline');
-    const promptEl = document.getElementById('prompt');
-    const editorEl = document.getElementById('editor');
-    const editorArea = document.getElementById('editor-area');
+  // Print to terminal
+  function ptt(text='') {
+    const line = document.createElement('div');
+    line.textContent = text;
+    document.getElementById('output').appendChild(line);
+    document.getElementById('output').scrollTop = 1e9;
+  }
 
-    function print(text = '') {
-      const line = document.createElement('div');
-      line.textContent = text;
-      outputEl.appendChild(line);
-      outputEl.scrollTop = outputEl.scrollHeight;
+  // Load/save FS from localStorage
+  const FS_KEY = 'jtermnial_fs';
+  function loadFS() {
+    const data = localStorage.getItem(FS_KEY);
+    return data ? JSON.parse(data) : { type:'dir', children:{ home:{type:'dir', children:{}} } };
+  }
+  function saveFS() {
+    localStorage.setItem(FS_KEY, JSON.stringify(FS));
+  }
+
+  // Initialize
+  let FS = loadFS();
+  let cwd = ['home'];
+  let currentFile = null;
+
+  // Resolve a path string → array, and lookup
+  function resolvePath(arg) {
+    let parts = arg.startsWith('/') ? [] : [...cwd];
+    arg.split('/').forEach(p => {
+      if (!p||p==='.') return;
+      if (p==='..') parts.length&&parts.pop();
+      else parts.push(p);
+    });
+    return parts;
+  }
+  function getNode(pathArr) {
+    let node = FS;
+    for (let part of pathArr) {
+      if (node.type!=='dir'||!node.children[part]) return null;
+      node = node.children[part];
+    }
+    return node;
+  }
+  function pathString(arr) { return '/' + arr.join('/'); }
+  function listDir(pathArr) {
+    const n = getNode(pathArr);
+    return n && n.type==='dir' ? Object.keys(n.children) : null;
+  }
+
+  // ——— Dynamic Commands Loader ——————————————————————————————————
+
+  let extraCommands = [];
+  async function loadExtraCommands() {
+    try {
+      const resp = await fetch('commands.json');
+      extraCommands = await resp.json(); // see format below
+    } catch (e) { /* ignore if missing */ }
+  }
+
+  // ——— Core Command Dispatcher ——————————————————————————————————
+
+  async function runCommand(input) {
+    input = input.trim();
+    if (!input) return;
+    ptt(promptEl.textContent + input);
+
+    const [first, ...rest] = input.split(/\s+/);
+    // Only allow privileged ops when prefixed by sudo
+    const needsSudo = ['nano','mkdir','wget'].includes(first);
+    if (needsSudo && first !== 'sudo') {
+      return ptt(`Permission denied. Use sudo ${first}`);
     }
 
-    function getNode(pathArr) {
-      let node = FS;
-      for (let part of pathArr) {
-        if (node.type !== 'dir' || !(part in node.children)) return null;
-        node = node.children[part];
-      }
-      return node;
+    // handle sudo
+    if (first==='sudo') {
+      const [ , cmd, ...args ] = input.split(/\s+/);
+      return execute(cmd, args, true);
     }
 
-    function resolvePath(arg) {
-      let parts = arg.startsWith('/') ? [] : [...cwd];
-      for (let p of arg.split('/')) {
-        if (!p || p === '.') continue;
-        if (p === '..') {
-          if (parts.length) parts.pop();
+    // check built-ins
+    return execute(first, rest, false);
+  }
+
+  function execute(cmd, args, isSudo) {
+    switch(cmd) {
+      case 'help':
+        return ptt(`help     - this message
+sudo CMD - run privileged command
+nano     - edit/create file (sudo)
+wget     - download into file (sudo)
+mkdir    - make directory (sudo)
+cd       - change directory
+ls       - list dir
+clear    - clear screen`);
+      case 'clear':
+        document.getElementById('output').innerHTML='';
+        return;
+      case 'cd': {
+        const target = args[0] ? resolvePath(args[0]) : ['home'];
+        if (getNode(target)?.type==='dir') {
+          cwd = target;
+          promptEl.textContent = `juser@jtermnial:${pathString(cwd)}$ `;
+        } else ptt(`cd: no such directory: ${args[0]||''}`);
+        return;
+      }
+      case 'ls': {
+        const tgt = args[0] ? resolvePath(args[0]) : cwd;
+        const list = listDir(tgt);
+        return list ? ptt(list.join('  ')) : ptt(`ls: no such directory`);
+      }
+      case 'mkdir':
+        if (!isSudo) return ptt('Need sudo mkdir');
+        if (!args[0]) return ptt('mkdir: missing operand');
+        const dnode = getNode(cwd);
+        if (dnode.children[args[0]]) ptt(`mkdir: exists`);
+        else { dnode.children[args[0]]={type:'dir',children:{}}; saveFS(); }
+        return;
+      case 'wget':
+        if (!isSudo) return ptt('Need sudo wget');
+        if (!args[0]) return ptt('wget: missing URL');
+        return fetch(args[0])
+          .then(r=>r.text())
+          .then(txt=>{
+            const name = args[0].split('/').pop()||'index.txt';
+            getNode(cwd).children[name]={type:'file',content:txt};
+            saveFS(); ptt(`Downloaded → ${name}`);
+          })
+          .catch(e=>ptt(`wget error: ${e.message}`));
+      case 'nano':
+        if (!isSudo) return ptt('Need sudo nano');
+        if (!args[0]) return ptt('nano: missing file');
+        openEditor(args[0]); return;
+      default:
+        // look up in extraCommands
+        const ext = extraCommands.find(c=>c.name===cmd);
+        if (ext) {
+          // ext.code is a JS string, args array is available
+          try { new Function('args','ptt', ext.code)(args, ptt); }
+          catch(e){ ptt(`Error in ${cmd}: ${e}`); }
         } else {
-          parts.push(p);
+          ptt(`${cmd}: command not found`);
         }
-      }
-      return parts;
     }
+  }
 
-    function pathString(arr) {
-      return '/' + arr.join('/');
+  // ——— Nano-style Editor ——————————————————————————————————
+
+  const editorEl = document.getElementById('editor');
+  const editorArea = document.getElementById('editor-area');
+  const promptEl    = document.getElementById('prompt');
+
+  function openEditor(filename) {
+    const dir = getNode(cwd);
+    if (!dir.children[filename]) dir.children[filename]={type:'file',content:''};
+    currentFile = dir.children[filename];
+    editorArea.value = currentFile.content;
+    editorEl.style.display = 'flex';
+    editorArea.focus();
+  }
+
+  editorArea.addEventListener('keydown', e=>{
+    // Ctrl+S = save
+    if (e.ctrlKey && e.key==='s') {
+      e.preventDefault();
+      currentFile.content = editorArea.value;
+      saveFS();
+      ptt(`Saved ${currentFile===null?'':currentFile.name}`);
     }
-
-    function listDir(pathArr) {
-      const node = getNode(pathArr);
-      return node && node.type === 'dir'
-        ? Object.keys(node.children)
-        : null;
+    // Ctrl+X = exit
+    if (e.ctrlKey && e.key==='x') {
+      e.preventDefault();
+      editorEl.style.display = 'none';
+      cmdlineEl.focus();
     }
+  });
 
-    async function runCommand(input) {
-      if (!input.trim()) return;
-      print(promptEl.textContent + input);
-      const [cmd, ...args] = input.trim().split(/\s+/);
+  // ——— Initialization ————————————————————————————————————————
 
-      switch (cmd) {
-        case 'help':
-          print(`help        - Show this message
-wget URL    - Download text from URL into file
-nano FILE   - Open editor to edit/create a file
-cd [PATH]   - Change directory
-mkdir NAME  - Create a directory
-ls [PATH]   - List directory
-clear       - Clear screen`);
-          break;
-
-        case 'wget':
-          if (!args[0]) {
-            print('wget: missing URL');
-            break;
-          }
-          try {
-            const url = args[0];
-            const res = await fetch(url);
-            if (!res.ok) throw new Error(res.statusText);
-            const text = await res.text();
-            const fname = url.split('/').pop() || 'index.txt';
-            const dir = getNode(cwd);
-            dir.children[fname] = { type: 'file', content: text };
-            print(`Downloaded ${url} → ${fname}`);
-          } catch (e) {
-            print(`wget: error fetching ${args[0]}: ${e.message}`);
-          }
-          break;
-
-        case 'nano':
-          if (!args[0]) {
-            print('nano: missing file operand');
-            break;
-          }
-          const name = args[0];
-          const dirNode = getNode(cwd);
-          if (!dirNode.children[name]) {
-            dirNode.children[name] = { type: 'file', content: '' };
-          }
-          currentFile = { node: dirNode.children[name], name };
-          editorArea.value = currentFile.node.content;
-          editorEl.style.display = 'flex';
-          editorArea.focus();
-          break;
-
-        case 'cd': {
-          const target = args[0] ? resolvePath(args[0]) : ['home'];
-          if (getNode(target)?.type === 'dir') {
-            cwd = target;
-            promptEl.textContent = `juser@jtermnial:${pathString(cwd)}$ `;
-          } else {
-            print(`cd: no such directory: ${args[0]}`);
-          }
-          break;
-        }
-
-        case 'mkdir':
-          if (!args[0]) {
-            print('mkdir: missing operand');
-            break;
-          }
-          const dd = getNode(cwd);
-          if (dd.children[args[0]]) {
-            print(`mkdir: cannot create directory '${args[0]}': Exists`);
-          } else {
-            dd.children[args[0]] = { type: 'dir', children: {} };
-          }
-          break;
-
-        case 'ls': {
-          const target = args[0] ? resolvePath(args[0]) : cwd;
-          const list = listDir(target);
-          if (list) print(list.join('  '));
-          else print(`ls: cannot access '${args[0]||'.'}': No such directory`);
-          break;
-        }
-
-        case 'clear':
-          outputEl.innerHTML = '';
-          break;
-
-        default:
-          print(`${cmd}: command not found`);
-      }
+  const cmdlineEl = document.getElementById('cmdline');
+  cmdlineEl.addEventListener('keydown', e=>{
+    if (e.key==='Enter') {
+      runCommand(cmdlineEl.value);
+      cmdlineEl.value='';
     }
+  });
 
-    cmdlineEl.addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        const cmd = cmdlineEl.value;
-        runCommand(cmd);
-        cmdlineEl.value = '';
-      }
-    });
-
-    editorArea.addEventListener('keydown', e => {
-      if (e.ctrlKey && e.key === 's') {
-        e.preventDefault();
-        if (currentFile) {
-          currentFile.node.content = editorArea.value;
-          print(`Saved ${currentFile.name}`);
-        }
-      } else if (e.ctrlKey && e.key === 'x') {
-        e.preventDefault();
-        editorEl.style.display = 'none';
-        currentFile = null;
-        cmdlineEl.focus();
-      }
-    });
-
-    print('Jtermnial v1.0 — type \'help\'');
+  loadExtraCommands().then(_=>{
+    ptt('Jtermnial v2.0 — type \'help\'');
+  });
   </script>
 </body>
 </html>
