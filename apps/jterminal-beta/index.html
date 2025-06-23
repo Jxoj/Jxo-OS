@@ -6,7 +6,7 @@
   <style>
     /* Basic reset */
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; width: 100%; background: #000; color: #0f0; font-family: monospace; }
+    html, body { height: 100%; width: 100%; background: #fff; color: #000; font-family: monospace; }
     #terminal {
       display: flex;
       flex-direction: column;
@@ -34,137 +34,153 @@
       font-family: inherit;
       font-size: inherit;
     }
-    a { color: #0f0; text-decoration: underline; }
+    a { color: #000; text-decoration: underline; }
   </style>
 </head>
 <body>
   <div id="terminal">
     <div id="output"></div>
     <div id="input-line">
-      <span id="prompt">juser@jtermnial:~$&nbsp;</span>
+      <span id="prompt">juser@jtermnial:~$ </span>
       <input type="text" id="cmdline" autofocus autocomplete="off" />
     </div>
   </div>
 
   <script>
-    // Virtual filesystem:
+    // Virtual filesystem root
     const FS = {
-      '/': {
-        type: 'dir',
-        children: {
-          'home': { type: 'dir', children: {
-            'README.txt': { type: 'file', content:
-`Welcome to Jtermnial!
-Type 'help' to see available commands.` }
-          }},
-          'etc': { type: 'dir', children: {} },
-          'var': { type: 'dir', children: {} }
+      type: 'dir',
+      children: {
+        home: {
+          type: 'dir',
+          children: {}
         }
       }
     };
 
-    let cwd = ['/']; // current working directory path as array
+    let cwd = ['home'];
 
     const outputEl = document.getElementById('output');
     const cmdlineEl = document.getElementById('cmdline');
     const promptEl = document.getElementById('prompt');
 
+    function print(text='') {
+      outputEl.innerHTML += text.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '\n';
+      outputEl.scrollTop = outputEl.scrollHeight;
+    }
+
     function getNode(pathArr) {
-      let node = FS['/'];
-      for (let i = 1; i < pathArr.length; i++) {
-        const part = pathArr[i];
-        if (!node.children[part]) return null;
+      let node = FS;
+      for (let part of pathArr) {
+        if (node.type !== 'dir' || !(part in node.children)) return null;
         node = node.children[part];
       }
       return node;
     }
 
     function resolvePath(arg) {
-      let parts = arg.startsWith('/') ? [''] : cwd.slice();
-      arg.split('/').forEach(p => {
-        if (p === '' || p === '.') return;
+      let parts = arg.startsWith('/') ? [] : [...cwd];
+      for (let p of arg.split('/')) {
+        if (!p || p === '.') continue;
         if (p === '..') {
-          if (parts.length > 1) parts.pop();
+          if (parts.length) parts.pop();
         } else {
           parts.push(p);
         }
-      });
-      if (parts.length === 0) parts = [''];
+      }
       return parts;
     }
 
-    function pathToString(pathArr) {
-      return pathArr.join('/') || '/';
+    function pathString(pathArr) {
+      return '/' + pathArr.join('/');
     }
 
     function listDir(pathArr) {
       const node = getNode(pathArr);
-      if (!node || node.type !== 'dir') return null;
-      return Object.keys(node.children);
-    }
-
-    function print(text = '') {
-      outputEl.innerHTML += text.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '\n';
-      outputEl.scrollTop = outputEl.scrollHeight;
+      return node && node.type === 'dir'
+        ? Object.keys(node.children)
+        : null;
     }
 
     function runCommand(input) {
       if (!input.trim()) return;
-      print(`<span style="color:#0a0;">${promptEl.textContent}${input}</span>`);
-      const [cmd, ...args] = input.split(/\s+/);
+      print(`<span style="color:#333;">${promptEl.textContent}${input}</span>`);
+      const [cmd, ...args] = input.trim().split(/\s+/);
       switch (cmd) {
         case 'help':
           print(`Available commands:
-  help        - Show this help
-  ls [path]   - List directory contents
-  pwd         - Print working directory
-  cd [path]   - Change directory
-  echo [...]  - Echo arguments
-  date        - Show current date/time
-  clear       - Clear the screen
-  cat <file>  - Show file contents`);
+  help        - Show this help message
+  wget URL    - Simulate downloading a file
+  nano FILE   - Simulate editing/creating a file
+  cd [PATH]   - Change directory
+  mkdir NAME  - Create a new directory
+  ls [PATH]   - List directory contents
+  clear       - Clear the terminal screen`);
           break;
-        case 'ls': {
-          const target = args[0] ? resolvePath(args[0]) : cwd;
-          const list = listDir(target);
-          if (list) print(list.join('  '));
-          else print(`ls: cannot access '${args[0] || '.'}': No such directory`);
+
+        case 'wget':
+          if (!args[0]) {
+            print('wget: missing URL');
+          } else {
+            const url = args[0];
+            const file = url.split('/').pop() || 'download';
+            print(`--2025-06-22  Downloading: ${url}`);
+            print(`Saving to: ${file}`);
+            // create empty file in cwd
+            const dir = getNode(cwd);
+            dir.children[file] = { type: 'file', content: '' };
+          }
           break;
-        }
-        case 'pwd':
-          print(pathToString(cwd));
+
+        case 'nano':
+          if (!args[0]) {
+            print('nano: missing file operand');
+          } else {
+            const file = args[0];
+            const dir = getNode(cwd);
+            if (!(file in dir.children)) {
+              dir.children[file] = { type: 'file', content: '' };
+            }
+            print(`Opened ${file} for editing (simulation)`);
+          }
           break;
-        case 'cd': {
-          const target = args[0] ? resolvePath(args[0]) : [''];
-          const node = getNode(target);
-          if (node && node.type === 'dir') {
+
+        case 'cd':
+          const target = args[0] ? resolvePath(args[0]) : ['home'];
+          if (getNode(target)?.type === 'dir') {
             cwd = target;
-            promptEl.textContent = `juser@jtermnial:${pathToString(cwd)}$ `;
+            promptEl.textContent = `juser@jtermnial:${pathString(cwd)}$ `;
           } else {
             print(`cd: no such file or directory: ${args[0]}`);
           }
           break;
+
+        case 'mkdir':
+          if (!args[0]) {
+            print('mkdir: missing operand');
+          } else {
+            const name = args[0];
+            const dir = getNode(cwd);
+            if (dir.children[name]) {
+              print(`mkdir: cannot create directory ‘${name}’: File exists`);
+            } else {
+              dir.children[name] = { type: 'dir', children: {} };
+            }
+          }
+          break;
+
+        case 'ls': {
+          const targetPath = args[0] ? resolvePath(args[0]) : cwd;
+          const list = listDir(targetPath);
+          if (list) print(list.join('  '));
+          else print(`ls: cannot access '${args[0] || '.'}': No such directory`);
+          break;
         }
-        case 'echo':
-          print(args.join(' '));
-          break;
-        case 'date':
-          print(new Date().toString());
-          break;
+
         case 'clear':
           outputEl.innerHTML = '';
           break;
-        case 'cat': {
-          if (!args[0]) { print('cat: missing operand'); break; }
-          const target = resolvePath(args[0]);
-          const node = getNode(target);
-          if (node && node.type === 'file') {
-            print(node.content);
-          } else {
-            print(`cat: ${args[0]}: No such file`);
-          }
-          break;
-        }
+
         default:
           print(`${cmd}: command not found`);
       }
@@ -172,14 +188,14 @@ Type 'help' to see available commands.` }
 
     cmdlineEl.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
-        const input = cmdlineEl.value;
-        runCommand(input);
+        const val = cmdlineEl.value;
+        runCommand(val);
         cmdlineEl.value = '';
       }
     });
 
-    // paint initial welcome
-    print('Jtermnial starting...\nType \'help\' for commands.\n');
+    // Initial banner
+    print('Type \'help\' for commands.');
   </script>
 </body>
 </html>
