@@ -5,7 +5,7 @@
     "code": "jxoos.uninstallApp(args[0]);"
   },
   {
-    "name": "istall",
+    "name": "install",
     "args": ["name","image","url"],
     "code": "jxoos.installApp(args[0], args[1], args[2]);"
   }
