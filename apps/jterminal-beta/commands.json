@@ -2,7 +2,7 @@
   {
     "name": "uninstall",
     "args": ["name"],
-    "code": "jxoos.uninstallApp(args[0]);"
+    "code": "jxoos.uninstallApp(args[0]); ptt('Uninstalled ' + args[0]);"
   },
   {
     "name": "install",
