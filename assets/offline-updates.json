@@ -3,9 +3,9 @@
   "name":    "Jxo‑OS 8.3.2",
   "log":     "Made Offline version updatable",
   "updatezips": {
-    "main":   "https://jxoj.github.io/Jxo-OS/assets/update/main.zip",
-    "apps":   "https://jxoj.github.io/Jxo-OS/assets/update/apps.zip",
-    "assets": "https://jxoj.github.io/Jxo-OS/assets/update/assets.zip",
-    "images": "https://jxoj.github.io/Jxo-OS/assets/update/images.zip"
+    "main":   "update/main.zip",
+    "apps":   "update/apps.zip",
+    "assets": "update/assets.zip",
+    "images": "update/images.zip"
   }
 }
