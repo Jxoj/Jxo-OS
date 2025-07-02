@@ -1,0 +1,11 @@
+{
+  "version": "1.2.3",
+  "name":    "JxO‑OS v1.2.3",
+  "log":     "• Fixed widget flicker\n• Improved theme loading\n• Added support for custom icons",
+  "updatezips": {
+    "main":   "https://jxoj.github.io/Jxo-OS/assets/update/main.zip",
+    "apps":   "https://jxoj.github.io/Jxo-OS/assets/update/apps.zip",
+    "assets": "https://jxoj.github.io/Jxo-OS/assets/update/assets.zip",
+    "images": "https://jxoj.github.io/Jxo-OS/assets/update/images.zip"
+  }
+}
