@@ -12,12 +12,12 @@
     {
       "name":"HyperFox",
       "icon":"apps/icons/hyperfox.png",
-      "url":"apps/hyperfox"
+      "url":"apps/hyperfox/index.html"
     },
     {
       "name":"RetroPlane",
       "icon":"apps/icons/retroplane.png",
-      "url":"apps/retroplane"
+      "url":"apps/retroplane/index.html"
     },
     {
       "name":"Jplay",
