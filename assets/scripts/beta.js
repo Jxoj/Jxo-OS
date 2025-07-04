@@ -196,7 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
   // Fetch and render Jstore apps.
   function loadJstoreApps() {
-  fetch("https://usejxo.github.io/Jxo-App/apps.json")
+  fetch("https://usejxo.github.io/Jxo-Apps/apps.json")
     .then(res => res.ok ? res.json() : Promise.reject("Network error"))
     .then(apps => {
       const list = document.getElementById("jstore-app-list");
