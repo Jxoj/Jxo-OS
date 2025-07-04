@@ -1,7 +1,7 @@
 {
-  "version": "8.3.3",
-  "name":    "Jxo‑OS 8.3.3",
-  "log":     "Changed Jstore ui and app repo.",
+  "version": "8.3.4",
+  "name":    "Jxo‑OS 8.3.4",
+  "log":     "Fixed a typo.",
   "imagesUrl":  "https://github.com/jxoj/Jxo-OS/releases/download/v8.3.2IMGS/images.zip",
   "updatezips": {
     "main":   "https://jxoj.github.io/Jxo-OS/assets/update/main.zip",
