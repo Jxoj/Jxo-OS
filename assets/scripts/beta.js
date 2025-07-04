@@ -51,12 +51,110 @@ document.addEventListener("DOMContentLoaded", () => {
       const app = installedApps.find(a => a.name === "Jstore");
       if (app) {
         app.htmlContent = `
-          <div id="jstore-container">
-            <h1>Jstore</h1>
-            <input type="text" id="jstore-search" placeholder="Search apps..." oninput="filterJstoreApps(this.value)">
-            <div id="jstore-app-list"></div>
-          </div>
-        `;
+<style>
+  /* Dark background for Jstore */
+  #jstore-container {
+    background: #1e1e1e;
+    color: #f5f5f5;
+    padding: 20px;
+    border-radius: 8px;
+  }
+
+  /* Grid of app tiles */
+  #jstore-app-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 10px;
+  }
+  .jstore-app-item {
+    width: 120px;
+    height: 160px;
+    background: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    text-align: center;
+  }
+  .jstore-app-item img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+  }
+  .jstore-app-item span {
+    color: #f5f5f5;
+    font-size: 0.9em;
+  }
+
+  /* Detail view */
+  #jstore-app-detail {
+    display: none;
+    margin-top: 20px;
+  }
+  .jstore-detail-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .jstore-detail-img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    background: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 8px;
+  }
+  .jstore-detail-info {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .jstore-detail-info h2 {
+    margin: 0;
+    font-size: 1.3em;
+    color: #ffffff;
+  }
+
+  /* Button styling */
+  button {
+    cursor: pointer;
+    font-size: 0.9em;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    transition: transform 0.1s ease, background 0.2s ease;
+  }
+  button:hover {
+    transform: scale(1.05);
+  }
+  .install-btn {
+    background: #0078d4;
+    color: #fff;
+  }
+  .install-btn:hover {
+    background: #005a9e;
+  }
+  .back-btn {
+    background: #555;
+    color: #fff;
+  }
+  .back-btn:hover {
+    background: #333;
+  }
+</style>
+
+    <div id="jstore-container">
+      <h1>Jstore</h1>
+      <input type="text" id="jstore-search" placeholder="Search apps..." oninput="filterJstoreApps(this.value)">
+      <div id="jstore-app-list"></div>
+      <div id="jstore-app-detail"></div>
+    </div>
+  `;
         localStorage.setItem("installedApps", JSON.stringify(installedApps));
       }
     }
@@ -98,35 +196,134 @@ document.addEventListener("DOMContentLoaded", () => {
   
   // Fetch and render Jstore apps.
   function loadJstoreApps() {
-    fetch("https://jxoj.github.io/Jxo-OS/apps/apps.json")
-      .then(res => res.ok ? res.json() : Promise.reject("Network error"))
-      .then(apps => {
-        const list = document.getElementById("jstore-app-list");
-        if (!list) return;
-        list.innerHTML = "";
-        apps.forEach(app => {
-          const isInst = installedApps.some(a => a.name === app.name);
-          const btn = document.createElement("button");
-          btn.dataset.icon = app.icon;
-          btn.dataset.url = app.url;
-          btn.textContent = isInst ? "Uninstall" : "Install";
-          btn.onclick = () => {
-            if (isInst) uninstallJstoreApp(app.name, btn);
-            else installJstoreApp(app.name, app.icon, app.url, btn);
-          };
-          const div = document.createElement("div");
-          div.className = "jstore-app-item";
-          div.innerHTML = `<img src="${app.icon}" alt="${app.name}"><span>${app.name}</span>`;
-          div.appendChild(btn);
-          list.appendChild(div);
-        });
-      })
-      .catch(err => {
-        console.error("Failed to load Jstore apps:", err);
-        const list = document.getElementById("jstore-app-list");
-        if (list) list.innerHTML = "<p>Error loading apps.</p>";
+  fetch("https://usejxo.github.io/Jxo-App/apps.json")
+    .then(res => res.ok ? res.json() : Promise.reject("Network error"))
+    .then(apps => {
+      const list = document.getElementById("jstore-app-list");
+      const detail = document.getElementById("jstore-app-detail");
+      list.innerHTML = "";
+      detail.style.display = "none";
+      list.style.display = "flex";
+
+      apps.forEach(app => {
+        const isInstalled = installedApps.some(a => a.name === app.name);
+        const tile = document.createElement("div");
+        tile.className = "jstore-app-item";
+
+        const img = document.createElement("img");
+        img.src = app.icon;
+        img.alt = app.name;
+
+        const name = document.createElement("span");
+        name.textContent = app.name;
+
+        const btn = document.createElement("button");
+        btn.textContent = isInstalled ? "Uninstall" : "Install";
+        btn.className = "install-btn";
+        btn.onclick = () => showJstoreAppDetail(app);
+
+        tile.append(img, name, btn);
+        list.appendChild(tile);
       });
-  }
+    })
+    .catch(err => {
+      console.error("Failed to load Jstore apps:", err);
+      document.getElementById("jstore-app-list").innerHTML = "<p>Error loading apps.</p>";
+    });
+}
+
+// Updated showJstoreAppDetail with styled Install and Back buttons
+function showJstoreAppDetail(app) {
+  const list = document.getElementById("jstore-app-list");
+  const detail = document.getElementById("jstore-app-detail");
+  list.style.display = "none";
+  detail.style.display = "block";
+  detail.innerHTML = "";
+
+  const isInstalled = installedApps.some(a => a.name === app.name);
+  const wrapper = document.createElement("div");
+  wrapper.className = "jstore-detail-wrapper";
+
+  const img = document.createElement("img");
+  img.src = app.icon;
+  img.alt = app.name;
+  img.className = "jstore-detail-img";
+
+  const info = document.createElement("div");
+  info.className = "jstore-detail-info";
+
+  const title = document.createElement("h2");
+  title.textContent = app.name;
+
+  const installBtn = document.createElement("button");
+  installBtn.textContent = isInstalled ? "Uninstall" : "Install";
+  installBtn.className = "install-btn";
+  installBtn.onclick = () => {
+    if (isInstalled) {
+      uninstallJstoreApp(app.name, installBtn);
+    } else {
+      installJstoreApp(app.name, app.icon, app.url, installBtn);
+    }
+    loadJstoreApps();
+  };
+
+  const backBtn = document.createElement("button");
+  backBtn.textContent = "Back";
+  backBtn.className = "back-btn";
+  backBtn.onclick = () => loadJstoreApps();
+
+  info.append(title, installBtn, backBtn);
+  wrapper.append(img, info);
+  detail.appendChild(wrapper);
+}
+
+
+// --- new: detail‑view function ---
+function showJstoreAppDetail(app) {
+  const list = document.getElementById("jstore-app-list");
+  const detail = document.getElementById("jstore-app-detail");
+  list.style.display = "none";
+  detail.style.display = "block";
+  detail.innerHTML = "";  // clear out old
+
+  const isInstalled = installedApps.some(a => a.name === app.name);
+  const wrapper = document.createElement("div");
+  wrapper.className = "jstore-detail-wrapper";
+
+  const img = document.createElement("img");
+  img.src = app.icon;
+  img.alt = app.name;
+  img.className = "jstore-detail-img";
+
+  const info = document.createElement("div");
+  info.className = "jstore-detail-info";
+
+  const title = document.createElement("h2");
+  title.textContent = app.name;
+
+  const installBtn = document.createElement("button");
+  installBtn.textContent = isInstalled ? "Uninstall" : "Install";
+  installBtn.className = "install-btn";
+  installBtn.onclick = () => {
+    if (isInstalled) {
+      uninstallJstoreApp(app.name, installBtn);
+    } else {
+      installJstoreApp(app.name, app.icon, app.url, installBtn);
+    }
+    // after install/uninstall, go back to list
+    loadJstoreApps();
+  };
+
+  const backBtn = document.createElement("button");
+  backBtn.textContent = "Back";
+  backBtn.className = "back-btn";
+  backBtn.onclick = () => loadJstoreApps();
+
+  info.append(title, installBtn, backBtn);
+  wrapper.append(img, info);
+  detail.appendChild(wrapper);
+}
+  
   
   // Install/uninstall handlers for Jstore apps.
   function installJstoreApp(name, icon, url, btn) {
