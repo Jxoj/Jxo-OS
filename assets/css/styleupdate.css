@@ -1,0 +1,68 @@
+/* ─── NEW INTERACTIVE GRADIENT & HOVER STYLES ────────────────────────────── */
+
+/* Apply to any interactive element */
+a:hover,
+button:hover, .btn:hover,
+input:hover, textarea:hover, select:hover,
+.navbar a:hover, header a:hover,
+.sidebar a:hover,
+.modal-content:hover,
+.taskbar-button:hover,
+.lock-button:hover,
+.power-button:hover,
+#taskbar-button:hover {
+  background: linear-gradient(145deg, #3b3b6c, #2a2a53);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  color: #fff;
+}
+
+/* ─── TASKBAR VISUALS ONLY ───────────────────────────────────────────────── */
+
+/* Keep your existing positioning; this snippet only overrides visuals */
+.taskbar,
+#taskbar {
+  background: linear-gradient(135deg, #2a2a40, #1c1c2b) !important;
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.6);
+  transition: background 0.4s ease;
+}
+
+/* Icons / Buttons inside taskbar */
+.taskbar-button,
+.lock-button,
+.power-button,
+#taskbar-button {
+  background: linear-gradient(145deg, #34344f, #252538);
+  border-radius: 10px;
+  transition: background 0.3s ease,
+              transform 0.2s ease,
+              box-shadow 0.3s ease;
+}
+
+/* Pressed state for buttons */
+.taskbar-button:active,
+.lock-button:active,
+.power-button:active,
+#taskbar-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+/* Focus glow */
+.taskbar-button:focus,
+.lock-button:focus,
+.power-button:focus,
+#taskbar-button:focus {
+  outline: none;
+  box-shadow: 0 0 8px rgba(100,150,255,0.6);
+}
+
+/* Distinct colors for power & lock */
+.power-button {
+  background: linear-gradient(145deg, #c7544c, #a73731);
+}
+.lock-button {
+  background: linear-gradient(145deg, #5c5d74, #45455c);
+}

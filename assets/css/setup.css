@@ -1,0 +1,146 @@
+/* setup.css - scoped global styles for Jxo OS setup flow */
+
+/* Scope everything under #setup-container to avoid affecting global styles */
+#setup-container {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 10000;
+  background: #000;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+#setup-container #setup-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.6);
+}
+
+/* Overlay Flex Layout */
+#setup-container #setup-overlay {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Welcome Box (Step 1) */
+#setup-container .welcome-box {
+  position: absolute;
+  top: 40px;
+  left: 40px;
+  max-width: 450px;
+  color: #fff;
+  animation: fadeIn 0.6s ease-out;
+}
+
+#setup-container .welcome-box h1 {
+  font-size: 3rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+#setup-container .welcome-box p {
+  margin: 0.5em 0 1.5em;
+  font-size: 1.25rem;
+  font-weight: 300;
+}
+
+/* Setup Panel (Steps 2-4) */
+#setup-container .setup-panel {
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  padding: 2em;
+  border-radius: 12px;
+  width: 360px;
+  max-width: 90%;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  color: #fff;
+  animation: slideIn 0.5s ease-out;
+}
+
+#setup-container .setup-panel h2 {
+  margin-top: 0;
+  margin-bottom: 1em;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+/* Form Controls */
+#setup-container .setup-panel input[type="text"],
+#setup-container .setup-panel input[type="password"],
+#setup-container .setup-panel select {
+  width: 100%;
+  padding: 0.6em;
+  margin-bottom: 1em;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+#setup-container .setup-panel input[type="file"] {
+  margin-bottom: 1em;
+}
+
+#setup-container .setup-panel img#pic-preview {
+  display: block;
+  width: 100%;
+  border-radius: 50%;
+  margin-bottom: 1em;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+/* Buttons */
+#setup-container .btn-primary,
+#setup-container .btn-secondary {
+  padding: 0.75em 1.5em;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+}
+
+#setup-container .btn-primary {
+  background: #10B981;
+  color: #fff;
+  margin-top: 1em;
+}
+
+#setup-container .btn-primary:hover {
+  background: #059669;
+  transform: scale(1.05);
+}
+
+#setup-container .btn-secondary {
+  background: #2563EB;
+  color: #fff;
+  float: right;
+}
+
+#setup-container .btn-secondary:hover {
+  background: #1D4ED8;
+  transform: scale(1.05);
+}
+
+/* Show/Hide Password Button */
+#setup-container #toggle-pw-btn {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
