@@ -1,9 +1,11 @@
 
 
-// Clear sessionStorage so login UI shows on every reload.
 document.addEventListener("DOMContentLoaded", () => {
-    sessionStorage.removeItem("loggedIn");
+  loadInstalledApps().then(() => {
+    loadBackground();
+    showBootScreen();
   });
+});
   
   // Global variables for installed and open apps.
   let installedApps = [];
@@ -51,12 +53,110 @@ document.addEventListener("DOMContentLoaded", () => {
       const app = installedApps.find(a => a.name === "Jstore");
       if (app) {
         app.htmlContent = `
-          <div id="jstore-container">
-            <h1>Jstore</h1>
-            <input type="text" id="jstore-search" placeholder="Search apps..." oninput="filterJstoreApps(this.value)">
-            <div id="jstore-app-list"></div>
-          </div>
-        `;
+<style>
+  /* Dark background for Jstore */
+  #jstore-container {
+    background: #1e1e1e;
+    color: #f5f5f5;
+    padding: 20px;
+    border-radius: 8px;
+  }
+
+  /* Grid of app tiles */
+  #jstore-app-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 10px;
+  }
+  .jstore-app-item {
+    width: 120px;
+    height: 160px;
+    background: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    text-align: center;
+  }
+  .jstore-app-item img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+  }
+  .jstore-app-item span {
+    color: #f5f5f5;
+    font-size: 0.9em;
+  }
+
+  /* Detail view */
+  #jstore-app-detail {
+    display: none;
+    margin-top: 20px;
+  }
+  .jstore-detail-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .jstore-detail-img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    background: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 8px;
+  }
+  .jstore-detail-info {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .jstore-detail-info h2 {
+    margin: 0;
+    font-size: 1.3em;
+    color: #ffffff;
+  }
+
+  /* Button styling */
+  button {
+    cursor: pointer;
+    font-size: 0.9em;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    transition: transform 0.1s ease, background 0.2s ease;
+  }
+  button:hover {
+    transform: scale(1.05);
+  }
+  .install-btn {
+    background: #0078d4;
+    color: #fff;
+  }
+  .install-btn:hover {
+    background: #005a9e;
+  }
+  .back-btn {
+    background: #555;
+    color: #fff;
+  }
+  .back-btn:hover {
+    background: #333;
+  }
+</style>
+
+    <div id="jstore-container">
+      <h1>Jstore</h1>
+      <input type="text" id="jstore-search" placeholder="Search apps..." oninput="filterJstoreApps(this.value)">
+      <div id="jstore-app-list"></div>
+      <div id="jstore-app-detail"></div>
+    </div>
+  `;
         localStorage.setItem("installedApps", JSON.stringify(installedApps));
       }
     }
@@ -98,35 +198,134 @@ document.addEventListener("DOMContentLoaded", () => {
   
   // Fetch and render Jstore apps.
   function loadJstoreApps() {
-    fetch("https://jxoj.github.io/Jxo-OS/apps/apps.json")
-      .then(res => res.ok ? res.json() : Promise.reject("Network error"))
-      .then(apps => {
-        const list = document.getElementById("jstore-app-list");
-        if (!list) return;
-        list.innerHTML = "";
-        apps.forEach(app => {
-          const isInst = installedApps.some(a => a.name === app.name);
-          const btn = document.createElement("button");
-          btn.dataset.icon = app.icon;
-          btn.dataset.url = app.url;
-          btn.textContent = isInst ? "Uninstall" : "Install";
-          btn.onclick = () => {
-            if (isInst) uninstallJstoreApp(app.name, btn);
-            else installJstoreApp(app.name, app.icon, app.url, btn);
-          };
-          const div = document.createElement("div");
-          div.className = "jstore-app-item";
-          div.innerHTML = `<img src="${app.icon}" alt="${app.name}"><span>${app.name}</span>`;
-          div.appendChild(btn);
-          list.appendChild(div);
-        });
-      })
-      .catch(err => {
-        console.error("Failed to load Jstore apps:", err);
-        const list = document.getElementById("jstore-app-list");
-        if (list) list.innerHTML = "<p>Error loading apps.</p>";
+  fetch("https://usejxo.github.io/Jxo-Apps/apps.json")
+    .then(res => res.ok ? res.json() : Promise.reject("Network error"))
+    .then(apps => {
+      const list = document.getElementById("jstore-app-list");
+      const detail = document.getElementById("jstore-app-detail");
+      list.innerHTML = "";
+      detail.style.display = "none";
+      list.style.display = "flex";
+
+      apps.forEach(app => {
+        const isInstalled = installedApps.some(a => a.name === app.name);
+        const tile = document.createElement("div");
+        tile.className = "jstore-app-item";
+
+        const img = document.createElement("img");
+        img.src = app.icon;
+        img.alt = app.name;
+
+        const name = document.createElement("span");
+        name.textContent = app.name;
+
+        const btn = document.createElement("button");
+        btn.textContent = isInstalled ? "Uninstall" : "Install";
+        btn.className = "install-btn";
+        btn.onclick = () => showJstoreAppDetail(app);
+
+        tile.append(img, name, btn);
+        list.appendChild(tile);
       });
-  }
+    })
+    .catch(err => {
+      console.error("Failed to load Jstore apps:", err);
+      document.getElementById("jstore-app-list").innerHTML = "<p>Error loading apps.</p>";
+    });
+}
+
+// Updated showJstoreAppDetail with styled Install and Back buttons
+function showJstoreAppDetail(app) {
+  const list = document.getElementById("jstore-app-list");
+  const detail = document.getElementById("jstore-app-detail");
+  list.style.display = "none";
+  detail.style.display = "block";
+  detail.innerHTML = "";
+
+  const isInstalled = installedApps.some(a => a.name === app.name);
+  const wrapper = document.createElement("div");
+  wrapper.className = "jstore-detail-wrapper";
+
+  const img = document.createElement("img");
+  img.src = app.icon;
+  img.alt = app.name;
+  img.className = "jstore-detail-img";
+
+  const info = document.createElement("div");
+  info.className = "jstore-detail-info";
+
+  const title = document.createElement("h2");
+  title.textContent = app.name;
+
+  const installBtn = document.createElement("button");
+  installBtn.textContent = isInstalled ? "Uninstall" : "Install";
+  installBtn.className = "install-btn";
+  installBtn.onclick = () => {
+    if (isInstalled) {
+      uninstallJstoreApp(app.name, installBtn);
+    } else {
+      installJstoreApp(app.name, app.icon, app.url, installBtn);
+    }
+    loadJstoreApps();
+  };
+
+  const backBtn = document.createElement("button");
+  backBtn.textContent = "Back";
+  backBtn.className = "back-btn";
+  backBtn.onclick = () => loadJstoreApps();
+
+  info.append(title, installBtn, backBtn);
+  wrapper.append(img, info);
+  detail.appendChild(wrapper);
+}
+
+
+// --- new: detail‑view function ---
+function showJstoreAppDetail(app) {
+  const list = document.getElementById("jstore-app-list");
+  const detail = document.getElementById("jstore-app-detail");
+  list.style.display = "none";
+  detail.style.display = "block";
+  detail.innerHTML = "";  // clear out old
+
+  const isInstalled = installedApps.some(a => a.name === app.name);
+  const wrapper = document.createElement("div");
+  wrapper.className = "jstore-detail-wrapper";
+
+  const img = document.createElement("img");
+  img.src = app.icon;
+  img.alt = app.name;
+  img.className = "jstore-detail-img";
+
+  const info = document.createElement("div");
+  info.className = "jstore-detail-info";
+
+  const title = document.createElement("h2");
+  title.textContent = app.name;
+
+  const installBtn = document.createElement("button");
+  installBtn.textContent = isInstalled ? "Uninstall" : "Install";
+  installBtn.className = "install-btn";
+  installBtn.onclick = () => {
+    if (isInstalled) {
+      uninstallJstoreApp(app.name, installBtn);
+    } else {
+      installJstoreApp(app.name, app.icon, app.url, installBtn);
+    }
+    // after install/uninstall, go back to list
+    loadJstoreApps();
+  };
+
+  const backBtn = document.createElement("button");
+  backBtn.textContent = "Back";
+  backBtn.className = "back-btn";
+  backBtn.onclick = () => loadJstoreApps();
+
+  info.append(title, installBtn, backBtn);
+  wrapper.append(img, info);
+  detail.appendChild(wrapper);
+}
+  
   
   // Install/uninstall handlers for Jstore apps.
   function installJstoreApp(name, icon, url, btn) {
@@ -362,41 +561,32 @@ function initSettingsApp() {
   }
   
 function showBootScreen() {
+  const BOOT_DURATION = 2000;
   document.body.innerHTML = `
-  <div class="boot-screen" style="width:100vw; height:100vh; background:blue; display:flex; justify-content:center; align-items:center;">
-    <div class="boot-content" style="text-align:center;">
-      <span style="font-size:32px; font-family:sans-serif; color:white;">Jx</span>
-      <div style="
-        display:inline-block;
-        vertical-align:middle;
-        margin-left:-0.1em;
-        position:relative;
-        top:-0.1em;
-        width:0.7em;
-        height:0.7em;
-        border:2px solid white;
-        border-top:2px solid transparent;
-        border-radius:50%;
-        animation:spin 1s linear infinite;
-      "></div>
-    </div>
-  </div>
-
-  <style>
-    @keyframes spin {
-      0%   { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-  </style>
-`;
-
-
-
-    setTimeout(() => {
+    <div id="boot-screen" style="position:fixed;inset:0;background:#000;display:flex;
+         align-items:center;justify-content:center;">
+      <img src="images/bs/main.png" style="width:100%;height:100%;object-fit:cover;" alt="Boot"/>
+      <div id="boot-progress" style="position:absolute;bottom:30px;left:10%;
+           width:80%;height:6px;background:rgba(255,255,255,0.3);border-radius:3px;
+           overflow:hidden;">
+        <div id="boot-bar" style="width:0;height:100%;background:#fff;
+             transition:width ${BOOT_DURATION}ms linear;"></div>
+      </div>
+    </div>`;
+  requestAnimationFrame(() => {
+    document.getElementById("boot-bar").style.width = "100%";
+  });
+  setTimeout(() => {
+    document.getElementById("boot-screen").remove();
+    if (!localStorage.getItem("setupComplete")) {
+      showSetupScreen();
+    } else {
       loadOS();
-      if (localStorage.getItem("setupComplete")) setTimeout(showPasswordModal, 500);
-    }, 2000);
-  }
+      setTimeout(showPasswordModal, 300);
+    }
+  }, BOOT_DURATION + 50);
+}
+
 
 
 
@@ -587,168 +777,195 @@ function showBootScreen() {
     `;
   }
   
-  // Multi-step Setup Screen.
-  function showSetupScreen() {
-    const container = document.createElement("div");
-    container.className = "setup-screen";
-    document.body.appendChild(container);
-    let currentStep = 1;
-    const data = { username: "", password: "", profilePic: "", wallpaper: "", osTheme: "", colorScheme: "" };
-  
-    function renderStep() {
-      switch (currentStep) {
-        case 1:
-          container.innerHTML = `
-            <div class="setup-step">
-              <h2>Let's get you setup</h2>
-              <p>Please choose your username and password.</p>
-              <input type="text" id="setup-username" placeholder="Username" />
-              <div>
-                <input type="password" id="setup-password" placeholder="Password" />
-                <button class="toggle-password" onclick="toggleInputPassword('setup-password', this)">
-                  <img src="images/icons/setup/show.png" alt="Show" />
-                </button>
-              </div>
-              <button id="setup-next">Next</button>
-            </div>
-          `;
-          document.getElementById("setup-next").onclick = () => {
-            const u = document.getElementById("setup-username").value.trim();
-            const p = document.getElementById("setup-password").value.trim();
-            if (u && p) {
-              data.username = u;
-              data.password = p;
-              currentStep++;
-              renderStep();
-            } else alert("Username and password cannot be empty!");
-          };
-          break;
-  
-        case 2:
-          container.innerHTML = `
-            <div class="setup-step">
-              <h2>Choose a Profile Picture</h2>
-              <p>This is optional. Upload one if you like:</p>
-              <div class="file-input-wrapper">
-                <span class="file-input-label">Choose File</span>
-                <input type="file" id="profile-upload" accept="image/*" />
-              </div>
-              <img id="profile-preview" class="preview-img" src="images/icons/profile/profile.png" alt="Profile Preview">
-              <br>
-              <button id="setup-skip">Skip</button>
-              <button id="setup-next">Next</button>
-            </div>
-          `;
-          document.getElementById("profile-upload").onchange = e => {
-            const file = e.target.files[0];
-            if (file) {
-              const reader = new FileReader();
-              reader.onload = evt => {
-                document.getElementById("profile-preview").src = evt.target.result;
-                data.profilePic = evt.target.result;
-              };
-              reader.readAsDataURL(file);
-            }
-          };
-          document.getElementById("setup-skip").onclick = () => {
-            data.profilePic = "images/icons/profile/profile.png";
-            currentStep++;
-            renderStep();
-          };
-          document.getElementById("setup-next").onclick = () => {
-            if (!data.profilePic) data.profilePic = "images/icons/profile/profile.png";
-            currentStep++;
-            renderStep();
-          };
-          break;
-  
-        case 3:
-          container.innerHTML = `
-            <div class="setup-step">
-              <h2>Choose your Default Wallpaper</h2>
-              <p>Select a wallpaper for your desktop.</p>
-              <select id="setup-wallpaper-select">
-                ${Array.from({length:41},(_,i)=>`<option value="images/backgrounds/wallpaper${i+1}.jpg">Wallpaper ${i+1}</option>`).join('')}
-              </select>
-              <br>
-              <img id="wallpaper-preview" class="preview-img" src="images/backgrounds/wallpaper1.jpg" alt="Wallpaper Preview">
-              <br>
-              <button id="setup-next">Next</button>
-            </div>
-          `;
-          document.getElementById("setup-wallpaper-select").onchange = e => {
-            const sel = e.target.value;
-            document.getElementById("wallpaper-preview").src = sel;
-            data.wallpaper = sel;
-          };
-          document.getElementById("setup-next").onclick = () => {
-            if (!data.wallpaper) data.wallpaper = document.getElementById("setup-wallpaper-select").value;
-            currentStep++;
-            renderStep();
-          };
-          break;
-  
-        case 4:
-          container.innerHTML = `
-            <div class="setup-step">
-              <h2>Setup OS Theme & Color Scheme</h2>
-              <p>Select your OS theme and color scheme.</p>
-              <div><label>OS Theme:</label><select id="setup-ostheme"><option value="default">Default</option><option value="windows10">Windows10</option></select></div>
-              <div><label>Color Scheme:</label><select id="setup-colorscheme"><option value="dark">Dark</option><option value="light">Light</option></select></div>
-              <button id="setup-finish">Finish</button>
-            </div>
-          `;
-          document.getElementById("setup-colorscheme").onchange = function() {
-            toggleLightDark(this.value);
-          };
-          document.getElementById("setup-finish").onclick = () => {
-            data.osTheme = document.getElementById("setup-ostheme").value;
-            data.colorScheme = document.getElementById("setup-colorscheme").value;
-            toggleLightDark(data.colorScheme);
-            localStorage.setItem("username", data.username);
-            localStorage.setItem("password", data.password);
-            localStorage.setItem("profilePic", data.profilePic);
-            localStorage.setItem("background", data.wallpaper);
-            localStorage.setItem("osTheme", data.osTheme);
-            localStorage.setItem("colorScheme", data.colorScheme);
-            localStorage.setItem("setupComplete", "true");
-            changeBackgroundImage(data.wallpaper);
-            sessionStorage.removeItem("loggedIn");
-            container.remove();
-            showBootScreen();
-          };
-          break;
-      }
-    }
-  
-    renderStep();
-  }
-  
-  // Initial load: setup or boot.
-  document.addEventListener("DOMContentLoaded", () => {
-    loadInstalledApps().then(() => {
-      loadBackground();
-      if (!localStorage.getItem("setupComplete")) showSetupScreen();
-      else showBootScreen();
-    });
-  });
+function showSetupScreen() {
+  // 1) Create a wrapper and inject all your styles + markup
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = `
+    <style>
+      * { font-family: "Segoe UI", sans-serif; box-sizing: border-box; }
+      html, body { margin:0; padding:0; height:100%; overflow:hidden;
+        background: url('https://images.unsplash.com/photo-1557683316-973673baf926') no-repeat center/cover; }
+      .page { position:absolute; top:2%; left:2%; right:2%; bottom:2%;
+        background:rgba(255,255,255,0.95); border-radius:24px; padding:40px;
+        display:none; flex-direction:column; justify-content:space-between;
+        box-shadow:0 12px 40px rgba(0,0,0,0.3); z-index:1; }
+      .page.active { display:flex; }
+      .top-row { display:flex; justify-content:space-between; align-items:flex-start; }
+      .top-left h1 { font-size:32px; margin:0 0 5px; }
+      .subheading { font-size:16px; color:#666; }
+      .step-content { margin-top:60px; max-width:400px; }
+      .step-content input, .step-content select {
+        width:100%; padding:12px; margin-bottom:20px; font-size:16px;
+        border:1px solid #ccc; border-radius:6px; }
+      .step-content img { max-width:120px; border-radius:50%; display:block; margin-top:1em; }
+      .bottom-button { align-self:flex-start; margin-top:20px; }
+      .bottom-button button {
+        background:#4285f4; color:#fff; padding:14px 28px; font-size:16px;
+        border:none; border-radius:8px; cursor:pointer; }
+      .bottom-button button:hover { background:#3367d6; }
+      .bottom-gif { display:flex; justify-content:center; margin-top:20px; }
+      .bottom-gif img { max-width:60%; height:auto; border-radius:16px;
+        box-shadow:0 4px 16px rgba(0,0,0,0.2); }
+      #page-credentials .bottom-gif { position:absolute; top:30px; right:40px; margin:0; }
+      #page-credentials .bottom-gif img { max-width:35%; }
+    </style>
 
-window.jxoos = new Proxy({}, {
-  get: (_, fn) => {
-    if (typeof window[fn] === "function") {
-      return (...args) => {
-        try {
-          return window[fn](...args);
-        } catch (e) {
-          console.error(`Error calling ${fn}:`, e);
-        }
-      };
+    <div class="page active" id="page-welcome">
+      <div class="top-row">
+        <div class="top-left">
+          <h1>Welcome to Jxo OS</h1>
+          <div class="subheading">Effortless. Modern. Powerful.</div>
+        </div>
+      </div>
+      <div class="bottom-button">
+        <button id="btn-welcome">Get Started</button>
+      </div>
+      <div class="bottom-gif">
+        <img src="assets/videos/setup/welcome.gif" alt="Welcome Animation">
+      </div>
+    </div>
+
+    <div class="page" id="page-credentials">
+      <div class="top-row">
+        <div class="top-left">
+          <h1>Create Account</h1>
+          <div class="subheading">Choose your username & password</div>
+        </div>
+      </div>
+      <div class="step-content">
+        <input type="text" id="su-un" placeholder="Username" />
+        <div style="display:flex; align-items:center; gap:0.5em;">
+          <input type="password" id="su-pw" placeholder="Password" style="flex:1;" />
+          <img id="toggle-pw-btn" src="images/icons/setup/show.png"
+               alt="Show/Hide" style="width:24px; height:24px; cursor:pointer;" />
+        </div>
+      </div>
+      <div class="bottom-button">
+        <button id="btn-credentials">Next</button>
+      </div>
+      <div class="bottom-gif">
+        <img src="assets/videos/setup/userpass.gif" alt="Enter Username & Password">
+      </div>
+    </div>
+
+    <div class="page" id="page-profile">
+      <div class="top-row">
+        <div class="top-left">
+          <h1>Upload Profile Picture</h1>
+          <div class="subheading">(Optional)</div>
+        </div>
+      </div>
+      <div class="step-content">
+        <input type="file" id="su-pic" accept="image/*" />
+        <img id="pic-preview" src="images/icons/profile/profile.png" alt="Preview" />
+      </div>
+      <div class="bottom-button">
+        <button id="btn-profile">Next</button>
+      </div>
+    </div>
+
+    <div class="page" id="page-theme">
+      <div class="top-row">
+        <div class="top-left">
+          <h1>Pick a Wallpaper & Theme</h1>
+        </div>
+      </div>
+      <div class="step-content">
+        <select id="su-wallpaper">
+          ${Array.from({ length: 41 }, (_, i) =>
+            `<option value="images/backgrounds/wallpaper${i+1}.jpg">Wallpaper ${i+1}</option>`
+          ).join('')}
+        </select>
+        <select id="su-theme">
+          <option value="dark" selected>Dark</option>
+          <option value="light">Light</option>
+        </select>
+      </div>
+      <div class="bottom-button">
+        <button id="btn-theme">Next</button>
+      </div>
+    </div>
+
+    <div class="page" id="page-done">
+      <div class="top-row">
+        <div class="top-left">
+          <h1>Setup Complete</h1>
+          <div class="subheading">You're ready to go</div>
+        </div>
+      </div>
+      <div class="bottom-button">
+        <button id="btn-done">Start</button>
+      </div>
+      <div class="bottom-gif">
+        <img src="assets/videos/setup/done.gif" alt="Done Animation">
+      </div>
+    </div>
+  `;
+  document.body.appendChild(wrapper);
+
+  // 2) Wire up page logic
+  const pages = ['page-welcome','page-credentials','page-profile','page-theme','page-done']
+    .map(id => document.getElementById(id));
+  let step = 0;
+  const updatePages = () => {
+    pages.forEach((p,i) => p.classList.toggle('active', i === step));
+  };
+
+  document.getElementById('btn-welcome').onclick = () => { step = 1; updatePages(); };
+  document.getElementById('toggle-pw-btn').onclick = function() {
+    const pw = document.getElementById('su-pw');
+    if (pw.type === 'password') {
+      pw.type = 'text';
+      this.src = 'images/icons/setup/hide.png';
     } else {
-      console.warn(`Function "${fn}" is not defined globally.`);
-      return () => undefined;
+      pw.type = 'password';
+      this.src = 'images/icons/setup/show.png';
     }
-  }
-});// Modified loadAboutSystemTab function to detect channel from URL, fetch the appropriate entry from version.json,
+  };
+
+  document.getElementById('btn-credentials').onclick = () => {
+    const u = document.getElementById('su-un').value.trim();
+    const p = document.getElementById('su-pw').value.trim();
+    if (!u || !p) return alert('Username & password required');
+    localStorage.setItem('username', u);
+    localStorage.setItem('password', p);
+    step = 2; updatePages();
+  };
+
+  document.getElementById('su-pic').addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = ev => document.getElementById('pic-preview').src = ev.target.result;
+    r.readAsDataURL(f);
+  });
+  document.getElementById('btn-profile').onclick = () => {
+    const f = document.getElementById('su-pic').files[0];
+    if (f) {
+      const r = new FileReader();
+      r.onload = e => localStorage.setItem('profilePic', e.target.result);
+      r.readAsDataURL(f);
+    } else {
+      localStorage.setItem('profilePic', 'images/icons/profile/profile.png');
+    }
+    step = 3; updatePages();
+  };
+
+  document.getElementById('btn-theme').onclick = () => {
+    localStorage.setItem('background', document.getElementById('su-wallpaper').value);
+    localStorage.setItem('colorScheme', document.getElementById('su-theme').value);
+    step = 4; updatePages();
+  };
+
+  document.getElementById('btn-done').onclick = () => {
+   localStorage.setItem('setupComplete', 'true');
+   showBootScreen();
+    
+  };
+
+  // initialize at page 0
+  updatePages();
+}// Modified loadAboutSystemTab function to detect channel from URL, fetch the appropriate entry from version.json,
 // and add a Switch Channel button that toggles between beta and stable pages.
 
 function loadAboutSystemTab() {
@@ -974,3 +1191,32 @@ showBootScreen
       setInterval(updateClock, 1000);
     });
   }
+  // Open API bridge for iframe -> host
+window.addEventListener("message", async (event) => {
+  const { id, type, fn, args = [] } = event.data || {};
+  if (type !== "jxo-api-call") return;
+
+  const result = {
+    id,
+    type: "jxo-api-response",
+    fn,
+    success: false,
+    result: null,
+    error: null
+  };
+
+  try {
+    const targetFn = window[fn];
+    if (typeof targetFn === "function") {
+      const ret = await targetFn(...args);
+      result.success = true;
+      result.result = ret;
+    } else {
+      throw new Error(`Function "${fn}" not found`);
+    }
+  } catch (e) {
+    result.error = e.message;
+  }
+
+  event.source?.postMessage(result, "*");
+});
