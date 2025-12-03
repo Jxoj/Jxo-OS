@@ -6,10 +6,9 @@ Jxo OS is a lightweight, web-based operating system that runs entirely in your b
 
 ## Features
 
-- **HyperFox** – A built-in unblocking browser
+- **HyperFox** – A built-in unblocking browser (Not working being replaced)
 - **Built-in Games** – Play directly inside the OS
 - **Offline Support** – Works fully without an internet connection
-- **No Installation Needed** – Just open `index.html` to launch
 
 ---
 
@@ -27,7 +26,7 @@ To use Jxo OS without internet access, go to:
 
 **🔗 https://jxoj.github.io/Jxo-OS/download**
 
-That page includes full download and setup instructions.
+This page includes full download and setup instructions.
 
 ---
 
