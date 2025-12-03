@@ -2,13 +2,13 @@
   {
     "Name": "Jxo OS",
     "Channel": "stable",
-    "Ver": "8.3.4",
+    "Ver": "8.3.5",
     "Log": "Typo fix."
   },
   {
     "Name": "Jxo OS Beta",
     "Channel": "beta",
-    "Ver": "8.3.4-beta",
+    "Ver": "8.3.5-beta",
     "Log": "Currently same as stable release."
   }
 ]
