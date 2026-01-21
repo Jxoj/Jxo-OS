@@ -3,7 +3,7 @@
 
 (function() {
   // List of banned usernames (you can modify this)
-  const bannedUsers = ['BBRRUUHH!!', 'corey wishhart'];
+  const bannedUsers = ['BBRRUUHH!!', 'corey wishart'];
   
   // Get username from localStorage
   const username = localStorage.getItem('username');
