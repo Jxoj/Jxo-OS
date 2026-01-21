@@ -39,7 +39,7 @@
           Banned for use during class
         </p>
         <p style="font-size: 14px; color: #666;">
-          If you believe this is an error, please contact your teacher.
+          Banned by Automated workflow (AI).
         </p>
       </div>
     `;
