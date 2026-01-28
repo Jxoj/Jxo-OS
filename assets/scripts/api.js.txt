@@ -1,0 +1,1 @@
+Api is now legacy, a new api is being worked on that is compatiable with online and offline installs.

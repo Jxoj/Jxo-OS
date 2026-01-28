@@ -1,8 +1,8 @@
 {
-  "version": "8.3.5",
-  "name":    "Jxo‑OS 8.3.5",
-  "log":     "New styles and setup.",
-  "imagesUrl":  "https://github.com/Jxoj/Jxo-OS/releases/download/v8.3.5IMGS/images.zip",
+  "version": "v9-Beta",
+  "name":    "Jxo‑OS v9 Beta",
+  "log":     "Update to v9! (WIP)",
+  "imagesUrl":  "https://github.com/Jxoj/Jxo-OS/releases/download/v9IMGS/images.zip",
   "updatezips": {
     "main":   "https://jxoj.github.io/Jxo-OS/assets/update/main.zip",
     "apps":   "https://usejxo.github.io/Jxo-Apps/apps.zip",

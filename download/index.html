@@ -1,154 +1,294 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Download Jxo OS Offline</title>
+  <meta charset="utf-8">
+  <title>Installing…</title>
   <style>
-    * {
-      box-sizing: border-box;
+    :root {
+      --bg-start: #0b1020;
+      --bg-end: #0a0f1a;
+      --panel: #0f172a;
+      --border: #1f2a44;
+      --text: #dbeafe;
+      --muted: #94a3b8;
+      --accent: #3b82f6;
+      --accent-2: #2563eb;
     }
-
-    body {
+    body, html {
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f2f2f2;
-      color: #333;
-    }
-
-    .main {
-      text-align: center;
-      padding: 80px 20px 40px 20px;
-    }
-
-    .main h1 {
-      font-size: 3rem;
-      color: #202124;
-      margin-bottom: 16px;
-    }
-
-    .main p {
-      font-size: 1.25rem;
-      color: #5f6368;
-      margin-bottom: 40px;
-    }
-
-    .download-btn {
-      display: inline-block;
-      padding: 16px 36px;
-      font-size: 1.2rem;
-      background-color: #1a73e8;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      text-decoration: none;
-      transition: background-color 0.2s ease;
-    }
-
-    .download-btn:hover {
-      background-color: #155cc1;
-    }
-
-    .instructions {
-      max-width: 960px;
-      margin: 60px auto;
-      padding: 0 20px;
-    }
-
-    .instructions h2 {
-      font-size: 1.8rem;
-      color: #202124;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    .steps-grid {
+      width: 100%;
+      height: 100%;
+      font-family: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial;
+      background: radial-gradient(1200px 800px at 70% 10%, #0f1a33 0%, transparent 60%),
+                  linear-gradient(180deg, var(--bg-start), var(--bg-end));
       display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
+      align-items: center;
       justify-content: center;
+      color: var(--text);
     }
-
-    .step {
-      background-color: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      flex: 1 1 300px;
-      max-width: 420px;
-    }
-
-    .step-number {
-      font-weight: bold;
-      font-size: 1.1rem;
-      color: #1a73e8;
-    }
-
-    .step p {
-      margin: 10px 0 0 0;
-      font-size: 1rem;
-      color: #3c4043;
-    }
-
-    .footer {
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+      width: min(520px, 92vw);
+      padding: 22px 22px 18px;
       text-align: center;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.4rem;
+      letter-spacing: .01em;
+      background: linear-gradient(90deg, #ffffff, #cfd8e3);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .progress-container {
+      margin: 16px 0 10px;
+      width: 100%;
+      text-align: left;
+    }
+    progress {
+      width: 100%;
+      height: 12px;
+      appearance: none;
+      border-radius: 999px;
+      overflow: hidden;
+      background-color: transparent;
+    }
+    progress::-webkit-progress-bar {
+      background: #0b1327;
+      border-radius: 999px;
+      border: 1px solid #13244a;
+    }
+    progress::-webkit-progress-value {
+      background: linear-gradient(90deg, var(--accent-2), var(--accent));
+      border-radius: 999px;
+      box-shadow: 0 0 18px rgba(59,130,246,.35);
+    }
+    .status {
       font-size: 0.9rem;
-      color: #777;
-      padding: 40px 0;
+      color: var(--muted);
+      margin-top: 8px;
+      min-height: 1.2em;
     }
-
-    @media (max-width: 768px) {
-      .main h1 {
-        font-size: 2.2rem;
-      }
-
-      .main p {
-        font-size: 1rem;
-      }
+    .btn {
+      margin: 10px 6px 0;
+      border: 1px solid transparent;
+      padding: 10px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.95rem;
     }
+    #startBtn {
+      background: linear-gradient(180deg, var(--accent), var(--accent-2));
+      color: #fff;
+      box-shadow: 0 6px 18px rgba(59,130,246,.35), inset 0 1px 0 rgba(255,255,255,.08);
+    }
+    #startBtn:hover:not(:disabled) { filter: brightness(1.05); }
+    #cancelBtn {
+      background: rgba(255,255,255,0.06);
+      color: #cbd5e1;
+      border-color: var(--border);
+    }
+    .btn:disabled { opacity: .55; cursor: default; }
+
+    /* Modal styles */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000;
+    }
+    .modal {
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      max-width: 320px;
+      text-align: center;
+      box-shadow: 0 12px 28px rgba(0,0,0,.45);
+    }
+    .modal p { margin-bottom: 14px; }
+    .modal button {
+      padding: 8px 14px;
+      border: none;
+      background: linear-gradient(180deg, var(--accent), var(--accent-2));
+      color: #fff; border-radius: 8px; cursor: pointer;
+    }
+    .modal button:hover { filter: brightness(1.05); }
   </style>
 </head>
 <body>
-
-  <div class="main">
-    <h1>Download Jxo OS Offline</h1>
-    <p>Run Jxo OS entirely offline from your computer. Easy to use and update-ready.</p>
-    <a href="https://github.com/jxoj/JxoOS-Offline" target="_blank" class="download-btn">Download for Offline Use</a>
-  </div>
-
-  <div class="instructions">
-    <h2>How to Install</h2>
-    <div class="steps-grid">
-      <div class="step">
-        <div class="step-number">1. Go to GitHub</div>
-        <p>Click the blue download button above to open the Jxo OS GitHub page.</p>
-      </div>
-      <div class="step">
-        <div class="step-number">2. Click “Code”</div>
-        <p>On GitHub, click the green <strong>Code</strong> button.</p>
-      </div>
-      <div class="step">
-        <div class="step-number">3. Download ZIP</div>
-        <p>Select <strong>Download ZIP</strong> to get the full offline version.</p>
-      </div>
-      <div class="step">
-        <div class="step-number">4. Extract</div>
-        <p>Right-click or two-finger click on the ZIP file and choose <strong>Extract</strong>.</p>
-      </div>
-      <div class="step">
-        <div class="step-number">5. Open Folder</div>
-        <p>Open the folder where Jxo OS was extracted.</p>
-      </div>
-      <div class="step">
-        <div class="step-number">6. Run it</div>
-        <p>Double-click <strong>index.html</strong> — Jxo OS will launch and auto-check for updates.</p>
-      </div>
+  <div class="card">
+    <h1>Installing Jxo‑OS</h1>
+    <div class="progress-container">
+      <progress id="progressBar" value="0" max="100"></progress>
+      <div class="status" id="progressText">Ready to start</div>
     </div>
+    <button class="btn" id="startBtn">Start Install</button>
+    <button class="btn" id="cancelBtn" disabled>Cancel</button>
   </div>
 
-  <div class="footer">
-    &copy; 2025 Jxo OS. All rights reserved.
-  </div>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script type="module">
+    const startBtn = document.getElementById("startBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const bar = document.getElementById("progressBar");
+    const txt = document.getElementById("progressText");
+    let cancelled = false;
 
+    cancelBtn.addEventListener("click", () => {
+      cancelled = true;
+      txt.innerText = "Cancelling…";
+    });
+
+    startBtn.addEventListener("click", async () => {
+      startBtn.disabled = true;
+      cancelBtn.disabled = false;
+      await runInstall();
+    });
+
+    // Helper to show a modal dialog with an OK button
+    function showModal(message) {
+      return new Promise(resolve => {
+        const backdrop = document.createElement("div");
+        backdrop.className = "modal-backdrop";
+        backdrop.innerHTML = `
+          <div class="modal">
+            <p>${message}</p>
+            <button id="modalOk">OK</button>
+          </div>`;
+        document.body.appendChild(backdrop);
+        backdrop.querySelector("#modalOk").addEventListener("click", () => {
+          document.body.removeChild(backdrop);
+          resolve();
+        });
+      });
+    }
+
+    async function runInstall() {
+      // Fetch manifest directly instead of localStorage
+      let manifest;
+      try {
+        manifest = await (await fetch("https://jxoj.github.io/Jxo-OS/assets/offline-updates.json", { cache: "no-store" })).json();
+      } catch (e) {
+        txt.innerText = "Failed to fetch manifest.";
+        return;
+      }
+
+      if (!manifest) {
+        txt.innerText = "Error: no manifest found.";
+        return;
+      }
+
+      // Update header with version
+      try {
+        const h1 = document.querySelector("h1");
+        const verStr = manifest.version ? ` v${manifest.version}` : "";
+        h1.textContent = `Installing Jxo-OS${verStr}`; // show version in header
+      } catch {}
+
+      const keys = Object.keys(manifest.updatezips);
+      const totalSteps = keys.length + 8;
+      let step = 0;
+
+      const root = await window.showDirectoryPicker();
+      await root.requestPermission({ mode: "readwrite" });
+
+      function updateProgress(status, value = null) {
+        txt.innerText = status;
+        if (value !== null) bar.value = value;
+      }
+
+      // 1) Delete old entries
+      for (let name of ["apps","assets","images","index.html","beta.html"]) {
+        if (cancelled) return;
+        await root.removeEntry(name, { recursive: true }).catch(() => {});
+        step++;
+        updateProgress(`Deleted ${name}`, Math.round((step / totalSteps) * 100));
+      }
+
+      // 2) Check for images.zip; if missing, trigger download then prompt user via modal
+      let imgHandle;
+      updateProgress("Checking for images.zip…", Math.round((step / totalSteps) * 100));
+      while (!cancelled) {
+        try {
+          imgHandle = await root.getFileHandle("images.zip");
+          break;
+        } catch {
+          // open download link
+          window.open(manifest.imagesUrl, "_blank");
+          // prompt user to place the file
+          await showModal("Move images.zip to the folder Jxo‑OS is in then click OK to retry.");
+        }
+      }
+      if (cancelled) return;
+
+      // 3) Extract images.zip into /images
+      step++;
+      updateProgress("Extracting images.zip…", Math.round((step / totalSteps) * 100));
+      const imgFile = await imgHandle.getFile();
+      const imgZip = await JSZip.loadAsync(await imgFile.arrayBuffer());
+      const imgDir = await root.getDirectoryHandle("images", { create: true });
+      for (let [path, fileObj] of Object.entries(imgZip.files)) {
+        if (cancelled) return;
+        if (fileObj.dir) continue;
+        const data = await fileObj.async("uint8array");
+        const segments = path.split("/");
+        const fileName = segments.pop();
+        let dir = imgDir;
+        for (let seg of segments) {
+          dir = await dir.getDirectoryHandle(seg, { create: true });
+        }
+        const fh = await dir.getFileHandle(fileName, { create: true });
+        const w = await fh.createWritable();
+        await w.write(data);
+        await w.close();
+      }
+
+      // 4) Auto-delete images.zip
+      step++;
+      await root.removeEntry("images.zip").catch(() => {});
+      updateProgress("Cleaned up images.zip", Math.round((step / totalSteps) * 100));
+
+      // 5) Download & extract each update ZIP
+      for (let key of keys) {
+        if (cancelled) return;
+        const url = manifest.updatezips[key];
+        updateProgress(`Downloading ${key}.zip…`, Math.round((step / totalSteps) * 100));
+        const resp = await fetch(url);
+        const zip = await JSZip.loadAsync(await resp.blob());
+        step++;
+        updateProgress(`Extracting ${key}.zip…`, Math.round((step / totalSteps) * 100));
+
+        let target = root;
+        if (key !== "main") {
+          target = await root.getDirectoryHandle(key, { create: true });
+        }
+
+        for (let [path, fileObj] of Object.entries(zip.files)) {
+          if (cancelled) return;
+          if (fileObj.dir) continue;
+          const data = await fileObj.async("uint8array");
+          const segments = path.split("/");
+          const fileName = segments.pop();
+          let dir = target;
+          for (let seg of segments) {
+            dir = await dir.getDirectoryHandle(seg, { create: true });
+          }
+          const fh = await dir.getFileHandle(fileName, { create: true });
+          const w = await fh.createWritable();
+          await w.write(data);
+          await w.close();
+        }
+      }
+
+      // 6) Complete & reload
+      updateProgress("Install complete! Reloading…", 100);
+      setTimeout(() => location.href = "index.html", 1500);
+    }
+  </script>
 </body>
 </html>
